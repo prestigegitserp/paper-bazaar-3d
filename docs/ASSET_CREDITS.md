@@ -19,3 +19,15 @@ GitHub Pages is currently a static demo. Keeping stable semantic surface IDs let
 The scene is an original conceptual environment inspired by visual characteristics visible in public references of Tehran Grand Bazaar and the 15 Khordad / Beynolharamein area: compact deep shops, dense shelving, glass counters, Persian handwritten labels, metal shutters and brick-vaulted passages.
 
 It is **not** represented as a photogrammetric reconstruction or an exact replica of any specific shop, passage or property.
+
+
+## v0.10 material realism additions
+
+| Surface ID | Asset | Source | Runtime maps |
+|---|---|---|---|
+| `mall-porcelain` | Floor Tiles 04 | https://polyhaven.com/a/floor_tiles_04 | diffuse, normal GL, roughness |
+| `mall-plaster` | White Plaster 02 | https://polyhaven.com/a/white_plaster_02 | diffuse, normal GL, roughness |
+
+Both assets are published under Poly Haven's CC0 license. v0.10 uses the 1K JPG variants at runtime, with procedural fallbacks if the remote assets are unavailable.
+
+The same registry is consumed by procedural React rooms and by the authored GLB material-upgrade layer, so material identity is not duplicated between renderers.

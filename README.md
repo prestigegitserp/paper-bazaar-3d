@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.9.0**
+نسخه فعلی: **v0.10.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.8 علاوه بر فضای واقع‌گرای الهام‌گرفته از بازار تهران، اولین مغازه‌ی authored را به‌صورت GLB مستقل وارد pipeline می‌کند. تعامل‌ها به nodeهای نام‌دار GLB متصل‌اند، نوشته‌های داخلی فقط داخل Room فعال نمایش داده می‌شوند، و قرارداد World/Asset/Hotspot همچنان برای اسکن واقعی و backend آینده مستقل باقی مانده است.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.10 یک material-realism pass عمیق است: PBR واقعی برای کف و گچ پاساژ، cache مشترک متریال بین procedural room و authored GLB، reflection environment داخلی، anisotropic filtering، شیشه/فلز physical و macro wear کنترل‌شده؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
 
 ## اجرا
 
@@ -30,18 +30,18 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.9 — Charsou-inspired passage + authored detail pass
+## v0.10 — Material Realism Pass
 
-- فضای عمومی از brick-vault سنگین به corridor روشن‌تر با porcelain tile، پنل سفید، شیشه، فلز تیره و نور خطی منتقل شده است.
-- آجر فقط به‌عنوان heritage accent محدود باقی مانده است.
-- تابلوهای سردر، wayfinding، shelf label و price board از DOM overlay به `CanvasTexture` روی mesh واقعی تبدیل شده‌اند؛ بنابراین depth buffer آن‌ها را پشت geometry پنهان می‌کند.
-- مدل authored به `iran-paper-authored-v2.glb` ارتقا یافته و جزئیات بیشتری مثل shelf lip، bundle strap، receipt printer، tape dispenser، pen cup، drawer/handle، CCTV، HVAC vent، outlet، cable trunk و price ticket دارد.
-- public props تمیزتر شده‌اند: planter، bench و kiosk مدرن در ورودی؛ hand-cart و paper roll به لبه‌ی مسیر منتقل شده‌اند.
-- API/CMS/World/Document/Scan contracts بدون coupling به skin جدید حفظ شده‌اند.
+- `mall-porcelain` به Poly Haven Floor Tiles 04 و `mall-plaster` به White Plaster 02 متصل شده‌اند؛ هر دو CC0.
+- Cinematic از albedo + normal + roughness استفاده می‌کند؛ Balanced برای سرعت real albedo + fallback سبک‌تر دارد.
+- `SurfaceMaterial` از `MeshPhysicalMaterial`، clearcoat کنترل‌شده، environment response و anisotropy استفاده می‌کند.
+- `MaterialEnvironment` با RoomEnvironment داخلی Three.js reflection map می‌سازد و به HDRI خارجی وابسته نیست.
+- `FloorImperfections` لایه‌ی بسیار ظریف سایش و لکه‌های non-repeating اضافه می‌کند.
+- Sparkles و grout دستی حذف شده‌اند چون حس CG را بیشتر می‌کردند.
+- authored GLB حالا floor/plaster/wood را از همان PBR registry می‌گیرد؛ glass/metal/paper/cardboard نیز physical profile مستقل دارند.
+- cache متریال مشترک است و rendererهای procedural و GLB pipeline جداگانه‌ی asset ندارند.
 
-### اصل جدید برای نوشته‌های داخل World
-
-UI روی HUD می‌تواند DOM باشد، اما هیچ نوشته‌ی محیطی داخل Canvas نباید با Drei `Html` ساخته شود. برای متن محیطی از `WorldTextPanel` یا texture/material واقعی استفاده می‌شود.
+جزئیات فنی: [docs/DEBUG_REPORT_V010.md](docs/DEBUG_REPORT_V010.md)
 
 ## اجرا و تست کاتالوگ
 
