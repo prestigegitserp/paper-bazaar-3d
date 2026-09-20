@@ -4,7 +4,6 @@ import SurfaceMaterial from '../scene/materials/SurfaceMaterial'
 import { useAppStore } from '../store'
 
 const MARKET_LENGTH = 39.6
-const AISLE_WIDTH = 5.7
 
 function TiledFloor() {
   return (
@@ -14,20 +13,6 @@ function TiledFloor() {
         <SurfaceMaterial surface="mall-porcelain" loadPriority="critical" repeat={[4.15, 10]} />
       </mesh>
 
-
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
-        <planeGeometry args={[AISLE_WIDTH, 38.8]} />
-        <meshPhysicalMaterial
-          color="#f4f4f0"
-          roughness={0.24}
-          metalness={0.015}
-          clearcoat={0.22}
-          clearcoatRoughness={0.2}
-          transparent
-          opacity={0.16}
-          depthWrite={false}
-        />
-      </mesh>
     </>
   )
 }
