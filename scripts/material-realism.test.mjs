@@ -39,7 +39,7 @@ test('scene has local reflection environment and subtle macro floor wear', async
 })
 
 test('authored GLB shares the same PBR material pipeline', async () => {
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
   assert.match(renderer, /mall-porcelain/)
   assert.match(renderer, /mall-plaster/)
   assert.match(renderer, /bazaar-plywood/)
