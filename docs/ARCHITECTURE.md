@@ -73,3 +73,16 @@ frontend از `catalogClient.ts` استفاده می‌کند. Store فقط `Cat
 - crawler نباید componentهای frontend را بشناسد.
 - renderer نباید SQL/WordPress/API را بشناسد.
 - hotspot باید action semantic داشته باشد، نه callback ذخیره‌شده در JSON.
+
+
+## v0.6 runtime content boundary
+
+App دیگر Catalog را جداگانه و World را با import مستقیم مصرف نمی‌کند. `loadRuntimeBundle()` repositoryها را compose می‌کند و یک snapshot سازگار از Catalog، World و Documents به store می‌دهد.
+
+این boundary برای مهاجرت سرور مهم است: در آینده endpoint می‌تواند WorldDefinition و Document metadata را برگرداند و scene بدون تغییر rendererهای داخلی آن را مصرف کند.
+
+## Retail profile boundary
+
+Procedural booth renderer از `RoomDefinition.experience.profileId` استفاده می‌کند. profile یک template قابل‌استفاده مجدد است و vendor-specific business data در آن ذخیره نمی‌شود.
+
+Surfaceهای profile نیز ID هستند، نه فایل hard-coded. material registry می‌تواند implementation را از procedural texture به PBR asset واقعی تغییر دهد.

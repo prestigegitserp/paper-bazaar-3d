@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.5.0**
+نسخه فعلی: **v0.6.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. در v0.5 طراحی از سالن نمایشگاهی فاصله گرفته و به یک راسته‌ی فشرده‌تر با حال‌وهوای مغازه‌های کاغذ و نوشت‌افزار مرکز تهران نزدیک شده است؛ این یک بازسازی دقیق مکانی نیست، بلکه skin مفهومی برای تجربه و تست Digital Twin است.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. در v0.6 پروژه از یک skin واحد عبور کرده و به یک Retail Experience Platform داده‌محور نزدیک شده است: هر مغازه profile مستقل، متریال و fixture متفاوت، نمونه‌های کاغذ و کاتالوگ تعاملی دارد؛ World/Catalog/Documents هم از repositoryهای قابل‌تعویض لود می‌شوند تا مهاجرت آینده به API، CMS یا سرور ساده بماند.
 
 ## اجرا
 
@@ -30,16 +30,25 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.5
+## v0.6
 
-- ۶ مغازه/فضا به‌جای ۴ غرفه.
-- skin جدید با سقف طاقی، رنگ‌های آجری/گچی، تابلوهای فارسی، سایه‌بان و قفسه‌های متراکم.
-- فروشنده‌ی سراج سلولز به catalog افزوده شده؛ قیمت عمومی برخی اقلام به‌صورت «استعلام» نمایش داده می‌شود.
-- یک اتاق مستقل برای اولین اسکن واقعی حفظ شده است.
-- Wheel/Pinch دیگر layout سایت را zoom نمی‌کند و FOV دوربین را تغییر می‌دهد.
-- کنترل کامل لمس برای گوشی.
-- گوشی و دستگاه‌های coarse-pointer به‌طور پیش‌فرض Balanced هستند.
-- instancing برای بخش‌های تکراری و حذف reflection سنگین جهت کاهش draw cost.
+- ۶ profile بصری متفاوت برای مغازه‌ها: modern gallery، warehouse، editorial library، bright retail، heritage warehouse و scan lab.
+- Surface Registry procedural برای plaster، wood، brick، terrazzo، paper، fabric و brushed metal با map/bump/roughness مستقل.
+- fixtureهای ماژولار: دیوار نمونه کاغذ، رول‌رک، pallet، book wall، pegboard، acrylic display، قاب نمونه چاپ و swatch fan.
+- کاتالوگ سه‌بعدی روی میز هر فروشنده؛ کلیک روی آن Reader دوصفحه‌ای باز می‌کند و صفحات محصولات، نمونه رنگ/کاغذ و اطلاعات فروشنده را ورق می‌زند.
+- interaction جدید `document` مستقل از mesh و renderer.
+- Runtime Repository layer برای `Catalog + World + Documents`؛ فعلاً seed/API فعلی، بعداً قابل جایگزینی با backend/CMS.
+- HUD/mini-map/diagnostics دیگر مستقیم به `demoWorld` وابسته نیستند و World را از runtime state می‌گیرند.
+- Scan/GLB path حفظ شده و profileهای procedural فقط یکی از rendererهای قابل تعویض باقی مانده‌اند.
+
+## اجرا و تست کاتالوگ
+
+داخل هر مغازه به کاتالوگ روی میز نگاه کن و `E` یا کلیک بزن. در Reader:
+
+- `← / →` ورق زدن
+- `Esc` بستن
+- روی کارت محصول کلیک کن تا منبع محصول باز شود
+- موبایل به حالت single-page reader می‌رود
 
 ## Versioning
 
@@ -51,7 +60,7 @@ release/v0.4.0
 main            → latest stable
 ```
 
-بعد از تثبیت v0.5 نیز `release/v0.5.0` ساخته می‌شود. تاریخچه‌ی Git هم commitهای قبلی را نگه می‌دارد، بنابراین تغییر skin نسخه‌های قدیمی را حذف نمی‌کند.
+milestoneهای پایدار روی `release/vX.Y.Z` snapshot می‌شوند؛ v0.6 نیز بعد از CI و merge snapshot خواهد شد. تاریخچه‌ی Git هم commitهای قبلی را نگه می‌دارد، بنابراین تغییر skin نسخه‌های قدیمی را حذف نمی‌کند.
 
 جزئیات: [docs/VERSIONING.md](docs/VERSIONING.md)
 

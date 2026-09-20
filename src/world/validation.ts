@@ -1,5 +1,6 @@
 import type { Catalog } from '../domain/catalog'
 import type { WorldDefinition } from './types'
+import { hasBoothProfile } from './boothProfiles'
 
 export function validateWorldDefinition(world: WorldDefinition, catalog: Catalog) {
   const errors: string[] = []
@@ -18,6 +19,9 @@ export function validateWorldDefinition(world: WorldDefinition, catalog: Catalog
     if (room.footprint[0] <= 0 || room.footprint[1] <= 0) errors.push(`${room.id} has invalid footprint`)
     if (room.discoveryRadius <= 0) errors.push(`${room.id} has invalid discoveryRadius`)
     if (!room.asset.assetId.trim() || !room.asset.version.trim()) errors.push(`${room.id} asset metadata is incomplete`)
+    if (room.asset.kind === 'procedural' && (!room.experience?.profileId || !hasBoothProfile(room.experience.profileId))) {
+      errors.push(`${room.id} has an unknown booth experience profile`)
+    }
 
     if ((room.asset.kind === 'gltf' || room.asset.kind === 'scan') && !room.asset.url.trim()) {
       errors.push(`${room.id} asset URL is empty`)

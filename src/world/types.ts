@@ -18,7 +18,7 @@ export type AssetMetadata = {
 
 export type ProceduralAsset = AssetMetadata & {
   kind: 'procedural'
-  renderer: 'paper-booth-v1' | 'tehran-paper-shop-v2'
+  renderer: 'paper-booth-v1' | 'tehran-paper-shop-v2' | 'retail-booth-v3'
 }
 
 export type GltfAsset = AssetMetadata & {
@@ -38,8 +38,10 @@ export type ScanAsset = AssetMetadata & {
 
 export type WorldAsset = ProceduralAsset | GltfAsset | ScanAsset
 
+export type HotspotSlot = 'management-desk' | 'price-board' | 'product-pedestal' | 'catalog-desk'
+
 export type HotspotAnchor =
-  | { kind: 'slot'; slot: 'management-desk' | 'price-board' | 'product-pedestal'; index?: number }
+  | { kind: 'slot'; slot: HotspotSlot; index?: number }
   | { kind: 'point'; position: Vec3 }
 
 export type HotspotAction = Interaction | { kind: 'product-slot'; vendorId: string; productIndex: number; label: string }
@@ -54,6 +56,11 @@ export type RoomCollider =
   | { kind: 'box'; center: Vec2; size: Vec2 }
   | { kind: 'circle'; center: Vec2; radius: number }
 
+export type RoomExperienceConfig = {
+  profileId: string
+  catalogDocumentId?: string
+}
+
 export type RoomDefinition = {
   id: string
   label: string
@@ -66,6 +73,7 @@ export type RoomDefinition = {
   discoveryRadius: number
   theme: BoothTheme
   asset: WorldAsset
+  experience?: RoomExperienceConfig
   hotspots: HotspotDefinition[]
   colliders: RoomCollider[]
 }

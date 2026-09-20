@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useAppStore } from '../store'
 import type { CrawlStatus, Product, Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
-import { demoWorld } from '../world/demoWorld'
 import { roomEntryPoint, roomEntryYaw } from '../world/spatial'
 import type { RoomDefinition } from '../world/types'
 import MobileControls from './MobileControls'
@@ -28,7 +27,8 @@ function crawlStatusLabel(status?: CrawlStatus) {
 
 function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interaction }) {
   const product: Product | undefined = selected.kind === 'product' ? vendor.products.find((item) => item.id === selected.productId) : undefined
-  const room = demoWorld.rooms.find((candidate) => candidate.vendorId === vendor.id)
+  const world = useAppStore((state) => state.world)
+  const room = world.rooms.find((candidate) => candidate.vendorId === vendor.id)
   const accent = room?.theme.accent ?? '#c99a55'
 
   return (
@@ -103,8 +103,9 @@ function MiniMap({
 }) {
   const player = useAppStore((state) => state.player)
   const vendors = useAppStore((state) => state.catalog.vendors)
+  const world = useAppStore((state) => state.world)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
-  const { bounds } = demoWorld
+  const { bounds } = world
   const px = ((player.x - bounds.minX) / (bounds.maxX - bounds.minX)) * 100
   const py = ((bounds.maxZ - player.z) / (bounds.maxZ - bounds.minZ)) * 100
 
@@ -120,7 +121,7 @@ function MiniMap({
       </div>
       <div className="minimap">
         <div className="minimap-aisle" />
-        {demoWorld.rooms.map((room, index) => {
+        {world.rooms.map((room, index) => {
           const vendor = room.vendorId ? vendorsById.get(room.vendorId) : undefined
           const label = vendor?.name ?? room.label
           const x = ((room.position[0] - bounds.minX) / (bounds.maxX - bounds.minX)) * 100 - 11
@@ -152,6 +153,7 @@ function DebugPanel() {
   const diagnostics = useAppStore((state) => state.diagnostics)
   const quality = useAppStore((state) => state.quality)
   const activeRoomId = useAppStore((state) => state.activeRoomId)
+  const world = useAppStore((state) => state.world)
   const visitedRoomIds = useAppStore((state) => state.visitedRoomIds)
   const assetErrors = useAppStore((state) => state.assetErrors)
 
@@ -165,7 +167,7 @@ function DebugPanel() {
       <div><span>triangles</span><b>{diagnostics.triangles.toLocaleString()}</b></div>
       <div><span>geometries</span><b>{diagnostics.geometries}</b></div>
       <div><span>textures</span><b>{diagnostics.textures}</b></div>
-      <div><span>visited</span><b>{visitedRoomIds.length}/{demoWorld.rooms.length}</b></div>
+      <div><span>visited</span><b>{visitedRoomIds.length}/{world.rooms.length}</b></div>
       <div><span>asset errors</span><b>{Object.keys(assetErrors).length}</b></div>
     </div>
   )
@@ -180,6 +182,7 @@ export default function HUD() {
   const started = useAppStore((state) => state.started)
   const quality = useAppStore((state) => state.quality)
   const activeRoomId = useAppStore((state) => state.activeRoomId)
+  const world = useAppStore((state) => state.world)
   const setSelected = useAppStore((state) => state.setSelected)
   const setStarted = useAppStore((state) => state.setStarted)
   const setQuality = useAppStore((state) => state.setQuality)
@@ -209,8 +212,8 @@ export default function HUD() {
   }, [catalog.vendors, selected])
 
   const activeRoom = useMemo(
-    () => demoWorld.rooms.find((room) => room.id === activeRoomId) ?? null,
-    [activeRoomId]
+    () => world.rooms.find((room) => room.id === activeRoomId) ?? null,
+    [activeRoomId, world.rooms]
   )
 
   const enter = () => {
@@ -242,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Tehran paper alley · v0.5</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Retail experience platform · v0.6</span></div>
         </div>
 
         <div className="top-actions">
@@ -309,7 +312,7 @@ export default function HUD() {
       {debugOpen && <DebugPanel />}
       <MobileControls />
 
-      {selected && selectedVendor && (
+      {selected && selected.kind !== 'document' && selectedVendor && (
         <aside className="detail-panel">
           <div className="detail-head">
             <span>{selected.kind === 'products' ? 'تابلوی قیمت' : selected.kind === 'product' ? 'کالای روی پیشخوان' : 'میز فروش'}</span>
@@ -323,14 +326,14 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">TEHRAN PAPER ALLEY · v0.5.0</div>
+            <div className="intro-eyebrow">IMMERSIVE RETAIL PLATFORM · v0.6.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان تهران</span></h1>
-            <p>نسخه‌ی سبک‌تر و موبایل‌محور با ۶ مغازه/فضا، حال‌وهوای بازار مرکزی تهران، زوم واقعی داخل دوربین و زیرساخت باز برای GLB و اسکن واقعی.</p>
+            <p>شش مغازه با هویت بصری متفاوت، متریال‌های procedural واقع‌گراتر، نمونه‌های کاغذ و کاتالوگ تعاملی؛ در عین حال Runtime برای World/Catalog/Documents آماده‌ی API و سرور باقی مانده است.</p>
             <div className="intro-features">
-              <span>۶ مغازه و فضای نمونه</span>
-              <span>Wheel / Pinch Zoom</span>
-              <span>Touch controls</span>
-              <span>Auto mobile quality</span>
+              <span>۶ سبک غرفه متفاوت</span>
+              <span>Realistic surface system</span>
+              <span>Interactive catalogs</span>
+              <span>Server-ready repositories</span>
               <span>Scan-ready room</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
