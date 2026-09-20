@@ -64,3 +64,37 @@ Renderer و collider دو چیز جدا هستند. mesh اسکن می‌توا�
 - hotspot JSON مستقل از فایل binary.
 
 اعداد دقیق triangle/texture budget باید بعد از تست روی دستگاه‌های هدف تعیین شود؛ از یک عدد ثابت برای همه اسکن‌ها استفاده نکن.
+
+
+## v0.7 material pipeline
+
+Surface identity is stable and independent from the file host:
+
+```text
+BoothProfile.surfaceId
+        ↓
+SurfaceMaterial
+   ├─ PBR registry hit
+   │    ├─ color 1K
+   │    ├─ normal 1K (Cinematic)
+   │    └─ roughness 1K (Cinematic)
+   └─ procedural fallback
+```
+
+This means moving from the current public CC0 CDN to an owned object store later is a registry change rather than a rewrite of rooms or fixtures.
+
+Production server target:
+
+```text
+surfaceId
+  ↓
+Asset API / manifest
+  ↓
+CDN
+  ├─ .ktx2 albedo
+  ├─ .ktx2 normal
+  ├─ .ktx2 ORM
+  └─ LOD / mobile variants
+```
+
+Do not place vendor-specific URLs directly in React scene components.

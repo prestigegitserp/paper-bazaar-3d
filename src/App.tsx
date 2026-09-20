@@ -47,7 +47,7 @@ export default function App() {
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.toneMapping = ACESFilmicToneMapping
-          gl.toneMappingExposure = 1.06
+          gl.toneMappingExposure = 0.98
           gl.outputColorSpace = SRGBColorSpace
         }}
       >

@@ -30,7 +30,12 @@ const presets: Record<SurfacePresetId, SurfacePreset> = {
   'terrazzo-cool': { id: 'terrazzo-cool', kind: 'terrazzo', base: '#909a9e', detail: '#3f4a50', roughness: 0.72, metalness: 0.05, bumpScale: 0.016 },
   'paper-cream': { id: 'paper-cream', kind: 'paper', base: '#f0e8d8', detail: '#b9aa8f', roughness: 0.96, metalness: 0, bumpScale: 0.012 },
   'paper-white': { id: 'paper-white', kind: 'paper', base: '#f5f6f3', detail: '#c8ccc7', roughness: 0.94, metalness: 0, bumpScale: 0.01 },
-  'fabric-canvas': { id: 'fabric-canvas', kind: 'fabric', base: '#b99a72', detail: '#665039', roughness: 0.98, metalness: 0, bumpScale: 0.026 }
+  'fabric-canvas': { id: 'fabric-canvas', kind: 'fabric', base: '#b99a72', detail: '#665039', roughness: 0.98, metalness: 0, bumpScale: 0.026 },
+  'bazaar-brick': { id: 'bazaar-brick', kind: 'brick', base: '#875a3d', detail: '#c18a61', roughness: 0.9, metalness: 0, bumpScale: 0.038 },
+  'bazaar-plaster': { id: 'bazaar-plaster', kind: 'plaster', base: '#c9c0ae', detail: '#7e7364', roughness: 0.94, metalness: 0, bumpScale: 0.03 },
+  'bazaar-floor': { id: 'bazaar-floor', kind: 'terrazzo', base: '#706c63', detail: '#282b2a', roughness: 0.78, metalness: 0.02, bumpScale: 0.024 },
+  'bazaar-shutter': { id: 'bazaar-shutter', kind: 'metal', base: '#777b78', detail: '#323632', roughness: 0.68, metalness: 0.62, bumpScale: 0.018 },
+  'bazaar-plywood': { id: 'bazaar-plywood', kind: 'wood', base: '#9a744d', detail: '#4f351f', roughness: 0.64, metalness: 0.01, bumpScale: 0.023 }
 }
 
 const cache = new Map<SurfacePresetId, { map: CanvasTexture; bump: CanvasTexture }>()

@@ -2,12 +2,12 @@ import { bazaarShopColliders, bazaarShopEntryAnchor, bazaarShopFootprint } from 
 import type { BoothTheme, HotspotDefinition, RoomDefinition, WorldDefinition } from './types'
 
 const themes: Record<string, BoothTheme> = {
-  'iran-paper-net': { primary: '#183d51', secondary: '#e8edf0', accent: '#5bc8ee', floor: '#5f696f' },
-  'kaghaz-foroush': { primary: '#354638', secondary: '#e7dfcf', accent: '#ca954d', floor: '#6d5d4d' },
-  'mellat-pub': { primary: '#5e3034', secondary: '#f0e7da', accent: '#d9a65b', floor: '#6a4d40' },
-  kaghaz20: { primary: '#304b68', secondary: '#eff4f6', accent: '#5cc9e8', floor: '#737d83' },
-  'seraj-cellulose': { primary: '#5a4329', secondary: '#eadfc8', accent: '#d09c4d', floor: '#76573e' },
-  'scan-preview': { primary: '#2c4a4d', secondary: '#e3eceb', accent: '#65d7e5', floor: '#626b6b' }
+  'iran-paper-net': { primary: '#31504c', secondary: '#d9d4c6', accent: '#d5b16c', floor: '#5f5b54' },
+  'kaghaz-foroush': { primary: '#604233', secondary: '#ded5c5', accent: '#d0a45d', floor: '#62584f' },
+  'mellat-pub': { primary: '#65383d', secondary: '#e1d7c8', accent: '#d6ad68', floor: '#625751' },
+  kaghaz20: { primary: '#40586d', secondary: '#dddcd7', accent: '#d3b16f', floor: '#606566' },
+  'seraj-cellulose': { primary: '#6a5030', secondary: '#dfd4bd', accent: '#d0a057', floor: '#62564a' },
+  'scan-preview': { primary: '#3f5351', secondary: '#d8ddd8', accent: '#9bc3bd', floor: '#606463' }
 }
 
 function shopHotspots(vendorId: string): HotspotDefinition[] {
@@ -60,13 +60,13 @@ function shop(
     rotationY,
     footprint: bazaarShopFootprint,
     entryAnchor: bazaarShopEntryAnchor,
-    discoveryRadius: 4.5,
+    discoveryRadius: 4.1,
     theme: themes[themeKey],
     asset: {
       kind: 'procedural',
       renderer: 'retail-booth-v3',
       assetId: `procedural:${id}`,
-      version: '3.0.0',
+      version: '4.0.0',
       metersPerUnit: 1
     },
     experience: {
@@ -79,21 +79,20 @@ function shop(
 }
 
 export const demoWorld: WorldDefinition = {
-  id: 'paper-bazaar-tehran-alley',
-  name: 'Paper Bazaar 3D — Tehran Paper Alley',
-  version: 4,
-  spawn: [0, 1.68, 18.8],
-  bounds: { minX: -9.7, maxX: 9.7, minZ: -18.8, maxZ: 20.8 },
+  id: 'paper-bazaar-15khordad-inspired',
+  name: 'Paper Bazaar 3D — 15 Khordad inspired paper alley',
+  version: 5,
+  spawn: [0, 1.68, 18.45],
+  bounds: { minX: -8.38, maxX: 8.38, minZ: -18.9, maxZ: 20.3 },
   rooms: [
-    shop('shop:iran-paper-net', 'شبکه کاغذ ایران', 'iran-paper-net', 'iran-paper-modern', -6.4, -13.5, 0, 'iran-paper-net'),
-    shop('shop:kaghaz-foroush', 'کاغذ فروش', 'kaghaz-foroush', 'kaghazforoush-stockroom', 6.4, -13.5, Math.PI, 'kaghaz-foroush'),
-    shop('shop:mellat-pub', 'انتشارات ملت / کیمیا تجارت', 'mellat-pub', 'mellat-editorial', -6.4, -3, 0, 'mellat-pub'),
-    shop('shop:kaghaz20', 'کاغذ ۲۰', 'kaghaz20', 'kaghaz20-retail', 6.4, -3, Math.PI, 'kaghaz20'),
-    shop('shop:seraj-cellulose', 'سراج سلولز / برادران محمودی', 'seraj-cellulose', 'seraj-heritage', -6.4, 7.5, 0, 'seraj-cellulose'),
-    shop('shop:scan-preview', 'غرفه نمونه اسکن و Digital Twin', 'scan-preview', 'scan-lab', 6.4, 7.5, Math.PI)
+    shop('shop:iran-paper-net', 'شبکه کاغذ ایران', 'iran-paper-net', 'iran-paper-modern', -5.35, -13.5, 0, 'iran-paper-net'),
+    shop('shop:kaghaz-foroush', 'کاغذ فروش', 'kaghaz-foroush', 'kaghazforoush-stockroom', 5.35, -13.5, Math.PI, 'kaghaz-foroush'),
+    shop('shop:mellat-pub', 'انتشارات ملت / کیمیا تجارت', 'mellat-pub', 'mellat-editorial', -5.35, -3, 0, 'mellat-pub'),
+    shop('shop:kaghaz20', 'کاغذ ۲۰', 'kaghaz20', 'kaghaz20-retail', 5.35, -3, Math.PI, 'kaghaz20'),
+    shop('shop:seraj-cellulose', 'سراج سلولز / برادران محمودی', 'seraj-cellulose', 'seraj-heritage', -5.35, 7.5, 0, 'seraj-cellulose'),
+    shop('shop:scan-preview', 'غرفه نمونه اسکن و Digital Twin', 'scan-preview', 'scan-lab', 5.35, 7.5, Math.PI)
   ],
   staticColliders: [
-    { kind: 'circle', x: -3.9, z: 15, radius: 0.78 },
-    { kind: 'circle', x: 3.9, z: 15, radius: 0.78 }
+    { kind: 'circle', x: 0, z: 14.65, radius: 0.78 }
   ]
 }

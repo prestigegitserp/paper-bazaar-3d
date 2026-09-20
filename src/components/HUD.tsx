@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Retail experience platform · v0.6</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>15 Khordad realism · v0.7</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,15 +326,15 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">IMMERSIVE RETAIL PLATFORM · v0.6.0</div>
-            <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان تهران</span></h1>
-            <p>شش مغازه با هویت بصری متفاوت، متریال‌های procedural واقع‌گراتر، نمونه‌های کاغذ و کاتالوگ تعاملی؛ در عین حال Runtime برای World/Catalog/Documents آماده‌ی API و سرور باقی مانده است.</p>
+            <div className="intro-eyebrow">15 KHORDAD-INSPIRED MARKET · v0.7.0</div>
+            <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
+            <p>نسخه‌ی واقع‌گراتر با الهام از مغازه‌ها و راسته‌های محدوده‌ی ۱۵ خرداد و بازار تهران: طاق آجری، کف فرسوده، کرکره و قاب فلزی، پیشخوان شیشه‌ای، قفسه‌های تا سقف و شلوغی واقعی‌تر فروش عمده.</p>
             <div className="intro-features">
-              <span>۶ سبک غرفه متفاوت</span>
-              <span>Realistic surface system</span>
+              <span>۱۵ خرداد-inspired alley</span>
+              <span>CC0 PBR materials</span>
+              <span>Glass counters & dense shelves</span>
               <span>Interactive catalogs</span>
-              <span>Server-ready repositories</span>
-              <span>Scan-ready room</span>
+              <span>Scan-ready architecture</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
             <small>دسکتاپ: WASD + Mouse + Wheel · موبایل: Joystick + Look pad + Pinch/±.</small>

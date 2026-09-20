@@ -1168,3 +1168,261 @@ html, body {
   .catalog-swatches { grid-template-columns: 1fr; }
   .catalog-reader__hint { display: none; }
 }
+
+
+/* v0.7 — 15 Khordad-inspired photoreal market pass */
+:root {
+  color: #eee7da;
+  background: #17130f;
+}
+
+body { background: #17130f; }
+
+.app-shell {
+  background:
+    radial-gradient(circle at 50% 15%, rgba(177,135,82,.13), transparent 34%),
+    linear-gradient(180deg,#211a14,#15110e 60%,#0d0b09);
+}
+
+.hud { color: #eee7da; }
+
+.brand-lockup,
+.data-status,
+.quality-toggle,
+.minimap-shell,
+.minimap-reopen,
+.controls-hint,
+.interaction-prompt,
+.detail-panel,
+.intro-card,
+.debug-panel,
+.asset-loader,
+.room-toast {
+  background-color: rgba(26,21,17,.67);
+  border-color: rgba(225,205,173,.1);
+  box-shadow: 0 18px 50px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,245,226,.04);
+}
+
+.brand-mark {
+  background: linear-gradient(145deg,#c7a36a,#7b6648);
+  color: #20170e;
+  box-shadow: 0 0 24px rgba(183,143,83,.18);
+}
+
+.brand-lockup span,
+.data-status,
+.minimap-title,
+.controls-hint {
+  color: #a79a87;
+}
+
+.quality-toggle {
+  border-color: rgba(199,163,106,.18);
+  color: #c9bca8;
+}
+
+.quality-toggle:hover {
+  border-color: rgba(199,163,106,.4);
+  color: #fff1dc;
+}
+
+.minimap {
+  background:
+    repeating-linear-gradient(90deg, rgba(205,184,152,.02) 0 11px, transparent 11px 12px),
+    linear-gradient(180deg,#2a221b,#17130f);
+}
+
+.minimap-aisle {
+  background:
+    repeating-linear-gradient(0deg, rgba(194,170,135,.035) 0 9px, rgba(255,255,255,.015) 9px 10px),
+    linear-gradient(180deg,rgba(164,136,100,.12),rgba(92,73,53,.18));
+  border-color: rgba(210,188,155,.07);
+}
+
+.minimap-booth {
+  background: rgba(238,221,193,.035);
+}
+
+.minimap-booth:hover,
+.minimap-booth.active {
+  background: rgba(196,155,94,.13);
+  box-shadow: 0 0 18px rgba(181,139,80,.12);
+}
+
+.world-tag {
+  color: #f4e7d2;
+  background: rgba(28,22,17,.88);
+  border-color: rgba(225,198,156,.17);
+  box-shadow: 0 7px 22px rgba(0,0,0,.32);
+}
+
+.market-shop-sign {
+  min-width: 250px;
+  direction: rtl;
+  text-align: center;
+  color: var(--sign-text);
+  font-family: Tahoma, Arial, sans-serif;
+  text-shadow: 0 2px 3px rgba(0,0,0,.48);
+}
+
+.market-shop-sign b {
+  display: block;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 900;
+}
+
+.market-shop-sign span {
+  display: block;
+  direction: ltr;
+  margin-top: 2px;
+  color: var(--sign-accent);
+  font: 700 7px/1.2 Arial,sans-serif;
+  letter-spacing: .7px;
+  opacity: .9;
+}
+
+.market-shelf-label {
+  direction: rtl;
+  min-width: 64px;
+  padding: 3px 5px;
+  border: 1px solid rgba(78,62,27,.22);
+  border-radius: 2px;
+  background: var(--label);
+  color: #34280d;
+  box-shadow: 0 2px 5px rgba(0,0,0,.18);
+  font: 900 7px/1.35 Tahoma,Arial,sans-serif;
+  transform: rotate(-1.5deg);
+  white-space: nowrap;
+}
+
+.market-sample-caption {
+  direction: rtl;
+  color: #f1e3ca;
+  background: rgba(43,34,27,.86);
+  border: 1px solid rgba(224,194,145,.15);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font: 800 7px/1.35 Tahoma,Arial,sans-serif;
+  white-space: nowrap;
+}
+
+.market-counter-tag,
+.market-product-tag {
+  border-radius: 4px;
+  color: #f1dfc0;
+}
+
+.closed-bay-sign {
+  width: 150px;
+  direction: rtl;
+  text-align: center;
+  color: #efe2cf;
+  font: 900 10px/1.45 Tahoma,Arial,sans-serif;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+}
+
+.closed-bay-sign small {
+  display: block;
+  direction: rtl;
+  margin-top: 2px;
+  color: #c5b393;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.market-gate-sign--real {
+  color: #f1dfc3;
+  text-shadow: 0 2px 5px rgba(0,0,0,.58);
+}
+
+.market-gate-sign--real strong {
+  font-size: 17px;
+  letter-spacing: -.35px;
+}
+
+.market-gate-sign--real span {
+  color: #c5a46d;
+  font-size: 6.5px;
+}
+
+.bazaar-price-board--paper {
+  width: 178px;
+  color: #352b21;
+  text-shadow: none;
+}
+
+.bazaar-price-board--paper strong {
+  font-size: 12px;
+  color: #3f3023;
+}
+
+.bazaar-price-board--paper span {
+  color: #705c48;
+  font-size: 8px;
+}
+
+.bazaar-price-board--paper small {
+  color: #865e2f;
+  font-size: 7px;
+}
+
+.primary-action,
+.enter-button {
+  background: linear-gradient(145deg,#d7b475,#9d7b4d);
+  color: #24180d;
+  box-shadow: 0 12px 28px rgba(133,93,47,.18);
+}
+
+.big-price,
+.product-row > span,
+.kicker {
+  color: #d9b575;
+}
+
+.intro-overlay {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(159,118,68,.15), transparent 38%),
+    rgba(10,8,6,.46);
+}
+
+.intro-card {
+  background:
+    linear-gradient(150deg,rgba(33,27,21,.95),rgba(17,14,11,.91));
+  border-color: rgba(228,199,155,.13);
+}
+
+.intro-card:after {
+  background: #a97943;
+  opacity: .12;
+}
+
+.intro-eyebrow { color: #c9a36b; }
+.intro-card h1 span {
+  background: linear-gradient(90deg,#d6b275,#f1e0c4 58%,#fff7e8);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.intro-card p { color: #b2a591; }
+.intro-features span {
+  border-color: rgba(231,206,167,.09);
+  background: rgba(238,220,190,.035);
+  color: #b7aa96;
+}
+
+.interaction-prompt {
+  border-color: rgba(211,173,112,.3);
+}
+
+.interaction-prompt span { color: #d7b273; }
+
+.catalog-world-tag {
+  border-color: rgba(211,173,112,.32);
+  color: #f0d7a8;
+}
+
+@media (max-width: 780px) {
+  .market-shop-sign { min-width: 195px; }
+  .market-shop-sign b { font-size: 12px; }
+}
