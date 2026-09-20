@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.11.0**
+نسخه فعلی: **v0.12.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.11 لایه‌ی هندسیِ واقع‌گرایی را روی دستاوردهای v0.10 می‌گذارد: GLB authored با UV واقعی، bevel و cylinder، decalهای سه‌بعدی، variation فیزیکی و tone mapping جدید؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.12 ظاهر و جزئیات v0.11 را حفظ می‌کند و فقط pipeline بارگذاری/رندر را سبک‌تر می‌کند: progressive GLB streaming، staged PBR، texture residency مشترک، instancing و deferred GPU work؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
 
 ## اجرا
 
@@ -30,19 +30,21 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.11 — Geometry + Surface Realism
+## v0.12 — Progressive Loading بدون افت کیفیت
 
-- generator authored از cube دستی بدون UV به geometryهای استاندارد Three.js با `POSITION + NORMAL + TEXCOORD_0` ارتقا یافته است.
-- `RoundedBoxGeometry` برای لبه‌های واقعی و `CylinderGeometry` برای رول کاغذ، مغزی رول، خودکار، دوربین و conduit استفاده می‌شود.
-- فایل authored به `iran-paper-authored-v3.glb` ارتقا یافته و semantic hotspot nodeها بدون تغییر باقی مانده‌اند.
-- بندیل‌ها، کارتن‌ها و reamها variation بسیار جزئی در rotation/placement دارند تا تکرار مکانیکی کمتر شود.
-- `AssetDetailProfile`، decal و labelهای بصری را از business data جدا نگه می‌دارد.
-- `SurfaceDecal` لکه، scuff و fingerprint را به‌صورت mesh واقعی و depth-tested می‌سازد.
-- fixtureهای procedural اصلی از `BeveledBox` reusable استفاده می‌کنند.
-- tone mapping از ACES به AgX منتقل شده تا highlight rolloff متعادل‌تری برای glass/metal/نورهای خطی داشته باشیم.
-- تمام PBR، environment reflection، interaction، catalog reader، mobile controls، collision، server-ready repositories و scan contracts نسخه‌های قبل حفظ شده‌اند.
+- فایل‌های GLB دوردست در startup دانلود/decode نمی‌شوند؛ در فاصله 24 متر preload و در 18 متر reveal می‌شوند.
+- هنگام load شدن file-backed room، یک Booth proxy سبک داخل Suspense محلی می‌ماند تا کل World هرگز blank نشود.
+- meshهای تکراری و non-interactive مدل authored به `InstancedMesh` تبدیل می‌شوند؛ hotspotهای semantic دست‌نخورده باقی می‌مانند.
+- PBR variantهای یکسان ref-count/share می‌شوند و ساخت texture setها حداکثر دو مورد هم‌زمان است.
+- در شروع فقط سطح‌های critical پاساژ real albedo می‌گیرند؛ mapهای کامل normal/roughness بعد از ورود و idle time فعال می‌شوند.
+- PMREM reflection، floor imperfection، SoftShadows و shadow-map کامل قبل از ورود ساخته نمی‌شوند.
+- Catalog Reader با dynamic import فقط در اولین interaction کاتالوگ دانلود می‌شود.
+- قبل از ورود Canvas در demand mode و DPR سبک‌تر است؛ پس از ورود همان کیفیت Cinematic/Balanced قبلی برمی‌گردد.
+- GLB v3، UV، bevel، decals، PBR، AgX، interactionها، mobile controls، collision و تمام contractهای scan/server بدون حذف باقی مانده‌اند.
 
-جزئیات فنی: [docs/DEBUG_REPORT_V011.md](docs/DEBUG_REPORT_V011.md)
+Baseline قبل از این pass (v0.11 CI): main JS = 1,247.22 kB / 352.51 kB gzip و authored GLB = 97,412 bytes.
+
+جزئیات فنی: [docs/DEBUG_REPORT_V012.md](docs/DEBUG_REPORT_V012.md)
 
 ## اجرا و تست کاتالوگ
 
@@ -58,8 +60,7 @@ npm run dev
 نسخه‌های milestone روی branchهای release نگه داشته می‌شوند:
 
 ```text
-release/v0.3.0
-release/v0.4.0
+release/v0.3.0 … release/v0.11.0
 main            → latest stable
 ```
 
