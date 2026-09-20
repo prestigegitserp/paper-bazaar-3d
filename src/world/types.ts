@@ -43,6 +43,7 @@ export type HotspotSlot = 'management-desk' | 'price-board' | 'product-pedestal'
 export type HotspotAnchor =
   | { kind: 'slot'; slot: HotspotSlot; index?: number }
   | { kind: 'point'; position: Vec3 }
+  | { kind: 'node'; nodeName: string }
 
 export type HotspotAction = Interaction | { kind: 'product-slot'; vendorId: string; productIndex: number; label: string }
 

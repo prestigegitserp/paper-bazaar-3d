@@ -1,5 +1,5 @@
-import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'
 import { useRef } from 'react'
 import type { Group } from 'three'
 import type { BoothProfile } from '../../../world/boothProfiles'
@@ -30,9 +30,9 @@ export function SampleWall({ room }: { room: RoomDefinition }) {
           </group>
         )
       })}
-      <Html center position={[0.09, -0.92, 0]} distanceFactor={9.2} style={{ pointerEvents: 'none' }}>
+      <RoomScopedHtml roomId={room.id} position={[0.09, -0.92, 0]} distanceFactor={9.2} style={{ pointerEvents: 'none' }}>
         <div className="market-sample-caption">نمونه رنگ و بافت کاغذ</div>
-      </Html>
+      </RoomScopedHtml>
     </group>
   )
 }
@@ -242,9 +242,9 @@ export function ScanLab({ room }: { room: RoomDefinition }) {
         <ringGeometry args={[1.45, 1.55, 40]} />
         <meshBasicMaterial color={room.theme.accent} toneMapped={false} />
       </mesh>
-      <Html center position={[0, 2.9, 0]} distanceFactor={8.5} style={{ pointerEvents: 'none' }}>
+      <RoomScopedHtml roomId={room.id} position={[0, 2.9, 0]} distanceFactor={8.5} style={{ pointerEvents: 'none' }}>
         <div className="world-tag">محل تست GLB / LiDAR / Photogrammetry</div>
-      </Html>
+      </RoomScopedHtml>
     </group>
   )
 }

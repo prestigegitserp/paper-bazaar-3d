@@ -42,6 +42,20 @@ export function validateWorldDefinition(world: WorldDefinition, catalog: Catalog
       if (hotspot.action.kind === 'product-slot' && hotspot.action.productIndex < 0) {
         errors.push(`${hotspot.id} has an invalid product index`)
       }
+
+      if (hotspot.anchor.kind === 'node') {
+        if (!hotspot.anchor.nodeName.trim()) errors.push(`${hotspot.id} has an empty node anchor`)
+        const nodeCapable = room.asset.kind === 'gltf' || (room.asset.kind === 'scan' && room.asset.format === 'gltf')
+        if (!nodeCapable) errors.push(`${hotspot.id} uses a node anchor on a non-GLTF room`)
+      }
+
+      if (hotspot.anchor.kind === 'slot' && room.asset.kind !== 'procedural') {
+        errors.push(`${hotspot.id} uses a procedural slot anchor on a file-backed room`)
+      }
+
+      if (hotspot.anchor.kind === 'point' && hotspot.anchor.position.some((value) => !Number.isFinite(value))) {
+        errors.push(`${hotspot.id} has invalid point coordinates`)
+      }
     }
 
     for (const collider of room.colliders) {

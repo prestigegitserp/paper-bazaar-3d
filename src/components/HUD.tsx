@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>15 Khordad realism · v0.7</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>15 Khordad realism · v0.8</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,13 +326,13 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">15 KHORDAD-INSPIRED MARKET · v0.7.0</div>
+            <div className="intro-eyebrow">AUTHORED DIGITAL TWIN PIPELINE · v0.8.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>نسخه‌ی واقع‌گراتر با الهام از مغازه‌ها و راسته‌های محدوده‌ی ۱۵ خرداد و بازار تهران: طاق آجری، کف فرسوده، کرکره و قاب فلزی، پیشخوان شیشه‌ای، قفسه‌های تا سقف و شلوغی واقعی‌تر فروش عمده.</p>
+            <p>نسخه‌ی v0.8 اولین مغازه‌ی authored واقعی را به‌صورت GLB وارد همان World ماژولار می‌کند؛ interactionها روی nodeهای معنایی مدل قرار گرفته‌اند و نوشته‌های داخلی فقط در غرفه‌ی فعال دیده می‌شوند تا آرامش بصری راسته حفظ شود.</p>
             <div className="intro-features">
-              <span>۱۵ خرداد-inspired alley</span>
-              <span>CC0 PBR materials</span>
-              <span>Glass counters & dense shelves</span>
+              <span>First authored GLB shop</span>
+              <span>Semantic node hotspots</span>
+              <span>Room-scoped labels</span>
               <span>Interactive catalogs</span>
               <span>Scan-ready architecture</span>
             </div>

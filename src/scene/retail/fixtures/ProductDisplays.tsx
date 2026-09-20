@@ -1,4 +1,4 @@
-import { Html } from '@react-three/drei'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'
 import type { Vendor } from '../../../domain/catalog'
 import type { Interaction } from '../../../domain/interaction'
 import { findHotspot, resolveHotspotInteraction } from '../../../world/hotspots'
@@ -40,13 +40,13 @@ export function PriceBoard({ room, vendor, profile }: { room: RoomDefinition; ve
         </mesh>
       ))}
 
-      <Html center position={[0.11, 0, 0]} distanceFactor={8.2} style={{ pointerEvents: 'none' }}>
+      <RoomScopedHtml roomId={room.id} position={[0.11, 0, 0]} distanceFactor={8.2} style={{ pointerEvents: 'none' }}>
         <div className="bazaar-price-board bazaar-price-board--paper">
           <strong>{vendor?.shortName ?? room.label}</strong>
           <span>{vendor ? `${vendor.products.length} قلم · آخرین قیمت ثبت‌شده` : 'فضای تست مدل واقعی'}</span>
           <small>{vendor ? 'برای دیدن لیست کلیک / E' : 'GLB · LiDAR · Photogrammetry'}</small>
         </div>
-      </Html>
+      </RoomScopedHtml>
     </InteractiveNode>
   )
 }
@@ -95,9 +95,9 @@ export function ProductPaperStack({
         <meshStandardMaterial color={room.theme.primary} roughness={0.62} />
       </mesh>
 
-      <Html center position={[0, 1.55, 0]} distanceFactor={8.8} style={{ pointerEvents: 'none' }}>
+      <RoomScopedHtml roomId={room.id} position={[0, 1.55, 0]} distanceFactor={8.8} style={{ pointerEvents: 'none' }}>
         <div className="world-tag product-tag market-product-tag">{label}</div>
-      </Html>
+      </RoomScopedHtml>
     </InteractiveNode>
   )
 }

@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.7.0**
+نسخه فعلی: **v0.8.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.7 یک visual pass واقع‌گراتر با الهام از راسته‌های بازار تهران و فضای مغازه‌های محدوده ۱۵ خرداد است: راهروی باریک‌تر، طاق آجری، کف فرسوده، کرکره فلزی، پیشخوان شیشه‌ای، قفسه‌های متراکم تا سقف و PBR واقعی. این نسخه بازسازی دقیق یک پلاک یا راسته مشخص نیست و معماری ماژولار Digital Twin نسخه‌های قبلی را حفظ می‌کند.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.8 علاوه بر فضای واقع‌گرای الهام‌گرفته از بازار تهران، اولین مغازه‌ی authored را به‌صورت GLB مستقل وارد pipeline می‌کند. تعامل‌ها به nodeهای نام‌دار GLB متصل‌اند، نوشته‌های داخلی فقط داخل Room فعال نمایش داده می‌شوند، و قرارداد World/Asset/Hotspot همچنان برای اسکن واقعی و backend آینده مستقل باقی مانده است.
 
 ## اجرا
 
@@ -30,18 +30,29 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.7 — 15 Khordad-inspired realism
+## v0.8 — authored shop + visual calm + logic hardening
 
-- راهرو از حالت نمایشگاهی خارج شده و به راسته‌ای باریک‌تر با طاق نیم‌استوانه آجری، پایه‌های آجری و چراغ‌های فلورسنت نزدیک شده است.
-- ۶ مغازه profile مستقل دارند اما همه از زبان مشترک بازار تهران استفاده می‌کنند: قاب فلزی، کرکره باز/نیمه‌باز، تابلو فارسی، پیشخوان شیشه‌ای و قفسه متراکم.
-- PBR Registry جدید برای آجر فرسوده، گچ قدیمی، کف ساییده، کرکره رنگ‌شده و plywood.
-- PBRهای 1K از Poly Haven با مجوز CC0 در runtime لود می‌شوند؛ اگر CDN/CORS قطع باشد fallback procedural فعال می‌ماند.
-- در Cinematic علاوه بر albedo، normal و roughness هم لود می‌شوند؛ Balanced از albedo + fallback سبک‌تر استفاده می‌کند.
-- hand cart، کارتن‌های انبار، چهارپایه، رول کاغذ و دوچرخه به راسته اضافه شده‌اند و planterهای نمایشگاهی حذف شده‌اند.
-- fixtureها به فایل‌های مستقل StockWall / ShopCounter / ProductDisplays / MarketProps شکسته شده‌اند تا توسعه فروشگاه‌های بعدی تمیز بماند.
-- Scan/GLB، hotspotهای semantic، Catalog Reader و Runtime Repository layer بدون تغییر بنیادی حفظ شده‌اند.
+- مغازه‌ی «شبکه کاغذ ایران» دیگر procedural React booth نیست؛ در build یک فایل GLB مستقل و deterministic برای آن تولید می‌شود.
+- مدل authored شامل پوسته مغازه، shopfront، قفسه‌های متراکم، بندیل کاغذ، پیشخوان شیشه‌ای، ماشین‌حساب، کاتالوگ، price board، محصولات، کارتن، رول کاغذ، نمونه دیواری و جزئیات سقف است.
+- Hotspot جدید `node` اضافه شده و interactionهای GLB مستقیماً به nodeهای semantic مثل `hotspot_catalog` و `hotspot_prices` متصل می‌شوند.
+- `RoomScopedHtml` مشکل نوشته‌های شناور را حل می‌کند: labelهای داخلی فقط وقتی Room همان غرفه فعال است mount می‌شوند.
+- منطق `findActiveRoom` اصلاح شده: ابتدا containment واقعی بررسی می‌شود و فقط بعد از آن نزدیک‌ترین discovery fallback انتخاب می‌شود.
+- validator اکنون ترکیب‌های ناسازگار hotspot/asset را رد می‌کند.
+- regression test برای GLB، منطق Room و ممنوعیت Html خام داخل fixtureهای داخلی اضافه شده است.
 
-> ظاهر v0.7 از ویژگی‌های عمومی و تصاویر مرجع بازار تهران/۱۵ خرداد الهام گرفته است؛ ادعای بازسازی دقیق مکانی ندارد.
+### تولید مدل authored
+
+```bash
+npm run generate:authored-shop
+```
+
+خروجی:
+
+```text
+public/models/iran-paper-authored-v1.glb
+```
+
+این فایل در `prebuild` و `predev:web` خودکار تولید می‌شود؛ بنابراین source-of-truth مدل در generator قابل version-control است و binary build artifact به‌صورت دستی نگهداری نمی‌شود.
 
 ## اجرا و تست کاتالوگ
 
