@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { buildAuthoredShopGlb, inspectAuthoredShopGlb } from './generate-authored-shop.mjs'
 
-test('authored shop generator emits a valid GLB with semantic anchor nodes', () => {
+test('authored shop v3 emits UV-mapped beveled/cylindrical GLB with semantic anchors', () => {
   const buffer = buildAuthoredShopGlb()
   const gltf = inspectAuthoredShopGlb(buffer)
 
-  assert.ok(buffer.length > 10_000)
-  assert.ok(buffer.length < 250_000)
+  assert.ok(buffer.length > 20_000)
+  assert.ok(buffer.length < 600_000)
   assert.equal(gltf.asset.version, '2.0')
+  assert.match(gltf.asset.generator, /v0\.11/)
 
   const names = new Set(gltf.nodes.map((node) => node.name))
   for (const required of [
@@ -19,6 +20,9 @@ test('authored shop generator emits a valid GLB with semantic anchor nodes', () 
     'hotspot_product_1',
     'counter_glass_top',
     'paper_roll_0',
+    'paper_core_0',
+    'carton_flap_a_0',
+    'calculator_key_0_0',
     'junction_box',
     'receipt_printer',
     'cctv_body',
@@ -29,6 +33,20 @@ test('authored shop generator emits a valid GLB with semantic anchor nodes', () 
     assert.ok(names.has(required), `missing authored node: ${required}`)
   }
 
-  assert.ok(gltf.nodes.length >= 120, 'authored shop should remain meaningfully detailed after v0.9 detail pass')
+  assert.ok(gltf.nodes.length >= 150, 'authored shop should retain dense v0.11 detail')
   assert.ok(gltf.materials.some((material) => material.name === 'glass'))
+
+  for (const mesh of gltf.meshes) {
+    for (const primitive of mesh.primitives) {
+      assert.ok(Number.isInteger(primitive.attributes.POSITION), `${mesh.name} missing POSITION`)
+      assert.ok(Number.isInteger(primitive.attributes.NORMAL), `${mesh.name} missing NORMAL`)
+      assert.ok(Number.isInteger(primitive.attributes.TEXCOORD_0), `${mesh.name} missing TEXCOORD_0`)
+      assert.equal(gltf.accessors[primitive.attributes.TEXCOORD_0].type, 'VEC2')
+    }
+  }
+
+  const nodeByName = new Map(gltf.nodes.map((node) => [node.name, node]))
+  assert.match(gltf.meshes[nodeByName.get('paper_roll_0').mesh].name, /^cylinder_/)
+  assert.match(gltf.meshes[nodeByName.get('paper_bundle_0_0').mesh].name, /^rounded_/)
+  assert.match(gltf.meshes[nodeByName.get('back_wall').mesh].name, /^box_/)
 })

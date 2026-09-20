@@ -49,7 +49,7 @@ Renderer و collider دو چیز جدا هستند. mesh اسکن می‌توا�
 
 ## Hotspot
 
-برای scan از mesh index یا triangle index خام به‌عنوان identity تجاری استفاده نکن. export مجدد مدل ممکن است topology را عوض کند. در نسخه فعلی `point` anchor پایدارتر است. در آینده می‌توان `node` anchor برای nodeهای نام‌دار GLTF اضافه کرد.
+برای scan از mesh index یا triangle index خام به‌عنوان identity تجاری استفاده نکن. export مجدد مدل ممکن است topology را عوض کند. در نسخه فعلی هم `point` anchor و هم `node` anchor برای nodeهای نام‌دار GLTF پشتیبانی می‌شوند؛ برای asset authored، nodeهای semantic پایدار ترجیح داده می‌شوند.
 
 ## Error isolation
 
@@ -98,3 +98,39 @@ CDN
 ```
 
 Do not place vendor-specific URLs directly in React scene components.
+
+
+## v0.11 geometry acceptance criteria
+
+برای هر GLB authored یا scan-retopo که قرار است materialهای واقعی بگیرد:
+
+- geometry باید UV معتبر داشته باشد؛ PBR بدون `TEXCOORD_0` قابل اتکا نیست.
+- واحد و scale باید واقعی و ترجیحاً meter-based باشد.
+- لبه‌های hard-surface مهم باید bevel واقعی داشته باشند؛ shader نمی‌تواند silhouette کاملاً تیز را جبران کند.
+- objectهایی که ذاتاً گرد هستند باید geometry گرد داشته باشند، نه cube با texture.
+- semantic node nameها مثل `hotspot_catalog` باید در export مجدد پایدار بمانند.
+- collider و hotspot همچنان مستقل از render topology باقی می‌مانند.
+- dirt/decal/branding نمایشی باید در asset detail profile یا texture layer باشد، نه business repository.
+- scan خام قبل از runtime باید cleanup، retopo/decimation و texture bake شود.
+
+Pipeline هدف:
+
+```text
+Blender / Scan / Photogrammetry
+  ↓
+Real scale + origin
+  ↓
+Retopo / authored bevels
+  ↓
+UV unwrap
+  ↓
+PBR bake / atlas
+  ↓
+Semantic node naming
+  ↓
+GLB/KTX2
+  ↓
+World assetId + version
+  ↓
+Independent collider + hotspot JSON
+```
