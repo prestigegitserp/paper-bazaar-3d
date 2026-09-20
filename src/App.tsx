@@ -50,7 +50,7 @@ export default function App() {
             ? [1, 1.55]
             : [0.72, 1.12]
           : [0.65, 0.9]}
-        frameloop={started ? 'always' : 'demand'}
+        frameloop="demand"
         camera={{ fov: 66, near: 0.08, far: 90, position: world.spawn as [number, number, number] }}
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {

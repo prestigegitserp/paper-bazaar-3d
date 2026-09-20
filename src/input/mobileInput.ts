@@ -1,3 +1,5 @@
+import { requestRenderWakeup } from '../engine/renderWakeup'
+
 type MobileInputState = {
   moveX: number
   moveY: number
@@ -19,6 +21,7 @@ const state: MobileInputState = {
 export function setMobileMove(x: number, y: number) {
   state.moveX = Math.max(-1, Math.min(1, x))
   state.moveY = Math.max(-1, Math.min(1, y))
+  requestRenderWakeup()
 }
 
 export function getMobileMove() {
@@ -28,6 +31,7 @@ export function getMobileMove() {
 export function addMobileLook(x: number, y: number) {
   state.lookX += x
   state.lookY += y
+  requestRenderWakeup()
 }
 
 export function consumeMobileLook() {
@@ -39,6 +43,7 @@ export function consumeMobileLook() {
 
 export function triggerMobileInteract() {
   state.interactSequence += 1
+  requestRenderWakeup()
 }
 
 export function getMobileInteractSequence() {
@@ -47,6 +52,7 @@ export function getMobileInteractSequence() {
 
 export function addMobileZoom(delta: number) {
   state.zoomDelta += delta
+  requestRenderWakeup()
 }
 
 export function consumeMobileZoom() {
@@ -61,4 +67,5 @@ export function resetMobileInput() {
   state.lookX = 0
   state.lookY = 0
   state.zoomDelta = 0
+  requestRenderWakeup()
 }
