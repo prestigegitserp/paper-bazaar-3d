@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.13.0 — Photoreal texture + static-scene performance
+
+### Performance
+- converts cinematic shadow maps from per-frame updates to event-driven refreshes
+- refreshes shadows on initial start, quality changes and file-backed room mount
+- disables raycasting on non-interactive authored meshes
+- freezes local transform recomputation for static authored meshes
+- throttles GLB distance probes to every tenth frame and removes sqrt distance work
+- keeps all emissive ceiling fixtures while reducing real point-light count from 13 to 5
+
+### Texture realism
+- adds selective 2K PBR resolution for near-field authored rooms in Cinematic mode
+- 2K source failures automatically fall back to the existing 1K maps
+- keeps global passage/startup textures at 1K for speed
+- adds deterministic 128px micro-bump detail generated locally with zero network requests
+- micro detail is shared/cached and applied to both procedural and authored materials
+- preserves v0.12 staged PBR loading, ref-counted residency and instancing
+
 ## 0.12.0 — Progressive loading without visual downgrade
 
 ### Startup
@@ -26,7 +44,6 @@
 - Cinematic normal/roughness upgrades are scheduled after interaction/idle time
 - procedural fallback variants are shared by surface/repeat/anisotropy key
 
-# Changelog
 
 ## 0.11.0 — Geometry + surface realism
 

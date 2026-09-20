@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Progressive loading · v0.12</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Photoreal static perf · v0.13</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,9 +326,9 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">PROGRESSIVE LOADING · v0.12.0</div>
+            <div className="intro-eyebrow">PHOTOREAL TEXTURE + STATIC PERF · v0.13.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.12 ظاهر v0.11 را حفظ می‌کند اما هزینه‌ی شروع را مرحله‌ای می‌کند: GLB دوردست فقط نزدیک کاربر preload می‌شود، PBRها به‌صورت کنترل‌شده و idle-upgrade می‌آیند، meshهای تکراری authored batch می‌شوند و هزینه‌های GPU سنگین بعد از ورود فعال می‌شوند.</p>
+            <p>v0.13 تمام دستاوردهای v0.12 را حفظ می‌کند و دو گلوگاه بعدی را می‌زند: shadow-map دیگر هر فریم regenerate نمی‌شود، raycast/نورهای واقعی اضافی کم شده‌اند؛ در عوض authored shop نزدیک با PBR 2K و micro-detail بدون دانلود اضافه، واقعی‌تر دیده می‌شود.</p>
             <div className="intro-features">
               <span>UV-mapped authored GLB v3</span>
               <span>Real bevels & cylinders</span>
