@@ -1,4 +1,3 @@
-import { Instance, Instances } from '@react-three/drei'
 import { useMemo } from 'react'
 import WorldTextPanel from './WorldTextPanel'
 import SurfaceMaterial from '../scene/materials/SurfaceMaterial'
@@ -8,31 +7,26 @@ const MARKET_LENGTH = 39.6
 const AISLE_WIDTH = 5.7
 
 function TiledFloor() {
-  const zSeams = useMemo(() => Array.from({ length: 34 }, (_, index) => -19.2 + index * 1.18), [])
-  const xSeams = useMemo(() => Array.from({ length: 15 }, (_, index) => -8.25 + index * 1.18), [])
-
   return (
     <>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
-        <planeGeometry args={[16.55, MARKET_LENGTH]} />
-        <meshStandardMaterial color="#d4d3cf" roughness={0.28} metalness={0.025} />
+        <planeGeometry args={[16.55, MARKET_LENGTH, 12, 30]} />
+        <SurfaceMaterial surface="mall-porcelain" repeat={[4.15, 10]} />
       </mesh>
 
-      <Instances limit={zSeams.length}>
-        <boxGeometry args={[16.45, 0.006, 0.018]} />
-        <meshBasicMaterial color="#a9aaa8" transparent opacity={0.48} />
-        {zSeams.map((z) => <Instance key={z} position={[0, 0.008, z]} />)}
-      </Instances>
 
-      <Instances limit={xSeams.length}>
-        <boxGeometry args={[0.018, 0.006, 39.1]} />
-        <meshBasicMaterial color="#a9aaa8" transparent opacity={0.42} />
-        {xSeams.map((x) => <Instance key={x} position={[x, 0.009, 0]} />)}
-      </Instances>
-
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]}>
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
         <planeGeometry args={[AISLE_WIDTH, 38.8]} />
-        <meshStandardMaterial color="#efefec" roughness={0.2} metalness={0.03} transparent opacity={0.45} />
+        <meshPhysicalMaterial
+          color="#f4f4f0"
+          roughness={0.24}
+          metalness={0.015}
+          clearcoat={0.22}
+          clearcoatRoughness={0.2}
+          transparent
+          opacity={0.16}
+          depthWrite={false}
+        />
       </mesh>
     </>
   )
@@ -44,7 +38,7 @@ function CeilingSystem() {
     <>
       <mesh position={[0, 5.0, 0]} receiveShadow>
         <boxGeometry args={[16.4, 0.16, 39.2]} />
-        <meshStandardMaterial color="#f1f1ee" roughness={0.72} />
+        <SurfaceMaterial surface="mall-plaster" repeat={[8, 16]} />
       </mesh>
 
       {panels.map((z, index) => (
@@ -101,12 +95,12 @@ function GlassBay({ x, z, rotationY, label, accent }: {
     <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
       <mesh position={[2.72, 1.72, 0]} castShadow>
         <boxGeometry args={[0.05, 3.4, 2.7]} />
-        <meshPhysicalMaterial color="#dce5e6" transparent opacity={0.2} transmission={0.72} roughness={0.12} thickness={0.05} depthWrite={false} />
+        <meshPhysicalMaterial color="#dcebed" transparent opacity={0.96} transmission={0.88} roughness={0.065} thickness={0.065} ior={1.46} envMapIntensity={1.35} clearcoat={0.18} clearcoatRoughness={0.12} depthWrite={false} />
       </mesh>
       {[-1.31, 1.31].map((zFrame) => (
         <mesh key={zFrame} position={[2.74, 1.72, zFrame]}>
           <boxGeometry args={[0.1, 3.45, 0.08]} />
-          <meshStandardMaterial color="#24282b" metalness={0.7} roughness={0.34} />
+          <meshPhysicalMaterial color="#24282b" metalness={0.82} roughness={0.28} clearcoat={0.08} clearcoatRoughness={0.24} envMapIntensity={1.45} anisotropy={0.32} />
         </mesh>
       ))}
       <mesh position={[2.74, 3.47, 0]}>

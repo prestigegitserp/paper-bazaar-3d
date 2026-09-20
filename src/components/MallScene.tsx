@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 import Architecture from './Architecture'
+import FloorImperfections from './FloorImperfections'
+import MaterialEnvironment from './MaterialEnvironment'
 import DiagnosticsProbe from './DiagnosticsProbe'
 import ExperienceEffects from './ExperienceEffects'
 import PlayerController from './PlayerController'
@@ -17,11 +19,11 @@ export default function MallScene() {
       <color attach="background" args={['#e7e8e6']} />
       <fog attach="fog" args={['#dcdedc', 35, 78]} />
 
-      <ambientLight intensity={0.72} />
-      <hemisphereLight intensity={0.82} color="#fffaf0" groundColor="#7d8587" />
+      <ambientLight intensity={0.38} />
+      <hemisphereLight intensity={0.56} color="#fffaf0" groundColor="#707779" />
       <directionalLight
         position={[5, 12, 8]}
-        intensity={0.9}
+        intensity={1.08}
         color="#fff6e6"
         castShadow
         shadow-mapSize={[1536, 1536]}
@@ -31,9 +33,13 @@ export default function MallScene() {
         shadow-camera-right={10}
         shadow-camera-top={22}
         shadow-camera-bottom={-22}
+        shadow-bias={-0.00035}
+        shadow-normalBias={0.025}
       />
 
+      <MaterialEnvironment />
       <Architecture />
+      <FloorImperfections />
 
       {world.rooms.map((room) => (
         <RoomRenderer

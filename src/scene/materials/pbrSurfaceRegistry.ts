@@ -14,6 +14,24 @@ const ph = (slug: string, suffix: string) =>
   `https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/${slug}/${slug}_${suffix}_1k.jpg`
 
 export const pbrSurfaceRegistry: Partial<Record<SurfacePresetId, PbrSurfaceAsset>> = {
+  'mall-porcelain': {
+    id: 'mall-porcelain',
+    sourceLabel: 'Poly Haven · Floor Tiles 04 · CC0',
+    sourceUrl: 'https://polyhaven.com/a/floor_tiles_04',
+    color: ph('floor_tiles_04', 'diff'),
+    normal: ph('floor_tiles_04', 'nor_gl'),
+    roughness: ph('floor_tiles_04', 'rough'),
+    normalScale: 0.34
+  },
+  'mall-plaster': {
+    id: 'mall-plaster',
+    sourceLabel: 'Poly Haven · White Plaster 02 · CC0',
+    sourceUrl: 'https://polyhaven.com/a/white_plaster_02',
+    color: ph('white_plaster_02', 'diff'),
+    normal: ph('white_plaster_02', 'nor_gl'),
+    roughness: ph('white_plaster_02', 'rough'),
+    normalScale: 0.28
+  },
   'bazaar-brick': {
     id: 'bazaar-brick',
     sourceLabel: 'Poly Haven · Worn Brick Wall · CC0',

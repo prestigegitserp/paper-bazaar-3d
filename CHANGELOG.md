@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.10.0 — Material realism pass
+
+### PBR
+- adds real CC0 PBR maps for modern porcelain floor and clean white plaster
+- shared PBR texture cache serves procedural rooms and authored GLB materials
+- Cinematic loads albedo + normal + roughness; Balanced keeps a lighter path
+- adds anisotropic filtering, clearcoat profiles and per-surface environment response
+
+### Lighting / physical response
+- adds local PMREM RoomEnvironment for glass/metal/floor reflections
+- reduces flat ambient fill and strengthens material-readable key light
+- adds softer cinematic shadows and removes decorative Sparkles
+- removes manual floor grout overlay now that grout/wear comes from real tile material
+
+### Authored shop
+- upgrades generated GLB materials to MeshPhysicalMaterial at runtime
+- floor/plaster/wood consume shared PBR registry
+- glass gets transmission, thickness and IOR
+- metals get stronger reflection and anisotropy
+- paper/cardboard use restrained environment response
+
+### Imperfections
+- adds subtle deterministic macro floor smudges and scuffs
+- keeps imperfections separate from business/world definitions
+
+# Changelog
+
 ## 0.9.0 — Charsou-inspired modern passage + physical world text
 
 ### Environment

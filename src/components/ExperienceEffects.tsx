@@ -1,4 +1,4 @@
-import { AdaptiveDpr, Sparkles } from '@react-three/drei'
+import { AdaptiveDpr, SoftShadows } from '@react-three/drei'
 import { useAppStore } from '../store'
 
 export default function ExperienceEffects() {
@@ -6,16 +6,9 @@ export default function ExperienceEffects() {
 
   return (
     <>
-      <AdaptiveDpr pixelated />
+      <AdaptiveDpr />
       {quality === 'cinematic' && (
-        <Sparkles
-          count={18}
-          scale={[5.2, 3.2, 35]}
-          size={0.22}
-          speed={0.025}
-          opacity={0.045}
-          color="#e7d6b8"
-        />
+        <SoftShadows size={11} samples={10} focus={0.36} />
       )}
     </>
   )
