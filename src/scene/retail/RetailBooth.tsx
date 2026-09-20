@@ -1,40 +1,39 @@
 import type { Vendor } from '../../domain/catalog'
 import { getBoothProfile } from '../../world/boothProfiles'
-import { findHotspot, resolveHotspotInteraction } from '../../world/hotspots'
 import type { RoomDefinition } from '../../world/types'
 import RetailShell from './RetailShell'
 import {
-  AcrylicDisplay,
   BookWall,
+  CardboardStacks,
   CatalogProp,
+  CeilingFan,
   PalletStack,
   Pegboard,
   PriceBoard,
   PrintFrames,
   ProductPaperStack,
   RollRack,
-  SalesDesk,
+  SalesCounter,
   SampleWall,
   ScanLab,
-  StockShelves,
-  SwatchFan
+  SideDisplay,
+  StockWall,
+  SwatchFan,
+  resolveProductInteractions
 } from './RetailFixtures'
 
 export default function RetailBooth({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   const profile = getBoothProfile(room.experience?.profileId)
   const productA = vendor?.products[0]
   const productB = vendor?.products[1]
-  const hotspotA = vendor ? findHotspot(room.hotspots, 'product-pedestal', 0) : null
-  const hotspotB = vendor ? findHotspot(room.hotspots, 'product-pedestal', 1) : null
-  const productAInteraction = vendor && productA && hotspotA ? resolveHotspotInteraction(hotspotA, vendor) : null
-  const productBInteraction = vendor && productB && hotspotB ? resolveHotspotInteraction(hotspotB, vendor) : null
+  const interactions = resolveProductInteractions(room, vendor)
 
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
       <RetailShell room={room} vendor={vendor} profile={profile} />
 
-      {profile.template !== 'scan-lab' && <StockShelves room={room} profile={profile} />}
-      <SalesDesk room={room} vendor={vendor} profile={profile} />
+      {profile.template !== 'scan-lab' && <StockWall room={room} profile={profile} />}
+      <SalesCounter room={room} vendor={vendor} profile={profile} />
       <PriceBoard room={room} vendor={vendor} profile={profile} />
       <CatalogProp room={room} vendor={vendor} profile={profile} />
 
@@ -44,15 +43,17 @@ export default function RetailBooth({ room, vendor }: { room: RoomDefinition; ve
       {profile.features.palletStack && <PalletStack profile={profile} />}
       {profile.features.bookWall && <BookWall room={room} profile={profile} />}
       {profile.features.pegboard && <Pegboard room={room} />}
-      {profile.features.acrylicDisplay && <AcrylicDisplay room={room} />}
       {profile.features.printFrames && <PrintFrames room={room} />}
+      {profile.features.cardboardStacks && <CardboardStacks />}
+      {profile.features.sideDisplay && <SideDisplay room={room} profile={profile} />}
+      {profile.features.ceilingFan && <CeilingFan />}
 
       {productA && (
         <ProductPaperStack
           position={profile.layout.products[0] as [number, number, number]}
           room={room}
           profile={profile}
-          interaction={productAInteraction}
+          interaction={interactions.first}
           label={productA.name}
         />
       )}
@@ -62,19 +63,12 @@ export default function RetailBooth({ room, vendor }: { room: RoomDefinition; ve
           position={profile.layout.products[1] as [number, number, number]}
           room={room}
           profile={profile}
-          interaction={productBInteraction}
+          interaction={interactions.second}
           label={productB.name}
         />
       )}
 
       {profile.template === 'scan-lab' && <ScanLab room={room} />}
-
-      <pointLight
-        position={[1.4, 3.2, 0]}
-        intensity={profile.lighting.intensity}
-        distance={6.5}
-        color={profile.lighting.color}
-      />
     </group>
   )
 }
