@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Charsou passage · v0.9</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Material realism · v0.10</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,14 +326,14 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">MODERN PAPER PASSAGE · v0.9.0</div>
+            <div className="intro-eyebrow">MATERIAL REALISM PASS · v0.10.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.9 فضای عمومی را روشن‌تر و نزدیک‌تر به زبان معماری چارسو می‌کند: کف porcelain روشن، شیشه و فلز، سقف پنلی و نور خطی. متن‌های داخل World دیگر DOM شناور نیستند و روی mesh واقعی رندر می‌شوند تا پشت دیوار و غرفه واقعاً پنهان شوند.</p>
+            <p>v0.10 تمرکز را از هندسه به جنس واقعی سطوح می‌برد: PBR واقعی برای کف و دیوار، normal/roughness چندلایه، anisotropic filtering، reflection محیطی، شیشه‌ی فیزیکی‌تر و سایش ظریف روی کف؛ در عین حال ساختار ماژولار و مسیر Scan/API مستقل باقی مانده‌اند.</p>
             <div className="intro-features">
-              <span>Charsou-inspired passage</span>
-              <span>Physical 3D signage</span>
-              <span>Authored GLB v2 details</span>
-              <span>Interactive catalogs</span>
+              <span>CC0 multi-map PBR</span>
+              <span>Environment reflections</span>
+              <span>Physical glass & metals</span>
+              <span>Macro surface wear</span>
               <span>Scan-ready architecture</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>

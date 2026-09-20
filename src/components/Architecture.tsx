@@ -14,8 +14,8 @@ function TiledFloor() {
   return (
     <>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
-        <planeGeometry args={[16.55, MARKET_LENGTH]} />
-        <meshStandardMaterial color="#d4d3cf" roughness={0.28} metalness={0.025} />
+        <planeGeometry args={[16.55, MARKET_LENGTH, 12, 30]} />
+        <SurfaceMaterial surface="mall-porcelain" repeat={[4.15, 10]} />
       </mesh>
 
       <Instances limit={zSeams.length}>
@@ -30,9 +30,18 @@ function TiledFloor() {
         {xSeams.map((x) => <Instance key={x} position={[x, 0.009, 0]} />)}
       </Instances>
 
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]}>
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
         <planeGeometry args={[AISLE_WIDTH, 38.8]} />
-        <meshStandardMaterial color="#efefec" roughness={0.2} metalness={0.03} transparent opacity={0.45} />
+        <meshPhysicalMaterial
+          color="#f4f4f0"
+          roughness={0.24}
+          metalness={0.015}
+          clearcoat={0.22}
+          clearcoatRoughness={0.2}
+          transparent
+          opacity={0.16}
+          depthWrite={false}
+        />
       </mesh>
     </>
   )
@@ -44,7 +53,7 @@ function CeilingSystem() {
     <>
       <mesh position={[0, 5.0, 0]} receiveShadow>
         <boxGeometry args={[16.4, 0.16, 39.2]} />
-        <meshStandardMaterial color="#f1f1ee" roughness={0.72} />
+        <SurfaceMaterial surface="mall-plaster" repeat={[8, 16]} />
       </mesh>
 
       {panels.map((z, index) => (

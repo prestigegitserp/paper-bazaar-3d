@@ -1,12 +1,12 @@
 import { useGLTF } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
-import { Mesh, type Object3D } from 'three'
+import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, type Material, type Object3D } from 'three'
 import type { Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
 import { interactionFromObject } from '../engine/interactions'
 import { resolveAssetUrl } from '../assets/resolveAssetUrl'
-import { useAppStore } from '../store'
+import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
 import Booth from './Booth'
@@ -16,6 +16,7 @@ import WorldTextPanel from './WorldTextPanel'
 function PointHotspot({ position, interaction }: { position: readonly [number, number, number]; interaction: Interaction }) {
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
+  const quality = useAppStore((state) => state.quality)
 
   return (
     <mesh
@@ -39,13 +40,90 @@ function PointHotspot({ position, interaction }: { position: readonly [number, n
   )
 }
 
-function attachNodeInteractions(scene: Object3D, room: RoomDefinition, vendor?: Vendor) {
+function upgradeAuthoredMaterial(material: Material, quality: RenderQuality) {
+  if (!(material instanceof MeshStandardMaterial)) return material.clone()
+
+  const base = {
+    name: material.name,
+    color: material.color.clone(),
+    emissive: material.emissive.clone(),
+    emissiveIntensity: material.emissiveIntensity,
+    roughness: material.roughness,
+    metalness: material.metalness,
+    side: material.side
+  }
+
+  const physical = new MeshPhysicalMaterial(base)
+  physical.envMapIntensity = quality === 'cinematic' ? 1.05 : 0.72
+
+  switch (material.name) {
+    case 'glass':
+      physical.color.set('#d9eaec')
+      physical.roughness = 0.07
+      physical.metalness = 0
+      physical.transmission = quality === 'cinematic' ? 0.86 : 0.58
+      physical.thickness = 0.08
+      physical.ior = 1.45
+      physical.clearcoat = 0.18
+      physical.clearcoatRoughness = 0.12
+      physical.transparent = true
+      physical.opacity = quality === 'cinematic' ? 0.98 : 0.72
+      physical.depthWrite = false
+      break
+    case 'floor':
+      physical.roughness = 0.34
+      physical.metalness = 0.015
+      physical.clearcoat = quality === 'cinematic' ? 0.28 : 0.12
+      physical.clearcoatRoughness = 0.24
+      physical.envMapIntensity = 1.25
+      break
+    case 'metal':
+    case 'silver':
+      physical.roughness = material.name === 'silver' ? 0.24 : 0.32
+      physical.metalness = 0.82
+      physical.clearcoat = 0.12
+      physical.clearcoatRoughness = 0.26
+      physical.anisotropy = quality === 'cinematic' ? 0.38 : 0.16
+      physical.envMapIntensity = 1.5
+      break
+    case 'wood':
+      physical.roughness = 0.5
+      physical.clearcoat = 0.08
+      physical.clearcoatRoughness = 0.5
+      physical.envMapIntensity = 0.82
+      break
+    case 'paper':
+      physical.roughness = 0.91
+      physical.metalness = 0
+      physical.envMapIntensity = 0.36
+      break
+    case 'plaster':
+      physical.roughness = 0.72
+      physical.envMapIntensity = 0.52
+      break
+    case 'cardboard':
+      physical.roughness = 0.9
+      physical.envMapIntensity = 0.38
+      break
+    default:
+      physical.roughness = Math.max(0.42, physical.roughness)
+      physical.clearcoat = quality === 'cinematic' ? 0.05 : 0
+  }
+
+  material.dispose()
+  return physical
+}
+
+function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: RenderQuality, vendor?: Vendor) {
   scene.traverse((object) => {
     object.userData = { ...object.userData }
     delete object.userData.interaction
     if (object instanceof Mesh) {
       object.castShadow = true
       object.receiveShadow = true
+      object.material = Array.isArray(object.material)
+        ? object.material.map((material) => upgradeAuthoredMaterial(material, quality))
+        : upgradeAuthoredMaterial(object.material, quality)
     }
   })
 
@@ -70,9 +148,9 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
 
   const scene = useMemo(() => {
     const clone = gltf.scene.clone(true)
-    attachNodeInteractions(clone, room, vendor)
+    attachNodeInteractions(clone, room, quality, vendor)
     return clone
-  }, [gltf.scene, room, vendor])
+  }, [gltf.scene, quality, room, vendor])
 
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
