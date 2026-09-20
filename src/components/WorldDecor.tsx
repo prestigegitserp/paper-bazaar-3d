@@ -3,55 +3,86 @@ import { Instance, Instances } from '@react-three/drei'
 function HandCart({ position }: { position: [number, number, number] }) {
   return (
     <group position={position} rotation={[0, 0.12, 0]}>
-      <mesh position={[0, 0.48, 0]} castShadow>
-        <boxGeometry args={[1.2, 0.18, 1.65]} />
-        <meshStandardMaterial color="#715039" roughness={0.78} />
+      <mesh position={[0, 0.43, 0]} castShadow>
+        <boxGeometry args={[1.1, 0.14, 1.55]} />
+        <meshStandardMaterial color="#78614f" roughness={0.72} />
       </mesh>
       {[
-        [-0.5, 0.16, -0.55],
-        [0.5, 0.16, -0.55],
-        [-0.5, 0.16, 0.55],
-        [0.5, 0.16, 0.55]
+        [-0.46, 0.14, -0.52],
+        [0.46, 0.14, -0.52],
+        [-0.46, 0.14, 0.52],
+        [0.46, 0.14, 0.52]
       ].map((wheel, index) => (
         <mesh key={index} position={wheel as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.17, 0.17, 0.09, 14]} />
-          <meshStandardMaterial color="#22221f" roughness={0.9} />
+          <cylinderGeometry args={[0.15, 0.15, 0.075, 14]} />
+          <meshStandardMaterial color="#282b2c" roughness={0.72} />
         </mesh>
       ))}
-      {[0.68, 0.86, 1.04].map((y, index) => (
+      {[0.63, 0.79, 0.95].map((y, index) => (
         <mesh key={y} position={[0, y, 0]} castShadow>
-          <boxGeometry args={[1.04 - index * 0.05, 0.14, 1.42 - index * 0.07]} />
-          <meshStandardMaterial color={index === 1 ? '#d8c6a5' : '#e8e1d3'} roughness={0.9} />
+          <boxGeometry args={[0.98 - index * 0.04, 0.12, 1.32 - index * 0.06]} />
+          <meshStandardMaterial color={index === 1 ? '#d7c7a8' : '#efebe2'} roughness={0.86} />
         </mesh>
       ))}
-      <mesh position={[0, 0.5, 1.05]} rotation={[0.55, 0, 0]}>
-        <boxGeometry args={[0.7, 0.06, 1.0]} />
-        <meshStandardMaterial color="#5f4431" roughness={0.8} />
-      </mesh>
     </group>
   )
 }
 
-function CartonPile({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  const boxes = [
-    [-0.38, 0.2, 0],
-    [0.34, 0.18, 0.05],
-    [-0.22, 0.58, 0.02],
-    [0.42, 0.52, -0.04],
-    [0.02, 0.91, 0.02]
-  ] as const
+function ModernPlanter({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.33, 0]} castShadow>
+        <cylinderGeometry args={[0.38, 0.46, 0.66, 18]} />
+        <meshStandardMaterial color="#4e5558" roughness={0.42} metalness={0.18} />
+      </mesh>
+      <mesh position={[0, 0.67, 0]}>
+        <cylinderGeometry args={[0.32, 0.32, 0.08, 18]} />
+        <meshStandardMaterial color="#4c4034" roughness={0.9} />
+      </mesh>
+      {Array.from({ length: 9 }, (_, index) => {
+        const a = (index / 9) * Math.PI * 2
+        return (
+          <mesh key={index} position={[Math.cos(a) * 0.12, 1.0 + (index % 3) * 0.08, Math.sin(a) * 0.12]} rotation={[0.1, a, (index % 2 ? 1 : -1) * 0.28]}>
+            <boxGeometry args={[0.08, 0.8, 0.22]} />
+            <meshStandardMaterial color={index % 2 ? '#55745a' : '#668865'} roughness={0.82} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
 
+function MallBench({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      {boxes.map((box, index) => (
-        <mesh key={index} position={box} rotation={[0, (index % 3 - 1) * 0.07, 0]} castShadow>
-          <boxGeometry args={[0.68, index === 4 ? 0.32 : 0.36, 0.62]} />
-          <meshStandardMaterial color={index % 2 ? '#a98057' : '#bb9364'} roughness={0.96} />
+      <mesh position={[0, 0.48, 0]} castShadow>
+        <boxGeometry args={[1.8, 0.12, 0.52]} />
+        <meshStandardMaterial color="#a68c6f" roughness={0.58} />
+      </mesh>
+      {[-0.66, 0.66].map((x) => (
+        <mesh key={x} position={[x, 0.25, 0]}>
+          <boxGeometry args={[0.08, 0.5, 0.42]} />
+          <meshStandardMaterial color="#383e41" metalness={0.64} roughness={0.32} />
         </mesh>
       ))}
-      <mesh position={[0.02, 0.92, 0.34]}>
-        <boxGeometry args={[0.46, 0.05, 0.02]} />
-        <meshStandardMaterial color="#6f5538" roughness={0.88} />
+    </group>
+  )
+}
+
+function InfoKiosk() {
+  return (
+    <group position={[0, 0, 15.05]} rotation={[0, -0.06, 0]}>
+      <mesh position={[0, 0.72, 0]} castShadow>
+        <boxGeometry args={[1.18, 1.44, 0.62]} />
+        <meshStandardMaterial color="#f0f0ed" roughness={0.44} />
+      </mesh>
+      <mesh position={[0, 1.02, -0.325]} rotation={[-0.18, 0, 0]}>
+        <boxGeometry args={[0.82, 0.55, 0.035]} />
+        <meshStandardMaterial color="#243035" emissive="#55737b" emissiveIntensity={0.18} roughness={0.26} />
+      </mesh>
+      <mesh position={[0, 0.22, 0]}>
+        <boxGeometry args={[1.25, 0.12, 0.7]} />
+        <meshStandardMaterial color="#444b4f" metalness={0.4} roughness={0.38} />
       </mesh>
     </group>
   )
@@ -61,77 +92,16 @@ function PaperRollRack({ position, rotationY = 0 }: { position: [number, number,
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh position={[0, 0.58, 0]}>
-        <boxGeometry args={[1.55, 1.16, 0.62]} />
-        <meshStandardMaterial color="#50453a" roughness={0.82} />
+        <boxGeometry args={[1.45, 1.12, 0.52]} />
+        <meshStandardMaterial color="#454c50" roughness={0.38} metalness={0.5} />
       </mesh>
       <Instances limit={5}>
-        <cylinderGeometry args={[0.17, 0.17, 1.28, 14]} />
+        <cylinderGeometry args={[0.16, 0.16, 1.2, 14]} />
         <meshStandardMaterial roughness={0.88} vertexColors />
-        {[-0.52, -0.26, 0, 0.26, 0.52].map((x, index) => (
-          <Instance
-            key={x}
-            position={[x, 1.36, 0]}
-            rotation={[0, 0, Math.PI / 2]}
-            color={index % 2 ? '#e5dccb' : '#cbb591'}
-          />
+        {[-0.48, -0.24, 0, 0.24, 0.48].map((x, index) => (
+          <Instance key={x} position={[x, 1.28, 0]} rotation={[0, 0, Math.PI / 2]} color={index % 2 ? '#e7e0d3' : '#d0bc99'} />
         ))}
       </Instances>
-    </group>
-  )
-}
-
-function FoldingStool({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  return (
-    <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 0.46, 0]} castShadow>
-        <boxGeometry args={[0.52, 0.07, 0.42]} />
-        <meshStandardMaterial color="#6b4d36" roughness={0.8} />
-      </mesh>
-      {[-0.18, 0.18].map((x) => (
-        <group key={x}>
-          <mesh position={[x, 0.23, 0]} rotation={[0, 0, x < 0 ? 0.17 : -0.17]}>
-            <boxGeometry args={[0.055, 0.46, 0.055]} />
-            <meshStandardMaterial color="#3f413d" metalness={0.52} roughness={0.58} />
-          </mesh>
-          <mesh position={[x, 0.23, 0]} rotation={[0, 0, x < 0 ? -0.17 : 0.17]}>
-            <boxGeometry args={[0.055, 0.46, 0.055]} />
-            <meshStandardMaterial color="#3f413d" metalness={0.52} roughness={0.58} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  )
-}
-
-function Bicycle({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  return (
-    <group position={position} rotation={[0, rotationY, 0]} scale={0.82}>
-      {[-0.72, 0.72].map((z) => (
-        <mesh key={z} position={[0, 0.56, z]} rotation={[0, Math.PI / 2, 0]}>
-          <torusGeometry args={[0.45, 0.025, 8, 26]} />
-          <meshStandardMaterial color="#272825" roughness={0.62} metalness={0.48} />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.7, 0]} rotation={[0.78, 0, 0]}>
-        <boxGeometry args={[0.045, 0.045, 1.05]} />
-        <meshStandardMaterial color="#4d5d55" metalness={0.48} roughness={0.56} />
-      </mesh>
-      <mesh position={[0, 0.7, -0.1]} rotation={[-0.82, 0, 0]}>
-        <boxGeometry args={[0.045, 0.045, 0.84]} />
-        <meshStandardMaterial color="#4d5d55" metalness={0.48} roughness={0.56} />
-      </mesh>
-      <mesh position={[0, 1.02, 0.34]} rotation={[0.18, 0, 0]}>
-        <boxGeometry args={[0.055, 0.55, 0.055]} />
-        <meshStandardMaterial color="#4d5d55" metalness={0.48} roughness={0.56} />
-      </mesh>
-      <mesh position={[0, 1.29, 0.33]}>
-        <boxGeometry args={[0.38, 0.04, 0.04]} />
-        <meshStandardMaterial color="#2d2e2a" metalness={0.5} roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 1.0, -0.14]}>
-        <boxGeometry args={[0.3, 0.05, 0.16]} />
-        <meshStandardMaterial color="#4b352a" roughness={0.82} />
-      </mesh>
     </group>
   )
 }
@@ -139,13 +109,12 @@ function Bicycle({ position, rotationY = 0 }: { position: [number, number, numbe
 export default function WorldDecor() {
   return (
     <>
-      <HandCart position={[0, 0, 14.65]} />
-      <CartonPile position={[-2.22, 0, 16.7]} rotationY={-0.12} />
-      <CartonPile position={[2.2, 0, -17.5]} rotationY={Math.PI + 0.08} />
-      <FoldingStool position={[-2.18, 0, 11.55]} rotationY={0.3} />
-      <PaperRollRack position={[-2.15, 0, -18]} />
-      <PaperRollRack position={[2.15, 0, -18]} rotationY={Math.PI} />
-      <Bicycle position={[2.28, 0, 16.1]} rotationY={0.04} />
+      <InfoKiosk />
+      <ModernPlanter position={[-2.05, 0, 16.25]} />
+      <ModernPlanter position={[2.05, 0, 16.25]} />
+      <MallBench position={[-2.15, 0, 11.55]} rotationY={0.04} />
+      <HandCart position={[2.12, 0, -16.7]} />
+      <PaperRollRack position={[-2.1, 0, -17.4]} />
     </>
   )
 }

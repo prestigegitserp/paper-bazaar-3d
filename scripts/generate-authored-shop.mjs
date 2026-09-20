@@ -3,15 +3,20 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const MATERIALS = [
-  ['plaster', [0.76, 0.72, 0.66, 1], 0, 0.9],
-  ['floor', [0.40, 0.38, 0.34, 1], 0.02, 0.78],
+  ['plaster', [0.90, 0.89, 0.86, 1], 0, 0.68],
+  ['floor', [0.76, 0.76, 0.73, 1], 0.02, 0.32],
   ['wood', [0.50, 0.34, 0.21, 1], 0, 0.64],
   ['paper', [0.92, 0.90, 0.85, 1], 0, 0.95],
   ['cardboard', [0.67, 0.49, 0.30, 1], 0, 0.92],
-  ['metal', [0.27, 0.29, 0.27, 1], 0.72, 0.5],
+  ['metal', [0.20, 0.22, 0.23, 1], 0.76, 0.34],
   ['green', [0.18, 0.31, 0.29, 1], 0.12, 0.62],
   ['yellow', [0.91, 0.78, 0.24, 1], 0, 0.84],
-  ['glass', [0.80, 0.90, 0.87, 0.22], 0, 0.08]
+  ['glass', [0.86, 0.93, 0.94, 0.18], 0, 0.06],
+  ['white', [0.94, 0.94, 0.91, 1], 0, 0.48],
+  ['black', [0.06, 0.07, 0.075, 1], 0.25, 0.32],
+  ['red', [0.62, 0.11, 0.09, 1], 0, 0.5],
+  ['blue', [0.11, 0.28, 0.45, 1], 0, 0.5],
+  ['silver', [0.58, 0.61, 0.62, 1], 0.85, 0.26]
 ]
 
 function pad4(value) {
@@ -102,6 +107,58 @@ function authoredShopNodes() {
       box(`light_case_${index}`, 'metal', [1.85, 0.08, 0.18], [0.2, 3.88, z]),
       box(`light_panel_${index}`, 'paper', [1.60, 0.025, 0.07], [0.2, 3.82, z])
     )
+  }
+
+  for (const y of [0.34, 0.95, 1.57, 2.19, 2.81, 3.43]) {
+    nodes.push(box(`shelf_front_lip_${y}`, 'silver', [0.03, 0.05, 6.05], [-2.01, y + 0.055, 0]))
+  }
+
+  for (let row = 0; row < 5; row += 1) {
+    for (let col = 0; col < 6; col += 1) {
+      if ((row + col) % 3 === 0) {
+        const z = -2.55 + col * 1.02
+        const y = 0.55 + row * 0.62
+        nodes.push(box(`bundle_strap_${row}_${col}`, 'cardboard', [0.06, 0.285, 0.75], [-2.00, y, z]))
+      }
+    }
+  }
+
+  nodes.push(
+    box('counter_glass_shelf', 'glass', [0.64, 0.025, 2.32], [0.98, 0.72, -1.05]),
+    box('receipt_printer', 'white', [0.30, 0.13, 0.40], [0.68, 1.16, -0.66]),
+    box('receipt_slot', 'black', [0.20, 0.018, 0.08], [0.68, 1.23, -0.77]),
+    box('tape_dispenser', 'green', [0.18, 0.08, 0.30], [0.96, 1.15, -0.10]),
+    box('pen_cup', 'silver', [0.12, 0.20, 0.12], [0.62, 1.17, 0.08]),
+    box('pen_red', 'red', [0.018, 0.24, 0.018], [0.60, 1.31, 0.08]),
+    box('pen_blue', 'blue', [0.018, 0.22, 0.018], [0.65, 1.30, 0.08]),
+    box('drawer_front_0', 'white', [0.04, 0.22, 0.92], [1.36, 0.43, -1.62]),
+    box('drawer_front_1', 'white', [0.04, 0.22, 0.92], [1.36, 0.43, -0.50]),
+    box('drawer_handle_0', 'silver', [0.03, 0.035, 0.26], [1.39, 0.45, -1.62]),
+    box('drawer_handle_1', 'silver', [0.03, 0.035, 0.26], [1.39, 0.45, -0.50]),
+    box('power_outlet', 'white', [0.04, 0.18, 0.28], [-2.49, 0.55, -2.62]),
+    box('cable_trunk', 'silver', [0.035, 0.035, 3.1], [-2.50, 3.25, -1.70]),
+    box('cctv_body', 'white', [0.28, 0.16, 0.18], [-1.95, 3.54, -2.88]),
+    box('cctv_lens', 'black', [0.05, 0.07, 0.07], [-1.80, 3.54, -2.88]),
+    box('cctv_arm', 'silver', [0.28, 0.04, 0.04], [-2.12, 3.68, -2.88]),
+    box('hvac_vent', 'white', [1.45, 0.05, 0.48], [-0.55, 4.06, 0.95]),
+    box('waste_bin', 'black', [0.34, 0.56, 0.34], [1.95, 0.28, -2.65]),
+    box('brochure_holder', 'glass', [0.12, 0.42, 0.50], [0.44, 1.28, 0.88]),
+    box('service_bell', 'silver', [0.16, 0.08, 0.16], [0.72, 1.15, 0.92])
+  )
+
+  for (let index = 0; index < 8; index += 1) {
+    nodes.push(box(`hvac_slot_${index}`, 'black', [0.08, 0.012, 0.35], [-1.10 + index * 0.16, 4.035, 0.95]))
+  }
+
+  for (const [index, z] of [[0, -1.72], [1, -0.38], [2, 0.96]]) {
+    nodes.push(
+      box(`counter_price_ticket_${index}`, index === 1 ? 'yellow' : 'white', [0.03, 0.16, 0.34], [1.37, 0.73, z]),
+      box(`counter_ticket_clip_${index}`, 'silver', [0.04, 0.04, 0.08], [1.40, 0.83, z])
+    )
+  }
+
+  for (const [index, x, z] of [[0, 0.25, 2.75], [1, 0.9, 2.70], [2, 0.52, 2.78], [3, -0.18, 2.80]]) {
+    nodes.push(box(`carton_tape_${index}`, 'cardboard', [0.64, 0.045, 0.09], [x, index < 2 ? 0.40 : 0.77, z]))
   }
 
   nodes.push(
@@ -200,7 +257,7 @@ export function buildAuthoredShopGlb() {
   const gltf = {
     asset: {
       version: '2.0',
-      generator: 'Paper Bazaar authored-shop generator v0.8'
+      generator: 'Paper Bazaar authored-shop generator v0.9'
     },
     scene: 0,
     scenes: [{ name: 'Iran Paper Authored Store', nodes: nodes.map((_, index) => index) }],
@@ -256,7 +313,7 @@ export function inspectAuthoredShopGlb(buffer) {
 
 async function main() {
   const here = dirname(fileURLToPath(import.meta.url))
-  const target = resolve(here, '../public/models/iran-paper-authored-v1.glb')
+  const target = resolve(here, '../public/models/iran-paper-authored-v2.glb')
   await mkdir(dirname(target), { recursive: true })
   const buffer = buildAuthoredShopGlb()
   await writeFile(target, buffer)

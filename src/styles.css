@@ -1426,3 +1426,65 @@ body { background: #17130f; }
   .market-shop-sign { min-width: 195px; }
   .market-shop-sign b { font-size: 12px; }
 }
+
+
+/* v0.9 — brighter Charsou-inspired passage */
+:root {
+  color: #edf0f1;
+  background: #dfe1df;
+}
+
+body { background: #dfe1df; }
+
+.app-shell {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,.72), transparent 38%),
+    linear-gradient(180deg,#eef0ee,#d8dcdb 62%,#cfd3d2);
+}
+
+.brand-lockup,
+.data-status,
+.quality-toggle,
+.minimap-shell,
+.minimap-reopen,
+.controls-hint,
+.interaction-prompt,
+.detail-panel,
+.debug-panel,
+.asset-loader,
+.room-toast {
+  background-color: rgba(26,31,34,.78);
+  border-color: rgba(255,255,255,.12);
+}
+
+.intro-overlay {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(240,244,243,.16), transparent 38%),
+    rgba(18,22,24,.42);
+}
+
+.intro-card {
+  background: linear-gradient(150deg,rgba(35,41,44,.94),rgba(21,25,27,.92));
+  border-color: rgba(230,237,237,.14);
+}
+
+.intro-eyebrow,
+.big-price,
+.product-row > span,
+.kicker,
+.interaction-prompt span {
+  color: #a9d0cf;
+}
+
+.intro-card h1 span {
+  background: linear-gradient(90deg,#c4dfdc,#f2f4f0 60%,#ffffff);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.primary-action,
+.enter-button {
+  background: linear-gradient(145deg,#cfe1df,#8fb8b5);
+  color: #182022;
+  box-shadow: 0 12px 28px rgba(68,115,112,.16);
+}

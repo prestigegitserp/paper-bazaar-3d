@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.9.0 — Charsou-inspired modern passage + physical world text
+
+### Environment
+- replaces the dominant brick vault with a bright porcelain-tile retail passage
+- adds white ceiling panels, linear lights, dark metal reveals and cleaner glass infill bays
+- keeps brick only as a restrained heritage accent
+- adds modern entrance planters, bench and information kiosk while moving wholesale clutter to the corridor edges
+
+### Visual bug fix
+- removes Drei Html / DOM overlays from in-world signage
+- adds depth-tested CanvasTexture text panels on actual meshes
+- storefront signs, wayfinding, shelf tickets, product labels and price boards now occlude naturally behind scene geometry
+- HUD and catalog reader remain DOM by design
+
+### Authored shop v2
+- adds shelf lips, bundle straps, counter glass shelf, receipt printer, tape dispenser, pen cup, drawers and handles
+- adds power outlet, cable trunk, CCTV, HVAC vent/slats, waste bin, brochure holder, service bell, carton tape and physical price tickets
+- generated artifact bumped to `iran-paper-authored-v2.glb`
+
+### Architecture
+- keeps semantic node hotspots, independent colliders and RuntimeBundle repositories
+- visual skin remains replaceable without changing Catalog/Document/server contracts
+
+
 ## 0.8.0 — Authored GLB shop + scoped world labels
 
 ### Authored asset pipeline
@@ -27,7 +51,6 @@
 - adds active-room behavior tests
 - adds a visual regression test preventing raw Drei Html in interior fixture modules
 
-# Changelog
 
 ## 0.7.0 — 15 Khordad-inspired photoreal market pass
 
@@ -108,7 +131,6 @@
 - main remains the latest stable release line
 - every push/merge to main builds and deploys the latest version once GitHub Pages is enabled once in repository Settings
 
-# Changelog
 
 ## 0.4.0 — Immersive experience foundation
 
