@@ -65,7 +65,6 @@ export default function SurfaceMaterial({
     }
 
     let active = true
-    let next: PbrTextureSet | null = null
 
     void loadPbrTextureSet(surface, {
       repeat,
@@ -73,7 +72,6 @@ export default function SurfaceMaterial({
       full: quality === 'cinematic'
     })
       .then((loaded) => {
-        next = loaded
         if (!active) {
           disposePbrTextureSet(loaded)
           return
@@ -86,7 +84,6 @@ export default function SurfaceMaterial({
 
     return () => {
       active = false
-      if (next && next !== loadedPbr) disposePbrTextureSet(next)
     }
   }, [pbrAsset, quality, repeat[0], repeat[1], surface, textureAnisotropy])
 

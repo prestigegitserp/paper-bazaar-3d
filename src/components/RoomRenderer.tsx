@@ -1,11 +1,23 @@
 import { useGLTF } from '@react-three/drei'
-import type { ThreeEvent } from '@react-three/fiber'
+import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
-import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, type Material, type Object3D } from 'three'
+import {
+  Mesh,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  type Material,
+  type Object3D
+} from 'three'
 import type { Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
 import { interactionFromObject } from '../engine/interactions'
 import { resolveAssetUrl } from '../assets/resolveAssetUrl'
+import {
+  disposePbrTextureSet,
+  loadPbrTextureSet,
+  type PbrTextureSet
+} from '../scene/materials/pbrTextureCache'
+import type { SurfacePresetId } from '../world/boothProfiles'
 import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
@@ -13,10 +25,19 @@ import Booth from './Booth'
 import RoomAssetBoundary from './RoomAssetBoundary'
 import WorldTextPanel from './WorldTextPanel'
 
+const authoredTextureBindings: Partial<Record<string, {
+  surface: SurfacePresetId
+  repeat: [number, number]
+  normalScale: number
+}>> = {
+  floor: { surface: 'mall-porcelain', repeat: [2.6, 4.2], normalScale: 0.24 },
+  plaster: { surface: 'mall-plaster', repeat: [3.2, 4.2], normalScale: 0.2 },
+  wood: { surface: 'bazaar-plywood', repeat: [2.2, 2.2], normalScale: 0.22 }
+}
+
 function PointHotspot({ position, interaction }: { position: readonly [number, number, number]; interaction: Interaction }) {
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
-  const quality = useAppStore((state) => state.quality)
 
   return (
     <mesh
@@ -43,54 +64,56 @@ function PointHotspot({ position, interaction }: { position: readonly [number, n
 function upgradeAuthoredMaterial(material: Material, quality: RenderQuality) {
   if (!(material instanceof MeshStandardMaterial)) return material.clone()
 
-  const base = {
+  const physical = new MeshPhysicalMaterial({
     name: material.name,
     color: material.color.clone(),
     emissive: material.emissive.clone(),
     emissiveIntensity: material.emissiveIntensity,
     roughness: material.roughness,
     metalness: material.metalness,
-    side: material.side
-  }
-
-  const physical = new MeshPhysicalMaterial(base)
+    side: material.side,
+    transparent: material.transparent,
+    opacity: material.opacity,
+    alphaTest: material.alphaTest
+  })
   physical.envMapIntensity = quality === 'cinematic' ? 1.05 : 0.72
 
   switch (material.name) {
     case 'glass':
-      physical.color.set('#d9eaec')
-      physical.roughness = 0.07
+      physical.color.set('#dcebed')
+      physical.roughness = 0.065
       physical.metalness = 0
-      physical.transmission = quality === 'cinematic' ? 0.86 : 0.58
-      physical.thickness = 0.08
-      physical.ior = 1.45
-      physical.clearcoat = 0.18
-      physical.clearcoatRoughness = 0.12
+      physical.transmission = quality === 'cinematic' ? 0.88 : 0.55
+      physical.thickness = 0.085
+      physical.ior = 1.46
+      physical.clearcoat = 0.2
+      physical.clearcoatRoughness = 0.1
       physical.transparent = true
-      physical.opacity = quality === 'cinematic' ? 0.98 : 0.72
+      physical.opacity = quality === 'cinematic' ? 0.98 : 0.76
       physical.depthWrite = false
+      physical.envMapIntensity = 1.35
       break
     case 'floor':
-      physical.roughness = 0.34
+      physical.roughness = 0.32
       physical.metalness = 0.015
-      physical.clearcoat = quality === 'cinematic' ? 0.28 : 0.12
-      physical.clearcoatRoughness = 0.24
+      physical.clearcoat = quality === 'cinematic' ? 0.3 : 0.12
+      physical.clearcoatRoughness = 0.22
       physical.envMapIntensity = 1.25
       break
     case 'metal':
     case 'silver':
-      physical.roughness = material.name === 'silver' ? 0.24 : 0.32
-      physical.metalness = 0.82
-      physical.clearcoat = 0.12
-      physical.clearcoatRoughness = 0.26
-      physical.anisotropy = quality === 'cinematic' ? 0.38 : 0.16
+      physical.roughness = material.name === 'silver' ? 0.22 : 0.31
+      physical.metalness = 0.84
+      physical.clearcoat = 0.1
+      physical.clearcoatRoughness = 0.24
+      physical.anisotropy = quality === 'cinematic' ? 0.42 : 0.17
       physical.envMapIntensity = 1.5
       break
     case 'wood':
       physical.roughness = 0.5
-      physical.clearcoat = 0.08
-      physical.clearcoatRoughness = 0.5
-      physical.envMapIntensity = 0.82
+      physical.clearcoat = 0.09
+      physical.clearcoatRoughness = 0.48
+      physical.envMapIntensity = 0.86
       break
     case 'paper':
       physical.roughness = 0.91
@@ -98,32 +121,41 @@ function upgradeAuthoredMaterial(material: Material, quality: RenderQuality) {
       physical.envMapIntensity = 0.36
       break
     case 'plaster':
-      physical.roughness = 0.72
-      physical.envMapIntensity = 0.52
+      physical.roughness = 0.7
+      physical.envMapIntensity = 0.54
       break
     case 'cardboard':
       physical.roughness = 0.9
-      physical.envMapIntensity = 0.38
+      physical.envMapIntensity = 0.36
       break
     default:
       physical.roughness = Math.max(0.42, physical.roughness)
-      physical.clearcoat = quality === 'cinematic' ? 0.05 : 0
+      physical.clearcoat = quality === 'cinematic' ? 0.045 : 0
   }
 
-  material.dispose()
   return physical
 }
 
 function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: RenderQuality, vendor?: Vendor) {
+  const materialCache = new Map<Material, Material>()
+  const upgraded = (material: Material) => {
+    const cached = materialCache.get(material)
+    if (cached) return cached
+    const next = upgradeAuthoredMaterial(material, quality)
+    materialCache.set(material, next)
+    return next
+  }
+
   scene.traverse((object) => {
     object.userData = { ...object.userData }
     delete object.userData.interaction
+
     if (object instanceof Mesh) {
       object.castShadow = true
       object.receiveShadow = true
       object.material = Array.isArray(object.material)
-        ? object.material.map((material) => upgradeAuthoredMaterial(material, quality))
-        : upgradeAuthoredMaterial(object.material, quality)
+        ? object.material.map(upgraded)
+        : upgraded(object.material)
     }
   })
 
@@ -136,21 +168,101 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: 
       console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
       continue
     }
+
     const interaction = resolveHotspotInteraction(hotspot, vendor)
     if (interaction) object.userData.interaction = interaction
   }
 }
 
+function applyAuthoredTextureSets(scene: Object3D, sets: Map<string, PbrTextureSet>) {
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material]
+    for (const material of materials) {
+      if (!(material instanceof MeshStandardMaterial)) continue
+      const binding = authoredTextureBindings[material.name]
+      const set = sets.get(material.name)
+      if (!binding || !set) continue
+
+      material.map = set.map
+      material.normalMap = set.normalMap ?? null
+      material.roughnessMap = set.roughnessMap ?? null
+      if (set.normalMap) material.normalScale.set(binding.normalScale, binding.normalScale)
+      material.needsUpdate = true
+    }
+  })
+}
+
+function disposeSceneMaterials(scene: Object3D) {
+  const disposed = new Set<Material>()
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return
+    const materials = Array.isArray(object.material) ? object.material : [object.material]
+    for (const material of materials) {
+      if (disposed.has(material)) continue
+      disposed.add(material)
+      material.dispose()
+    }
+  })
+}
+
 function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vendor?: Vendor; url: string; scale?: number }) {
   const gltf = useGLTF(resolveAssetUrl(url))
+  const gl = useThree((state) => state.gl)
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
+  const quality = useAppStore((state) => state.quality)
 
   const scene = useMemo(() => {
     const clone = gltf.scene.clone(true)
     attachNodeInteractions(clone, room, quality, vendor)
     return clone
   }, [gltf.scene, quality, room, vendor])
+
+  useEffect(() => {
+    const authored = room.asset.kind === 'gltf' && room.asset.source === 'authored'
+    if (!authored) return
+
+    let active = true
+    const sets = new Map<string, PbrTextureSet>()
+    const anisotropy = quality === 'cinematic'
+      ? Math.min(8, gl.capabilities.getMaxAnisotropy())
+      : Math.min(4, gl.capabilities.getMaxAnisotropy())
+
+    void Promise.all(
+      Object.entries(authoredTextureBindings).map(async ([materialName, binding]) => {
+        if (!binding) return
+        const set = await loadPbrTextureSet(binding.surface, {
+          repeat: binding.repeat,
+          anisotropy,
+          full: quality === 'cinematic'
+        })
+        if (set) sets.set(materialName, set)
+      })
+    )
+      .then(() => {
+        if (!active) {
+          sets.forEach(disposePbrTextureSet)
+          return
+        }
+        applyAuthoredTextureSets(scene, sets)
+      })
+      .catch(() => {
+        sets.forEach(disposePbrTextureSet)
+        sets.clear()
+      })
+
+    return () => {
+      active = false
+      sets.forEach(disposePbrTextureSet)
+      sets.clear()
+    }
+  }, [gl, quality, room.asset, scene])
+
+  useEffect(() => () => {
+    disposeSceneMaterials(scene)
+  }, [scene])
 
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
