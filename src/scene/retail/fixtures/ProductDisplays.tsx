@@ -1,3 +1,4 @@
+import BeveledBox from '../../../components/BeveledBox'
 import WorldTextPanel from '../../../components/WorldTextPanel'
 import type { Vendor } from '../../../domain/catalog'
 import type { Interaction } from '../../../domain/interaction'
@@ -19,10 +20,9 @@ export function PriceBoard({ room, vendor, profile }: { room: RoomDefinition; ve
       haloPosition={[0.18, 0.26, 0]}
       haloRadius={0.62}
     >
-      <mesh castShadow>
-        <boxGeometry args={[0.095, 1.34, 2.28]} />
+      <BeveledBox args={[0.095, 1.34, 2.28]} radius={0.025} castShadow>
         <SurfaceMaterial surface="bazaar-plywood" repeat={[1, 2]} />
-      </mesh>
+      </BeveledBox>
       <WorldTextPanel
         position={[0.059, 0, 0]}
         rotation={[0, Math.PI / 2, 0]}
@@ -73,17 +73,15 @@ export function ProductPaperStack({
       haloPosition={[0, 1.2, 0]}
       haloRadius={0.58}
     >
-      <mesh position={[0, 0.33, 0]} castShadow>
-        <boxGeometry args={[1.02, 0.64, 0.94]} />
+      <BeveledBox args={[1.02, 0.64, 0.94]} radius={0.035} position={[0, 0.33, 0]} castShadow>
         <SurfaceMaterial surface={profile.surfaces.wood} repeat={[1, 1]} />
-      </mesh>
+      </BeveledBox>
 
       {[0, 0.12, 0.24, 0.36].map((y, index) => (
         <group key={y} position={[0, 0.72 + y, 0]}>
-          <mesh castShadow>
-            <boxGeometry args={[0.92 - index * 0.018, 0.095, 0.72 - index * 0.01]} />
+          <BeveledBox args={[0.92 - index * 0.018, 0.095, 0.72 - index * 0.01]} radius={0.014} castShadow>
             <SurfaceMaterial surface="paper-white" repeat={[1, 1]} />
-          </mesh>
+          </BeveledBox>
           <mesh position={[0.468 - index * 0.009, 0, 0]}>
             <boxGeometry args={[0.012, 0.07, 0.66]} />
             <meshStandardMaterial color={index === 3 ? room.theme.accent : '#cab17e'} roughness={0.78} />

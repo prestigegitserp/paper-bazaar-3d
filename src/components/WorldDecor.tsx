@@ -1,12 +1,12 @@
 import { Instance, Instances } from '@react-three/drei'
+import BeveledBox from './BeveledBox'
 
 function HandCart({ position }: { position: [number, number, number] }) {
   return (
     <group position={position} rotation={[0, 0.12, 0]}>
-      <mesh position={[0, 0.43, 0]} castShadow>
-        <boxGeometry args={[1.1, 0.14, 1.55]} />
+      <BeveledBox args={[1.1, 0.14, 1.55]} radius={0.028} position={[0, 0.43, 0]} castShadow>
         <meshStandardMaterial color="#78614f" roughness={0.72} />
-      </mesh>
+      </BeveledBox>
       {[
         [-0.46, 0.14, -0.52],
         [0.46, 0.14, -0.52],
@@ -19,10 +19,9 @@ function HandCart({ position }: { position: [number, number, number] }) {
         </mesh>
       ))}
       {[0.63, 0.79, 0.95].map((y, index) => (
-        <mesh key={y} position={[0, y, 0]} castShadow>
-          <boxGeometry args={[0.98 - index * 0.04, 0.12, 1.32 - index * 0.06]} />
+        <BeveledBox key={y} args={[0.98 - index * 0.04, 0.12, 1.32 - index * 0.06]} radius={0.018} position={[0, y, 0]} castShadow>
           <meshStandardMaterial color={index === 1 ? '#d7c7a8' : '#efebe2'} roughness={0.86} />
-        </mesh>
+        </BeveledBox>
       ))}
     </group>
   )
@@ -55,10 +54,9 @@ function ModernPlanter({ position }: { position: [number, number, number] }) {
 function MallBench({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 0.48, 0]} castShadow>
-        <boxGeometry args={[1.8, 0.12, 0.52]} />
+      <BeveledBox args={[1.8, 0.12, 0.52]} radius={0.028} position={[0, 0.48, 0]} castShadow>
         <meshStandardMaterial color="#a68c6f" roughness={0.58} />
-      </mesh>
+      </BeveledBox>
       {[-0.66, 0.66].map((x) => (
         <mesh key={x} position={[x, 0.25, 0]}>
           <boxGeometry args={[0.08, 0.5, 0.42]} />
@@ -72,10 +70,9 @@ function MallBench({ position, rotationY = 0 }: { position: [number, number, num
 function InfoKiosk() {
   return (
     <group position={[0, 0, 15.05]} rotation={[0, -0.06, 0]}>
-      <mesh position={[0, 0.72, 0]} castShadow>
-        <boxGeometry args={[1.18, 1.44, 0.62]} />
-        <meshStandardMaterial color="#f0f0ed" roughness={0.44} />
-      </mesh>
+      <BeveledBox args={[1.18, 1.44, 0.62]} radius={0.055} position={[0, 0.72, 0]} castShadow>
+        <meshPhysicalMaterial color="#f0f0ed" roughness={0.4} clearcoat={0.06} clearcoatRoughness={0.45} />
+      </BeveledBox>
       <mesh position={[0, 1.02, -0.325]} rotation={[-0.18, 0, 0]}>
         <boxGeometry args={[0.82, 0.55, 0.035]} />
         <meshStandardMaterial color="#243035" emissive="#55737b" emissiveIntensity={0.18} roughness={0.26} />
