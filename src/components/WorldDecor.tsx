@@ -1,50 +1,47 @@
-import { Float } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
-import type { Group } from 'three'
+import { Instance, Instances } from '@react-three/drei'
 
-function KineticPaperSculpture() {
-  const rotor = useRef<Group>(null)
-
-  useFrame((_, delta) => {
-    if (rotor.current) rotor.current.rotation.y += delta * 0.085
-  })
-
+function PaperRollRack({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
   return (
-    <group position={[0, 0, -7]}>
-      <mesh receiveShadow position={[0, 0.18, 0]}>
-        <cylinderGeometry args={[2.2, 2.4, 0.36, 36]} />
-        <meshStandardMaterial color="#121b29" metalness={0.5} roughness={0.28} />
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh position={[0, 0.65, 0]}>
+        <boxGeometry args={[1.8, 1.3, 0.75]} />
+        <meshStandardMaterial color="#594534" roughness={0.82} />
       </mesh>
-      <mesh position={[0, 1.55, 0]}>
-        <cylinderGeometry args={[1.78, 1.78, 2.8, 36, 1, true]} />
-        <meshPhysicalMaterial
-          color="#7fcfff"
-          transparent
-          opacity={0.1}
-          transmission={0.7}
-          thickness={0.25}
-          roughness={0.12}
-          metalness={0}
-          side={2}
-        />
+      <Instances limit={5}>
+        <cylinderGeometry args={[0.2, 0.2, 1.45, 12]} />
+        <meshStandardMaterial roughness={0.8} vertexColors />
+        {[-0.62, -0.31, 0, 0.31, 0.62].map((x, index) => (
+          <Instance
+            key={x}
+            position={[x, 1.5, 0]}
+            rotation={[0, 0, Math.PI / 2]}
+            color={index % 2 ? '#e6dcc7' : '#c9b48e'}
+          />
+        ))}
+      </Instances>
+    </group>
+  )
+}
+
+function HandCart({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.52, 0]} castShadow>
+        <boxGeometry args={[1.45, 0.24, 1.9]} />
+        <meshStandardMaterial color="#6c4b31" roughness={0.72} />
       </mesh>
-      <Float speed={1.05} rotationIntensity={0.15} floatIntensity={0.24}>
-        <group ref={rotor} position={[0, 2.55, 0]} rotation={[0.12, 0.2, -0.06]}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <mesh key={i} position={[0, (i - 3.5) * 0.2, 0]} rotation={[0, i * 0.14, i * 0.024]} castShadow>
-              <boxGeometry args={[3.15 - i * 0.07, 0.07, 2.18 - i * 0.045]} />
-              <meshStandardMaterial
-                color={i % 2 ? '#f5f0e6' : '#dcebf2'}
-                roughness={0.7}
-                emissive={i === 7 ? '#73d1ff' : '#000000'}
-                emissiveIntensity={i === 7 ? 0.2 : 0}
-              />
-            </mesh>
-          ))}
-        </group>
-      </Float>
-      <pointLight position={[0, 3.8, 0]} color="#8fd3ff" intensity={34} distance={10} />
+      {[[-0.58, 0.18, -0.65], [0.58, 0.18, -0.65], [-0.58, 0.18, 0.65], [0.58, 0.18, 0.65]].map((position, index) => (
+        <mesh key={index} position={position as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.18, 0.18, 0.11, 12]} />
+          <meshStandardMaterial color="#25221f" roughness={0.88} />
+        </mesh>
+      ))}
+      {[0.72, 0.92, 1.12].map((y, index) => (
+        <mesh key={y} position={[0, y, 0]}>
+          <boxGeometry args={[1.25 - index * 0.06, 0.16, 1.65 - index * 0.08]} />
+          <meshStandardMaterial color="#e4dccb" roughness={0.85} />
+        </mesh>
+      ))}
     </group>
   )
 }
@@ -52,37 +49,16 @@ function KineticPaperSculpture() {
 function Planter({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.7, 0.9, 0.84, 18]} />
-        <meshStandardMaterial color="#252b35" metalness={0.3} roughness={0.38} />
+      <mesh position={[0, 0.36, 0]} castShadow>
+        <cylinderGeometry args={[0.48, 0.62, 0.72, 12]} />
+        <meshStandardMaterial color="#6e4f38" roughness={0.88} />
       </mesh>
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <mesh key={i} position={[Math.sin(i) * 0.35, 1.1 + (i % 2) * 0.25, Math.cos(i) * 0.35]} rotation={[0.4, i, 0.2]} castShadow>
-          <sphereGeometry args={[0.28, 10, 10]} />
-          <meshStandardMaterial color={i % 2 ? '#4f8b61' : '#6ba77a'} roughness={0.8} />
+      {[0, 1, 2, 3].map((index) => (
+        <mesh key={index} position={[Math.sin(index * 1.7) * 0.22, 0.9 + (index % 2) * 0.18, Math.cos(index * 1.7) * 0.22]}>
+          <sphereGeometry args={[0.23, 8, 8]} />
+          <meshStandardMaterial color={index % 2 ? '#4e7450' : '#668760'} roughness={0.88} />
         </mesh>
       ))}
-    </group>
-  )
-}
-
-function LoungeBench({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  return (
-    <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 0.5, 0]} castShadow>
-        <boxGeometry args={[2.4, 0.26, 0.78]} />
-        <meshStandardMaterial color="#24364b" roughness={0.38} metalness={0.22} />
-      </mesh>
-      {[-0.9, 0.9].map((x) => (
-        <mesh key={x} position={[x, 0.22, 0]} castShadow>
-          <boxGeometry args={[0.12, 0.45, 0.62]} />
-          <meshStandardMaterial color="#131b28" metalness={0.45} roughness={0.3} />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.65, -0.3]} castShadow>
-        <boxGeometry args={[2.25, 0.62, 0.12]} />
-        <meshStandardMaterial color="#324b67" roughness={0.42} />
-      </mesh>
     </group>
   )
 }
@@ -90,13 +66,11 @@ function LoungeBench({ position, rotationY = 0 }: { position: [number, number, n
 export default function WorldDecor() {
   return (
     <>
-      <KineticPaperSculpture />
-      <Planter position={[-3.6, 0, 12]} />
-      <Planter position={[3.6, 0, 12]} />
-      <Planter position={[-3.6, 0, -20]} />
-      <Planter position={[3.6, 0, -20]} />
-      <LoungeBench position={[-1.9, 0, 17]} rotationY={Math.PI / 2} />
-      <LoungeBench position={[1.9, 0, 17]} rotationY={-Math.PI / 2} />
+      <HandCart position={[0, 0, 14.6]} />
+      <Planter position={[-3.9, 0, 15]} />
+      <Planter position={[3.9, 0, 15]} />
+      <PaperRollRack position={[-4.15, 0, -18]} />
+      <PaperRollRack position={[4.15, 0, -18]} rotationY={Math.PI} />
     </>
   )
 }

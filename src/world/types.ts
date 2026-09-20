@@ -18,7 +18,7 @@ export type AssetMetadata = {
 
 export type ProceduralAsset = AssetMetadata & {
   kind: 'procedural'
-  renderer: 'paper-booth-v1'
+  renderer: 'paper-booth-v1' | 'tehran-paper-shop-v2'
 }
 
 export type GltfAsset = AssetMetadata & {
@@ -58,7 +58,7 @@ export type RoomDefinition = {
   id: string
   label: string
   kind: 'booth'
-  vendorId: string
+  vendorId?: string
   position: Vec3
   rotationY: number
   footprint: Vec2

@@ -1,16 +1,10 @@
 # Paper Bazaar 3D
 
-یک prototype سه‌بعدی ماژولار برای بازار عمده‌فروشان کاغذ، ساخته‌شده با React، TypeScript، Three.js و React Three Fiber.
+نسخه فعلی: **v0.5.0**
 
-نسخه فعلی: **v0.4.0**
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. در v0.5 طراحی از سالن نمایشگاهی فاصله گرفته و به یک راسته‌ی فشرده‌تر با حال‌وهوای مغازه‌های کاغذ و نوشت‌افزار مرکز تهران نزدیک شده است؛ این یک بازسازی دقیق مکانی نیست، بلکه skin مفهومی برای تجربه و تست Digital Twin است.
 
-هدف پروژه فقط ساخت یک پاساژ سه‌بعدی نیست. ساختار از ابتدا برای رشد به سمت **Digital Twin** طراحی شده: داده فروشنده و محصول، World/Room، asset سه‌بعدی، collision، hotspot و crawler از هم جدا هستند تا بعداً بتوان یک غرفه procedural را با GLB، photogrammetry یا LiDAR جایگزین کرد بدون اینکه منطق تجاری یا UI بازنویسی شود.
-
-> طراحی غرفه‌ها مفهومی است و نمایندگی یا هویت بصری رسمی فروشندگان نیست. قیمت‌ها snapshot دمو هستند و برای معامله باید در منبع اصلی استعلام شوند.
-
-## سریع اجرا کن
-
-نیازمندی: Node.js `20.19+` یا `22+`.
+## اجرا
 
 ```bash
 npm install
@@ -19,63 +13,79 @@ npm run dev
 
 - Web: `http://localhost:5173`
 - API: `http://localhost:8787/api/catalog`
-- Health: `http://localhost:8787/api/health`
 
-کنترل‌ها:
+## کنترل‌ها
 
-| کلید | کار |
+| محیط | کنترل |
 |---|---|
-| WASD / Arrow | حرکت |
-| Mouse | نگاه |
-| Shift | حرکت سریع |
-| E / Click | تعامل |
-| R | بازگشت به ورودی |
-| M | نقشه |
-| Q | Cinematic / Balanced |
-| F3 | Runtime diagnostics |
-| Esc | آزاد کردن موس |
+| Desktop | WASD / Mouse / Shift / E |
+| Zoom desktop | Mouse wheel؛ داخل دوربین سه‌بعدی |
+| Reset zoom | 0 |
+| Reset position | R |
+| Map | M |
+| Quality | Q |
+| Diagnostics | F3 |
+| Mobile move | joystick سمت چپ |
+| Mobile look | drag در نیمه راست |
+| Mobile interact | E |
+| Mobile zoom | pinch یا +/- |
 
-## چه چیزهایی در v0.4 بهتر شده؟
+## v0.5
 
-- کف مرکزی reflective در حالت Cinematic و fallback سبک‌تر در Balanced.
-- معماری سقف، نورهای خطی، تابلوهای راه‌یابی و portal نورانی غرفه‌ها.
-- حرکت با acceleration/deceleration، head-bob و FOV نرم هنگام دویدن.
-- mini-map قابل کلیک برای رفتن سریع به غرفه.
-- تشخیص اینکه بازیکن در کدام Room قرار دارد.
-- halo تعاملی برای hotspot هدف.
-- diagnostics داخلی برای draw calls، triangles، geometries، textures و asset errors.
-- asset-level Error Boundary برای اینکه خرابی یک GLB کل پاساژ را crash نکند.
+- ۶ مغازه/فضا به‌جای ۴ غرفه.
+- skin جدید با سقف طاقی، رنگ‌های آجری/گچی، تابلوهای فارسی، سایه‌بان و قفسه‌های متراکم.
+- فروشنده‌ی سراج سلولز به catalog افزوده شده؛ قیمت عمومی برخی اقلام به‌صورت «استعلام» نمایش داده می‌شود.
+- یک اتاق مستقل برای اولین اسکن واقعی حفظ شده است.
+- Wheel/Pinch دیگر layout سایت را zoom نمی‌کند و FOV دوربین را تغییر می‌دهد.
+- کنترل کامل لمس برای گوشی.
+- گوشی و دستگاه‌های coarse-pointer به‌طور پیش‌فرض Balanced هستند.
+- instancing برای بخش‌های تکراری و حذف reflection سنگین جهت کاهش draw cost.
 
-## معماری
+## Versioning
+
+نسخه‌های milestone روی branchهای release نگه داشته می‌شوند:
 
 ```text
-Business domain              Spatial world                   Runtime
-Catalog                      WorldDefinition                 R3F / Three.js
-├─ Vendor                    ├─ Room                         ├─ Player
-└─ Product                   │  ├─ Asset                     ├─ Interaction
-                             │  ├─ Hotspot                   ├─ Collision
-Crawler/API  ─────────────▶  │  ├─ Collider                  └─ Diagnostics
-                             │  └─ Entry / Footprint
-                             └─ Bounds
+release/v0.3.0
+release/v0.4.0
+main            → latest stable
 ```
 
-قانون مهم: **Vendor هیچ مختصات سه‌بعدی ندارد.** مختصات، asset، collider و hotspot متعلق به World هستند.
+بعد از تثبیت v0.5 نیز `release/v0.5.0` ساخته می‌شود. تاریخچه‌ی Git هم commitهای قبلی را نگه می‌دارد، بنابراین تغییر skin نسخه‌های قدیمی را حذف نمی‌کند.
 
-## مسیر GLB و Scan
+جزئیات: [docs/VERSIONING.md](docs/VERSIONING.md)
 
-Room امروز می‌تواند procedural باشد:
+## Deploy آخرین نسخه
 
-```ts
-asset: {
-  kind: 'procedural',
-  renderer: 'paper-booth-v1',
-  assetId: 'procedural:vendor-x',
-  version: '1.0.0',
-  metersPerUnit: 1
-}
+Workflow: `.github/workflows/pages.yml`
+
+یک‌بار در GitHub:
+
+```text
+Settings → Pages → Build and deployment → Source → GitHub Actions
 ```
 
-و فردا بدون تغییر Catalog تبدیل شود به:
+بعد از آن، هر merge/push به `main` به‌طور خودکار آخرین نسخه را build/test/deploy می‌کند. اجرای دستی هم از:
+
+```text
+Actions → Deploy latest to GitHub Pages → Run workflow
+```
+
+ممکن است.
+
+آدرس استاندارد:
+
+```text
+https://prestigegitserp.github.io/paper-bazaar-3d/
+```
+
+GitHub Pages نسخه static را با seed catalog اجرا می‌کند؛ Express/crawler برای host سروری جدا است.
+
+جزئیات: [docs/DEPLOY.md](docs/DEPLOY.md)
+
+## Digital Twin / Scan
+
+Business data از World مستقل است. Room می‌تواند procedural یا GLB/scan باشد و collider/hotspot خودش را داشته باشد:
 
 ```ts
 asset: {
@@ -89,72 +99,10 @@ asset: {
 }
 ```
 
-Hotspotهای scan بهتر است `point` باشند و در مختصات محلی Room ذخیره شوند. Colliderها نیز مستقل از renderer هستند؛ بنابراین mesh واقعی می‌تواند collider سبک‌شده خودش را داشته باشد.
+مدل اسکن واقعی باید runtime asset بهینه باشد؛ raw photo set یا point cloud چندگیگابایتی نباید داخل repository اپ commit شود.
 
-راهنمای دقیق pipeline: [`docs/ASSET_PIPELINE.md`](docs/ASSET_PIPELINE.md)
-
-## تست و build
-
-```bash
-npm test
-npm run build
-```
-
-یا:
-
-```bash
-npm run check
-```
-
-GitHub Actions همین تست و production build را برای Pull Request و `main` اجرا می‌کند.
-
-## دمو روی GitHub Pages
-
-Workflow آماده در `.github/workflows/pages.yml` است.
-
-برای اولین بار در GitHub برو به:
-
-```text
-Settings → Pages → Build and deployment → Source → GitHub Actions
-```
-
-بعد از merge/push روی `main`، workflow نسخه static را build و deploy می‌کند. آدرس استاندارد این repo:
-
-```text
-https://prestigegitserp.github.io/paper-bazaar-3d/
-```
-
-در GitHub Pages بک‌اند Express اجرا نمی‌شود؛ دمو عمداً با seed catalog اجرا می‌شود. برای production با API/crawler، frontend را می‌توان روی Vercel/Cloudflare Pages و API را روی یک Node host یا serverless backend قرار داد.
-
-## نکته درباره asset path
-
-برای سازگاری با GitHub Pages، فایل GLB را با URL نسبی تعریف کن:
-
-```ts
-url: 'models/vendor-x/room.glb'
-```
-
-نه:
-
-```ts
-url: '/models/vendor-x/room.glb'
-```
-
-`resolveAssetUrl()` آن را با `BASE_URL` محیط deploy ترکیب می‌کند.
-
-## اسناد
-
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- [`docs/ASSET_PIPELINE.md`](docs/ASSET_PIPELINE.md)
-- [`docs/DATA_INGESTION.md`](docs/DATA_INGESTION.md)
-- [`docs/DIGITAL_TWIN_ROADMAP.md`](docs/DIGITAL_TWIN_ROADMAP.md)
-- [`docs/DEBUGGING.md`](docs/DEBUGGING.md)
-- [`CHANGELOG.md`](CHANGELOG.md)
-
-## مرحله بعدی پیشنهادی
-
-به‌جای بزرگ‌تر کردن procedural scene، یک غرفه واقعی را به GLB تبدیل می‌کنیم و این مسیر را end-to-end تست می‌کنیم:
-
-`capture → cleanup → optimization → asset metadata → collider → point hotspots → streaming`
-
-بعد از آن Admin/Hotspot Editor ارزش ساخت دارد.
+- [docs/ASSET_PIPELINE.md](docs/ASSET_PIPELINE.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/DEBUGGING.md](docs/DEBUGGING.md)
+- [docs/MOBILE.md](docs/MOBILE.md)
+- [CHANGELOG.md](CHANGELOG.md)

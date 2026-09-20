@@ -39,12 +39,13 @@ function PointHotspot({ position, interaction }: { position: readonly [number, n
   )
 }
 
-function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vendor: Vendor; url: string; scale?: number }) {
+function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vendor?: Vendor; url: string; scale?: number }) {
   const gltf = useGLTF(resolveAssetUrl(url))
+
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
       <Clone object={gltf.scene} scale={scale} castShadow receiveShadow />
-      {room.hotspots.map((hotspot) => {
+      {vendor && room.hotspots.map((hotspot) => {
         if (hotspot.anchor.kind !== 'point') return null
         const interaction = resolveHotspotInteraction(hotspot, vendor)
         return interaction ? <PointHotspot key={hotspot.id} position={hotspot.anchor.position} interaction={interaction} /> : null
@@ -58,7 +59,7 @@ function UnsupportedRoom({ room }: { room: RoomDefinition }) {
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
       <mesh position={[0, 1.4, 0]}>
         <boxGeometry args={[3.2, 2.8, 3.2]} />
-        <meshStandardMaterial color="#172235" wireframe emissive="#11375a" emissiveIntensity={0.25} />
+        <meshStandardMaterial color="#4a4037" wireframe emissive="#7a654e" emissiveIntensity={0.2} />
       </mesh>
       <Html center position={[0, 3.25, 0]} distanceFactor={9} style={{ pointerEvents: 'none' }}>
         <div className="world-tag">Renderer pending · {room.asset.kind === 'scan' ? room.asset.format : room.asset.kind}</div>
@@ -67,7 +68,7 @@ function UnsupportedRoom({ room }: { room: RoomDefinition }) {
   )
 }
 
-function RoomRendererInner({ room, vendor }: { room: RoomDefinition; vendor: Vendor }) {
+function RoomRendererInner({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   if (room.asset.kind === 'procedural') return <Booth room={room} vendor={vendor} />
   if (room.asset.kind === 'gltf') return <GltfRoom room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
   if (room.asset.kind === 'scan' && room.asset.format === 'gltf') {
@@ -76,7 +77,7 @@ function RoomRendererInner({ room, vendor }: { room: RoomDefinition; vendor: Ven
   return <UnsupportedRoom room={room} />
 }
 
-export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; vendor: Vendor }) {
+export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   const clearAssetError = useAppStore((state) => state.clearAssetError)
 
   useEffect(() => {

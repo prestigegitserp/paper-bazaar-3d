@@ -1,4 +1,4 @@
-import { Html, RoundedBox } from '@react-three/drei'
+import { Html, Instance, Instances, RoundedBox } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { ReactNode } from 'react'
 import type { Vendor } from '../domain/catalog'
@@ -54,6 +54,51 @@ function InteractiveGroup({
   )
 }
 
+function PaperBundles({ accent }: { accent: string }) {
+  const positions = [
+    [-2.12, 0.55, -2.55], [-2.12, 0.55, -1.7], [-2.12, 0.55, -0.85], [-2.12, 0.55, 0],
+    [-2.12, 0.55, 0.85], [-2.12, 0.55, 1.7], [-2.12, 0.55, 2.55],
+    [-2.12, 1.38, -2.55], [-2.12, 1.38, -1.7], [-2.12, 1.38, -0.85], [-2.12, 1.38, 0],
+    [-2.12, 1.38, 0.85], [-2.12, 1.38, 1.7], [-2.12, 1.38, 2.55],
+    [-2.12, 2.2, -2.55], [-2.12, 2.2, -1.7], [-2.12, 2.2, -0.85], [-2.12, 2.2, 0],
+    [-2.12, 2.2, 0.85], [-2.12, 2.2, 1.7], [-2.12, 2.2, 2.55]
+  ] as const
+
+  return (
+    <Instances limit={positions.length} castShadow={false} receiveShadow={false}>
+      <boxGeometry args={[0.72, 0.34, 0.68]} />
+      <meshStandardMaterial roughness={0.82} vertexColors />
+      {positions.map((position, index) => (
+        <Instance
+          key={index}
+          position={position}
+          color={index % 5 === 0 ? accent : index % 3 === 0 ? '#d7c6a8' : '#f0eadc'}
+        />
+      ))}
+    </Instances>
+  )
+}
+
+function ShelfSystem({ room }: { room: RoomDefinition }) {
+  return (
+    <group>
+      {[0.35, 1.18, 2.02, 2.86].map((y) => (
+        <mesh key={y} position={[-2.22, y, 0]} castShadow={false}>
+          <boxGeometry args={[0.38, 0.08, 6.25]} />
+          <meshStandardMaterial color="#6d4e36" roughness={0.72} />
+        </mesh>
+      ))}
+      {[-3, -1.5, 0, 1.5, 3].map((z) => (
+        <mesh key={z} position={[-2.38, 1.62, z]} castShadow={false}>
+          <boxGeometry args={[0.18, 3.2, 0.12]} />
+          <meshStandardMaterial color="#4b382a" roughness={0.74} />
+        </mesh>
+      ))}
+      <PaperBundles accent={room.theme.accent} />
+    </group>
+  )
+}
+
 function PaperStack({
   position,
   color,
@@ -70,229 +115,205 @@ function PaperStack({
       position={position}
       interaction={interaction}
       accent={color}
-      haloPosition={[0, 1.02, 0]}
-      haloRadius={0.72}
+      haloPosition={[0, 0.95, 0]}
+      haloRadius={0.62}
     >
-      <RoundedBox args={[1.5, 0.22, 1.05]} radius={0.08} smoothness={3} castShadow receiveShadow>
-        <meshStandardMaterial color="#f7f4ea" roughness={0.8} />
-      </RoundedBox>
-      {[0.16, 0.32, 0.48, 0.64].map((y, i) => (
+      {[0, 0.13, 0.26, 0.39, 0.52].map((y, index) => (
         <mesh key={y} position={[0, y, 0]} castShadow>
-          <boxGeometry args={[1.38 - i * 0.03, 0.1, 0.95 - i * 0.02]} />
-          <meshStandardMaterial
-            color={i === 3 ? color : '#fffdf7'}
-            roughness={0.72}
-            emissive={i === 3 ? color : '#000000'}
-            emissiveIntensity={i === 3 ? 0.08 : 0}
-          />
+          <boxGeometry args={[1.15 - index * 0.025, 0.095, 0.78 - index * 0.015]} />
+          <meshStandardMaterial color={index === 4 ? color : '#f5efe3'} roughness={0.76} />
         </mesh>
       ))}
-      <Html center position={[0, 1.05, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}>
+      <Html center position={[0, 0.95, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}>
         <div className="world-tag product-tag">{label}</div>
       </Html>
     </InteractiveGroup>
   )
 }
 
-function Chair({ position, accent }: { position: [number, number, number]; accent: string }) {
-  return (
-    <group position={position}>
-      <mesh castShadow position={[0, 0.55, 0]}>
-        <boxGeometry args={[0.95, 0.13, 0.95]} />
-        <meshStandardMaterial color={accent} roughness={0.42} metalness={0.08} />
-      </mesh>
-      <mesh castShadow position={[0, 1.15, 0.4]}>
-        <boxGeometry args={[0.95, 1.1, 0.12]} />
-        <meshStandardMaterial color={accent} roughness={0.42} metalness={0.08} />
-      </mesh>
-      {[[-0.38, 0.24, -0.35], [0.38, 0.24, -0.35], [-0.38, 0.24, 0.35], [0.38, 0.24, 0.35]].map(
-        (point, i) => (
-          <mesh key={i} castShadow position={point as [number, number, number]}>
-            <cylinderGeometry args={[0.045, 0.045, 0.48, 8]} />
-            <meshStandardMaterial color="#2b2f36" metalness={0.55} roughness={0.28} />
-          </mesh>
-        )
-      )}
-    </group>
-  )
-}
-
-function Desk({ room, vendor }: { room: RoomDefinition; vendor: Vendor }) {
-  const hotspot = findHotspot(room.hotspots, 'management-desk')
-  const interaction = hotspot ? resolveHotspotInteraction(hotspot, vendor) : null
+function Desk({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
+  const hotspot = vendor ? findHotspot(room.hotspots, 'management-desk') : null
+  const interaction = vendor && hotspot ? resolveHotspotInteraction(hotspot, vendor) : null
 
   return (
     <InteractiveGroup
-      position={[0.75, 0, 0]}
+      position={[0.7, 0, -1.45]}
       interaction={interaction}
       accent={room.theme.accent}
-      haloPosition={[0, 2.25, 0]}
-      haloRadius={1}
+      haloPosition={[0, 1.9, 0]}
+      haloRadius={0.78}
     >
-      <RoundedBox args={[2.4, 0.22, 1.25]} position={[0, 1.18, 0]} radius={0.08} smoothness={4} castShadow>
-        <meshPhysicalMaterial color="#d8c7a5" roughness={0.46} clearcoat={0.25} clearcoatRoughness={0.35} />
+      <RoundedBox args={[2.15, 0.16, 0.92]} position={[0, 1.05, 0]} radius={0.05} smoothness={3} castShadow>
+        <meshStandardMaterial color="#8a6645" roughness={0.58} />
       </RoundedBox>
-      <mesh position={[0, 0.58, 0]} castShadow>
-        <boxGeometry args={[2.05, 1.08, 0.86]} />
-        <meshStandardMaterial color={room.theme.primary} roughness={0.38} metalness={0.14} />
+      <mesh position={[0, 0.52, 0]} castShadow>
+        <boxGeometry args={[1.9, 0.95, 0.72]} />
+        <meshStandardMaterial color={room.theme.primary} roughness={0.55} />
       </mesh>
-      <mesh position={[0.15, 1.72, 0]} castShadow>
-        <boxGeometry args={[0.95, 0.62, 0.06]} />
-        <meshStandardMaterial color="#0b1320" metalness={0.3} roughness={0.2} />
+      <mesh position={[0.2, 1.45, 0]} castShadow>
+        <boxGeometry args={[0.78, 0.48, 0.055]} />
+        <meshStandardMaterial color="#161719" roughness={0.26} />
       </mesh>
-      <mesh position={[0.15, 1.72, -0.04]}>
-        <planeGeometry args={[0.82, 0.49]} />
+      <mesh position={[0.2, 1.45, -0.04]}>
+        <planeGeometry args={[0.66, 0.36]} />
         <meshBasicMaterial color={room.theme.accent} toneMapped={false} />
       </mesh>
-      <Html center position={[0.15, 2.2, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}>
-        <div className="world-tag">میز مدیریت · کلیک / E</div>
-      </Html>
+      {vendor && (
+        <Html center position={[0.1, 1.92, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}>
+          <div className="world-tag">میز فروش · کلیک / E</div>
+        </Html>
+      )}
     </InteractiveGroup>
   )
 }
 
-function ProductBoard({ room, vendor }: { room: RoomDefinition; vendor: Vendor }) {
-  const hotspot = findHotspot(room.hotspots, 'price-board')
-  const interaction = hotspot ? resolveHotspotInteraction(hotspot, vendor) : null
+function PriceBoard({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
+  const hotspot = vendor ? findHotspot(room.hotspots, 'price-board') : null
+  const interaction = vendor && hotspot ? resolveHotspotInteraction(hotspot, vendor) : null
 
   return (
     <InteractiveGroup
-      position={[-3.36, 2.65, 0]}
+      position={[-2.54, 2.2, 0]}
       interaction={interaction}
       accent={room.theme.accent}
-      haloPosition={[0.34, 1.75, 0]}
-      haloRadius={1.15}
+      haloPosition={[0.28, 0.45, 0]}
+      haloRadius={0.82}
     >
       <mesh castShadow>
-        <boxGeometry args={[0.16, 3.15, 5.9]} />
-        <meshStandardMaterial
-          color="#08101c"
-          metalness={0.32}
-          roughness={0.22}
-          emissive={room.theme.primary}
-          emissiveIntensity={0.48}
-        />
+        <boxGeometry args={[0.12, 1.75, 3.6]} />
+        <meshStandardMaterial color="#2b241e" roughness={0.52} />
       </mesh>
-      <mesh position={[0.09, 0, 0]}>
-        <boxGeometry args={[0.025, 2.55, 5.25]} />
-        <meshBasicMaterial color={room.theme.primary} toneMapped={false} />
+      <mesh position={[0.07, 0, 0]}>
+        <boxGeometry args={[0.02, 1.45, 3.25]} />
+        <meshStandardMaterial color="#efe5d2" roughness={0.78} />
       </mesh>
-      <mesh position={[0.115, -1.37, 0]}>
-        <boxGeometry args={[0.025, 0.028, 5.25]} />
-        <meshBasicMaterial color={room.theme.accent} toneMapped={false} />
-      </mesh>
-      <Html center position={[0.14, 0.45, 0]} distanceFactor={7.4} style={{ pointerEvents: 'none' }}>
-        <div className="booth-screen">
-          <div className="booth-screen__eyebrow">LIVE PRICE WALL</div>
-          <strong>{vendor.name}</strong>
-          <span>{vendor.products.length} محصول نمونه</span>
-          <small>برای مشاهده قیمت‌ها کلیک / E</small>
+      <Html center position={[0.11, 0.1, 0]} distanceFactor={7.8} style={{ pointerEvents: 'none' }}>
+        <div className="bazaar-price-board">
+          <strong>{vendor?.name ?? room.label}</strong>
+          <span>{vendor ? `${vendor.products.length} قلم نمونه · قیمت/استعلام` : 'فضای آماده برای اسکن واقعی'}</span>
+          <small>{vendor ? 'برای مشاهده کلیک / E' : 'GLB · LiDAR · Photogrammetry'}</small>
         </div>
       </Html>
     </InteractiveGroup>
   )
 }
 
-function SlatWall({ room }: { room: RoomDefinition }) {
+function ShopSign({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   return (
-    <group position={[-3.22, 2.3, 3.55]}>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <mesh key={i} position={[0, 0, (i - 3.5) * 0.25]} castShadow>
-          <boxGeometry args={[0.16, 3.7, 0.1]} />
-          <meshStandardMaterial color={i % 2 ? room.theme.secondary : room.theme.accent} roughness={0.58} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-function PortalFrame({ room }: { room: RoomDefinition }) {
-  return (
-    <group>
-      {[-4.15, 4.15].map((z) => (
-        <mesh key={z} position={[3.38, 2.42, z]}>
-          <boxGeometry args={[0.11, 4.84, 0.11]} />
-          <meshStandardMaterial color={room.theme.accent} emissive={room.theme.accent} emissiveIntensity={1.25} toneMapped={false} />
-        </mesh>
-      ))}
-      <mesh position={[3.38, 4.8, 0]}>
-        <boxGeometry args={[0.11, 0.11, 8.4]} />
-        <meshStandardMaterial color={room.theme.accent} emissive={room.theme.accent} emissiveIntensity={1.25} toneMapped={false} />
+    <group position={[2.68, 3.55, 0]}>
+      <mesh castShadow>
+        <boxGeometry args={[0.16, 0.78, 5.18]} />
+        <meshStandardMaterial color={room.theme.primary} roughness={0.5} metalness={0.06} />
       </mesh>
+      <mesh position={[0.09, -0.34, 0]}>
+        <boxGeometry args={[0.025, 0.055, 5.02]} />
+        <meshBasicMaterial color={room.theme.accent} toneMapped={false} />
+      </mesh>
+      <Html center position={[0.12, 0, 0]} distanceFactor={7.2} style={{ pointerEvents: 'none' }}>
+        <div className="bazaar-shop-sign">
+          <b>{vendor?.name ?? room.label}</b>
+          <span>{vendor?.shortName ?? 'SCAN-READY SPACE'}</span>
+        </div>
+      </Html>
     </group>
   )
 }
 
-export default function Booth({ room, vendor }: { room: RoomDefinition; vendor: Vendor }) {
-  const productA = vendor.products[0]
-  const productB = vendor.products[1] ?? null
-  const hotspotA = findHotspot(room.hotspots, 'product-pedestal', 0)
-  const hotspotB = findHotspot(room.hotspots, 'product-pedestal', 1)
-  const productAInteraction = productA && hotspotA ? resolveHotspotInteraction(hotspotA, vendor) : null
-  const productBInteraction = productB && hotspotB ? resolveHotspotInteraction(hotspotB, vendor) : null
+function Awning({ room }: { room: RoomDefinition }) {
+  return (
+    <group position={[2.57, 3.02, 0]}>
+      {Array.from({ length: 9 }, (_, index) => (
+        <mesh key={index} position={[0.22, 0, (index - 4) * 0.56]} rotation={[0, 0, -0.32]}>
+          <boxGeometry args={[0.72, 0.035, 0.5]} />
+          <meshStandardMaterial color={index % 2 === 0 ? room.theme.secondary : room.theme.primary} roughness={0.78} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
 
-  if (room.asset.kind !== 'procedural' || room.asset.renderer !== 'paper-booth-v1') return null
+function ConceptScanDisplay({ room }: { room: RoomDefinition }) {
+  return (
+    <group position={[-0.1, 0, 0.8]}>
+      <mesh position={[0, 1.35, 0]}>
+        <boxGeometry args={[2.6, 2.7, 2.6]} />
+        <meshStandardMaterial color={room.theme.primary} wireframe emissive={room.theme.accent} emissiveIntensity={0.18} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.55, 1.65, 40]} />
+        <meshBasicMaterial color={room.theme.accent} toneMapped={false} />
+      </mesh>
+      <Html center position={[0, 3, 0]} distanceFactor={8} style={{ pointerEvents: 'none' }}>
+        <div className="world-tag">اتاق رزرو شده برای اولین اسکن واقعی</div>
+      </Html>
+    </group>
+  )
+}
+
+export default function Booth({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
+  const productA = vendor?.products[0]
+  const productB = vendor?.products[1]
+  const hotspotA = vendor ? findHotspot(room.hotspots, 'product-pedestal', 0) : null
+  const hotspotB = vendor ? findHotspot(room.hotspots, 'product-pedestal', 1) : null
+  const productAInteraction = vendor && productA && hotspotA ? resolveHotspotInteraction(hotspotA, vendor) : null
+  const productBInteraction = vendor && productB && hotspotB ? resolveHotspotInteraction(hotspotB, vendor) : null
+
+  if (room.asset.kind !== 'procedural') return null
 
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
-      <mesh position={[0, 0.06, 0]} receiveShadow>
-        <boxGeometry args={[7.2, 0.12, 9.5]} />
-        <meshPhysicalMaterial color={room.theme.floor} roughness={0.58} metalness={0.18} clearcoat={0.15} />
+      <mesh position={[0, 0.045, 0]} receiveShadow>
+        <boxGeometry args={[5.6, 0.09, 7.2]} />
+        <meshStandardMaterial color={room.theme.floor} roughness={0.82} />
       </mesh>
 
-      <mesh position={[-3.58, 2.6, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.18, 5.2, 9.5]} />
-        <meshStandardMaterial color={room.theme.secondary} roughness={0.68} />
+      <mesh position={[-2.74, 2.15, 0]} receiveShadow castShadow>
+        <boxGeometry args={[0.2, 4.3, 7.2]} />
+        <meshStandardMaterial color="#9a7655" roughness={0.9} />
       </mesh>
-      <mesh position={[0, 2.6, -4.68]} receiveShadow castShadow>
-        <boxGeometry args={[7.2, 5.2, 0.18]} />
-        <meshStandardMaterial color={room.theme.secondary} roughness={0.68} />
+      <mesh position={[0, 2.15, -3.48]} receiveShadow castShadow>
+        <boxGeometry args={[5.6, 4.3, 0.18]} />
+        <meshStandardMaterial color="#b69671" roughness={0.92} />
       </mesh>
-      <mesh position={[0, 2.6, 4.68]} receiveShadow castShadow>
-        <boxGeometry args={[7.2, 5.2, 0.18]} />
-        <meshStandardMaterial color={room.theme.secondary} roughness={0.68} />
-      </mesh>
-
-      <mesh position={[-2.9, 4.95, 0]} castShadow>
-        <boxGeometry args={[0.42, 0.28, 8.65]} />
-        <meshStandardMaterial color={room.theme.accent} emissive={room.theme.accent} emissiveIntensity={0.58} toneMapped={false} />
+      <mesh position={[0, 2.15, 3.48]} receiveShadow castShadow>
+        <boxGeometry args={[5.6, 4.3, 0.18]} />
+        <meshStandardMaterial color="#b69671" roughness={0.92} />
       </mesh>
 
-      <PortalFrame room={room} />
-      <ProductBoard room={room} vendor={vendor} />
-      <SlatWall room={room} />
+      <mesh position={[-0.1, 4.18, 0]} receiveShadow>
+        <boxGeometry args={[5.45, 0.15, 7.05]} />
+        <meshStandardMaterial color="#4b3b2d" roughness={0.86} />
+      </mesh>
+
+      <ShelfSystem room={room} />
       <Desk room={room} vendor={vendor} />
-      <Chair position={[2.1, 0, -1.55]} accent={room.theme.accent} />
-      <Chair position={[2.1, 0, 1.55]} accent={room.theme.primary} />
+      <PriceBoard room={room} vendor={vendor} />
+      <ShopSign room={room} vendor={vendor} />
+      <Awning room={room} />
 
       {productA && (
-        <group position={[-1.2, 0, -2.65]}>
-          <mesh position={[0, 0.52, 0]} castShadow>
-            <cylinderGeometry args={[0.72, 0.82, 1.04, 12]} />
-            <meshStandardMaterial color={room.theme.primary} roughness={0.42} metalness={0.18} />
+        <group position={[-0.45, 0, 1.7]}>
+          <mesh position={[0, 0.42, 0]} castShadow>
+            <boxGeometry args={[1.35, 0.82, 1.1]} />
+            <meshStandardMaterial color="#705238" roughness={0.7} />
           </mesh>
-          <PaperStack position={[0, 1.08, 0]} color={room.theme.accent} interaction={productAInteraction} label={productA.name} />
+          <PaperStack position={[0, 0.86, 0]} color={room.theme.accent} interaction={productAInteraction} label={productA.name} />
         </group>
       )}
 
       {productB && (
-        <group position={[-1.2, 0, 2.65]}>
-          <mesh position={[0, 0.52, 0]} castShadow>
-            <cylinderGeometry args={[0.72, 0.82, 1.04, 12]} />
-            <meshStandardMaterial color={room.theme.primary} roughness={0.42} metalness={0.18} />
+        <group position={[1.75, 0, 1.6]}>
+          <mesh position={[0, 0.42, 0]} castShadow>
+            <boxGeometry args={[1.1, 0.82, 1.05]} />
+            <meshStandardMaterial color="#644b36" roughness={0.72} />
           </mesh>
-          <PaperStack position={[0, 1.08, 0]} color={room.theme.accent} interaction={productBInteraction} label={productB.name} />
+          <PaperStack position={[0, 0.86, 0]} color={room.theme.accent} interaction={productBInteraction} label={productB.name} />
         </group>
       )}
 
-      <Html center position={[2.7, 4.22, 0]} distanceFactor={7.5} style={{ pointerEvents: 'none' }}>
-        <div className="booth-nameplate">
-          <b>{vendor.name}</b>
-          <span>{vendor.shortName}</span>
-        </div>
-      </Html>
+      {!vendor && <ConceptScanDisplay room={room} />}
 
-      <pointLight position={[1.5, 4.4, 0]} intensity={24} distance={9} color={room.theme.accent} />
+      <pointLight position={[1.45, 3.25, 0]} intensity={8} distance={6.5} color="#ffd99a" />
     </group>
   )
 }

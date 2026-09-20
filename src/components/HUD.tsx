@@ -6,6 +6,7 @@ import type { Interaction } from '../domain/interaction'
 import { demoWorld } from '../world/demoWorld'
 import { roomEntryPoint, roomEntryYaw } from '../world/spatial'
 import type { RoomDefinition } from '../world/types'
+import MobileControls from './MobileControls'
 
 function formatDate(value: string) {
   try {
@@ -28,7 +29,7 @@ function crawlStatusLabel(status?: CrawlStatus) {
 function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interaction }) {
   const product: Product | undefined = selected.kind === 'product' ? vendor.products.find((item) => item.id === selected.productId) : undefined
   const room = demoWorld.rooms.find((candidate) => candidate.vendorId === vendor.id)
-  const accent = room?.theme.accent ?? '#38bdf8'
+  const accent = room?.theme.accent ?? '#c99a55'
 
   return (
     <div className="detail-body">
@@ -41,9 +42,9 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
       {selected.kind === 'vendor' && (
         <>
           <div className="info-card">
-            <span className="kicker">وب‌سایت غرفه</span>
+            <span className="kicker">وب‌سایت مغازه</span>
             <strong dir="ltr">{vendor.sourceLabel}</strong>
-            <p>این میز نقش کانتر مدیریت را دارد و بعداً می‌تواند به CRM، چت فروش، تقویم جلسه یا پنل اختصاصی فروشنده متصل شود.</p>
+            <p>میز فروش می‌تواند بعداً به CRM، چت فروش، تقویم جلسه یا پنل اختصاصی فروشنده متصل شود.</p>
           </div>
           <a className="primary-action" href={vendor.website} target="_blank" rel="noreferrer">باز کردن سایت فروشنده ↗</a>
         </>
@@ -70,7 +71,7 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
       {product && (
         <>
           <div className="product-focus">
-            <span className="kicker">محصول انتخاب‌شده</span>
+            <span className="kicker">کالای انتخاب‌شده</span>
             <h3>{product.name}</h3>
             <div className="big-price">{product.priceText}</div>
             <p>{product.unit}</p>
@@ -80,7 +81,7 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
             )}
             {product.note && <small>{product.note}</small>}
           </div>
-          <a className="primary-action" href={product.sourceUrl} target="_blank" rel="noreferrer">مشاهده منبع قیمت ↗</a>
+          <a className="primary-action" href={product.sourceUrl} target="_blank" rel="noreferrer">مشاهده منبع ↗</a>
         </>
       )}
 
@@ -114,26 +115,26 @@ function MiniMap({
   return (
     <div className="minimap-shell">
       <div className="minimap-title">
-        <span>نقشه · روی غرفه بزن</span>
+        <span>نقشه راسته · لمس/کلیک برای رفتن</span>
         <button type="button" onClick={onToggle} aria-label="بستن نقشه"><kbd>M</kbd></button>
       </div>
       <div className="minimap">
         <div className="minimap-aisle" />
         {demoWorld.rooms.map((room, index) => {
-          const vendor = vendorsById.get(room.vendorId)
-          if (!vendor) return null
-          const x = ((room.position[0] - bounds.minX) / (bounds.maxX - bounds.minX)) * 100 - 10
-          const y = ((bounds.maxZ - room.position[2]) / (bounds.maxZ - bounds.minZ)) * 100 - 7.5
+          const vendor = room.vendorId ? vendorsById.get(room.vendorId) : undefined
+          const label = vendor?.name ?? room.label
+          const x = ((room.position[0] - bounds.minX) / (bounds.maxX - bounds.minX)) * 100 - 11
+          const y = ((bounds.maxZ - room.position[2]) / (bounds.maxZ - bounds.minZ)) * 100 - 7
           return (
             <button
               key={room.id}
               type="button"
               className={`minimap-booth ${activeRoomId === room.id ? 'active' : ''}`}
               style={{ left: `${x}%`, top: `${y}%`, borderColor: room.theme.accent }}
-              title={`رفتن سریع به ${vendor.name}`}
+              title={`رفتن سریع به ${label}`}
               onClick={() => onNavigate(room)}
             >
-              <span>{vendor.name.replace('انتشارات ملت / کیمیا تجارت', 'ملت')}</span>
+              <span>{label.replace('انتشارات ملت / کیمیا تجارت', 'ملت')}</span>
               <b>{index + 1}</b>
             </button>
           )
@@ -141,7 +142,7 @@ function MiniMap({
         <div className="minimap-entry">ورودی</div>
         <div className="minimap-player" style={{ left: `${px}%`, top: `${py}%` }} />
       </div>
-      <small className="minimap-help">برای کلیک روی نقشه اگر موس قفل است ابتدا Esc بزن.</small>
+      <small className="minimap-help">دسکتاپ: Esc سپس کلیک روی غرفه · موبایل: مستقیم لمس کن.</small>
     </div>
   )
 }
@@ -158,7 +159,7 @@ function DebugPanel() {
     <div className="debug-panel" dir="ltr">
       <strong>Runtime diagnostics · F3</strong>
       <div><span>position</span><b>{player.x.toFixed(2)}, {player.z.toFixed(2)}</b></div>
-      <div><span>room</span><b>{activeRoomId ?? 'hall'}</b></div>
+      <div><span>room</span><b>{activeRoomId ?? 'alley'}</b></div>
       <div><span>quality</span><b>{quality}</b></div>
       <div><span>draw calls</span><b>{diagnostics.calls}</b></div>
       <div><span>triangles</span><b>{diagnostics.triangles.toLocaleString()}</b></div>
@@ -215,7 +216,8 @@ export default function HUD() {
   const enter = () => {
     setStarted(true)
     const canvas = document.querySelector('canvas')
-    if (canvas instanceof HTMLCanvasElement && canvas.requestPointerLock) {
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false
+    if (!coarse && canvas instanceof HTMLCanvasElement && canvas.requestPointerLock) {
       try {
         void canvas.requestPointerLock()
       } catch {
@@ -240,7 +242,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Digital Twin prototype · v0.4</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Tehran paper alley · v0.5</span></div>
         </div>
 
         <div className="top-actions">
@@ -276,7 +278,7 @@ export default function HUD() {
 
       {activeRoom && started && !selected && (
         <div className="room-toast" style={{ '--room-accent': activeRoom.theme.accent } as CSSProperties}>
-          <span>اکنون در محدوده</span>
+          <span>محدوده فعلی</span>
           <strong>{activeRoom.label}</strong>
         </div>
       )}
@@ -287,7 +289,7 @@ export default function HUD() {
         <div className="interaction-prompt">
           <span>تعامل نزدیک</span>
           <strong>{nearby.label}</strong>
-          <kbd>E</kbd><em>یا کلیک</em>
+          <kbd>E</kbd><em>یا لمس/کلیک</em>
         </div>
       )}
 
@@ -295,6 +297,8 @@ export default function HUD() {
         <div className="controls-hint">
           <span><kbd>WASD</kbd> حرکت</span>
           <span><kbd>Shift</kbd> سریع</span>
+          <span><kbd>Wheel</kbd> زوم محیط</span>
+          <span><kbd>0</kbd> ریست زوم</span>
           <span><kbd>R</kbd> ورودی</span>
           <span><kbd>M</kbd> نقشه</span>
           <span><kbd>Q</kbd> کیفیت</span>
@@ -303,33 +307,34 @@ export default function HUD() {
       )}
 
       {debugOpen && <DebugPanel />}
+      <MobileControls />
 
       {selected && selectedVendor && (
         <aside className="detail-panel">
           <div className="detail-head">
-            <span>{selected.kind === 'products' ? 'تابلوی قیمت' : selected.kind === 'product' ? 'ویترین محصول' : 'مدیریت غرفه'}</span>
+            <span>{selected.kind === 'products' ? 'تابلوی قیمت' : selected.kind === 'product' ? 'کالای روی پیشخوان' : 'میز فروش'}</span>
             <button onClick={() => setSelected(null)} aria-label="بستن">×</button>
           </div>
           <VendorPanel vendor={selectedVendor} selected={selected} />
-          <div className="panel-footer">برای ادامه حرکت، پنل را ببند و روی صحنه کلیک کن.</div>
+          <div className="panel-footer">برای ادامه حرکت پنل را ببند؛ در موبایل کنترل‌ها خودکار برمی‌گردند.</div>
         </aside>
       )}
 
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">IMMERSIVE PROTOTYPE · v0.4.0</div>
-            <h1>بازار سه‌بعدی<br /><span>کاغذ و تامین عمده</span></h1>
-            <p>نسخه‌ی جدید با حرکت نرم‌تر، نور و بازتاب بهتر، راه‌یابی سریع، تشخیص غرفه، feedback تعاملی و زیرساخت آماده‌تر برای GLB و اسکن واقعی.</p>
+            <div className="intro-eyebrow">TEHRAN PAPER ALLEY · v0.5.0</div>
+            <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان تهران</span></h1>
+            <p>نسخه‌ی سبک‌تر و موبایل‌محور با ۶ مغازه/فضا، حال‌وهوای بازار مرکزی تهران، زوم واقعی داخل دوربین و زیرساخت باز برای GLB و اسکن واقعی.</p>
             <div className="intro-features">
-              <span>۴ غرفه مفهومی</span>
-              <span>راه‌یابی روی نقشه</span>
-              <span>Asset fallback</span>
-              <span>GLB / Scan ready</span>
-              <span>Runtime diagnostics</span>
+              <span>۶ مغازه و فضای نمونه</span>
+              <span>Wheel / Pinch Zoom</span>
+              <span>Touch controls</span>
+              <span>Auto mobile quality</span>
+              <span>Scan-ready room</span>
             </div>
-            <button className="enter-button" onClick={enter}>ورود به پاساژ <b>↵</b></button>
-            <small>دسکتاپ پیشنهاد می‌شود. Esc آزادسازی موس · F3 دیباگ · Q تغییر کیفیت.</small>
+            <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
+            <small>دسکتاپ: WASD + Mouse + Wheel · موبایل: Joystick + Look pad + Pinch/±.</small>
           </div>
         </div>
       )}

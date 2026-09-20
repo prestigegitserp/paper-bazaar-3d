@@ -475,3 +475,301 @@ kbd {
   .debug-panel { right: 10px; bottom: 58px; width: 215px; }
   .room-toast { top: 68px; }
 }
+
+
+/* v0.5 — Tehran paper alley skin + touch controls */
+html, body {
+  overscroll-behavior: none;
+  background: #17120d;
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at 50% 14%, rgba(174,125,74,.16), transparent 34%),
+    linear-gradient(180deg, #261c14 0%, #17120d 52%, #0f0c09 100%);
+}
+
+.app-shell canvas {
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.brand-mark {
+  background: linear-gradient(135deg,#d4a25f,#88704e);
+  color: #22170d;
+  box-shadow: 0 0 24px rgba(211,160,91,.23);
+}
+
+.quality-toggle {
+  border-color: rgba(211,160,91,.2);
+}
+
+.quality-toggle:hover {
+  border-color: rgba(211,160,91,.42);
+}
+
+.minimap {
+  background: linear-gradient(180deg,#2a211a,#17120e);
+}
+
+.minimap-aisle {
+  background:
+    repeating-linear-gradient(0deg, rgba(201,169,126,.04) 0 8px, rgba(255,255,255,.02) 8px 9px),
+    linear-gradient(180deg,rgba(181,139,91,.12),rgba(111,82,54,.17));
+}
+
+.minimap-booth:hover,
+.minimap-booth.active {
+  background: rgba(211,160,91,.14);
+  box-shadow: 0 0 18px rgba(211,160,91,.12);
+}
+
+.primary-action {
+  background: linear-gradient(135deg,#ddb56f,#9f7a4d);
+  color: #21160d;
+  box-shadow: 0 10px 28px rgba(156,108,54,.2);
+}
+
+.big-price,
+.product-row > span,
+.kicker {
+  color: #e1b46f;
+}
+
+.interaction-prompt {
+  border-color: rgba(216,170,98,.34);
+}
+
+.interaction-prompt span {
+  color: #e1b46f;
+}
+
+.room-toast:before {
+  box-shadow: 0 0 12px var(--room-accent);
+}
+
+.bazaar-shop-sign {
+  min-width: 240px;
+  direction: rtl;
+  text-align: center;
+  color: #f7ead4;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.bazaar-shop-sign b {
+  display: block;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.bazaar-shop-sign span {
+  direction: ltr;
+  display: block;
+  margin-top: 2px;
+  color: #dfbb7b;
+  font: 700 7px/1.2 Arial, sans-serif;
+  letter-spacing: .9px;
+}
+
+.bazaar-price-board {
+  width: 220px;
+  direction: rtl;
+  text-align: right;
+  color: #332519;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.bazaar-price-board strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.bazaar-price-board span {
+  display: block;
+  margin-top: 5px;
+  color: #67513c;
+  font-size: 9px;
+}
+
+.bazaar-price-board small {
+  display: block;
+  margin-top: 8px;
+  color: #8a5b25;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.market-gate-sign {
+  width: 310px;
+  direction: rtl;
+  text-align: center;
+  color: #f5e8d2;
+  text-shadow: 0 2px 4px rgba(0,0,0,.5);
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.market-gate-sign strong {
+  display: block;
+  font-size: 18px;
+}
+
+.market-gate-sign span {
+  direction: ltr;
+  display: block;
+  margin-top: 3px;
+  color: #d9b475;
+  font: 700 7px/1.3 Arial, sans-serif;
+  letter-spacing: 1.2px;
+}
+
+.wayfinding-sign--bazaar strong {
+  color: #f5e7cd;
+}
+
+.wayfinding-sign--bazaar span {
+  color: #d9ae68;
+}
+
+.mobile-controls {
+  display: none;
+}
+
+@media (pointer: coarse), (max-width: 900px) {
+  .app-shell canvas {
+    touch-action: none;
+  }
+
+  .mobile-controls {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 7;
+    direction: ltr;
+  }
+
+  .mobile-look-zone {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 48vw;
+    height: 53vh;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .mobile-joystick {
+    position: absolute;
+    left: 18px;
+    bottom: 22px;
+    width: 118px;
+    height: 118px;
+    display: grid;
+    place-items: center;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .mobile-joystick__ring {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: 1px solid rgba(240,220,188,.22);
+    background: rgba(25,18,13,.45);
+    box-shadow: inset 0 0 24px rgba(0,0,0,.24), 0 8px 30px rgba(0,0,0,.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-joystick__ring:after {
+    content: '';
+    position: absolute;
+    inset: 21px;
+    border-radius: 50%;
+    border: 1px solid rgba(226,180,109,.18);
+  }
+
+  .mobile-joystick__knob {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    left: 25px;
+    top: 25px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(225,181,111,.86), rgba(116,84,52,.78));
+    border: 1px solid rgba(255,245,224,.34);
+    box-shadow: 0 6px 18px rgba(0,0,0,.3);
+    will-change: transform;
+  }
+
+  .mobile-actions {
+    position: absolute;
+    right: 16px;
+    bottom: 22px;
+    display: grid;
+    grid-template-columns: repeat(2, 48px);
+    gap: 9px;
+    pointer-events: auto;
+  }
+
+  .mobile-action {
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(240,220,188,.18);
+    border-radius: 15px;
+    background: rgba(25,18,13,.58);
+    color: #ecd8b9;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-weight: 900;
+    touch-action: none;
+  }
+
+  .mobile-action--interact {
+    background: linear-gradient(145deg, rgba(203,151,79,.88), rgba(116,81,43,.82));
+    color: #20150c;
+  }
+
+  .mobile-action--reset {
+    font-size: 11px;
+  }
+
+  .controls-hint {
+    display: none;
+  }
+
+  .crosshair {
+    opacity: .55;
+  }
+
+  .interaction-prompt {
+    transform: translate(-50%,50px);
+  }
+
+  .minimap-shell {
+    width: 158px;
+  }
+
+  .top-actions .quality-toggle {
+    min-width: 0;
+  }
+
+  .room-toast {
+    max-width: 52vw;
+    overflow: hidden;
+  }
+
+  .room-toast strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
