@@ -24,7 +24,7 @@ test('surface renderer uses physical material, anisotropic filtering and shared 
   assert.match(material, /anisotropy/)
   assert.match(material, /acquirePbrTextureSet/)
   assert.match(cache, /getMaxAnisotropy|anisotropy/)
-  assert.match(cache, /texturePromises/)
+  assert.match(cache, /sourceTexturePromises/)
 })
 
 test('scene has local reflection environment and subtle macro floor wear', async () => {
