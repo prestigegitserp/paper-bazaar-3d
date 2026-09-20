@@ -14,30 +14,33 @@ export default function MallScene() {
 
   return (
     <>
-      <color attach="background" args={['#040812']} />
-      <fog attach="fog" args={['#040812', 28, 76]} />
+      <color attach="background" args={['#17120d']} />
+      <fog attach="fog" args={['#1b1510', 26, 62]} />
 
-      <ambientLight intensity={0.42} />
-      <hemisphereLight intensity={0.9} color="#c8e4ff" groundColor="#111923" />
+      <ambientLight intensity={0.5} />
+      <hemisphereLight intensity={0.72} color="#f3dfbf" groundColor="#3a2d22" />
       <directionalLight
-        position={[7, 15, 9]}
-        intensity={1.65}
+        position={[4, 12, 7]}
+        intensity={1.15}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1536, 1536]}
         shadow-camera-near={1}
-        shadow-camera-far={50}
-        shadow-camera-left={-18}
-        shadow-camera-right={18}
-        shadow-camera-top={28}
-        shadow-camera-bottom={-28}
+        shadow-camera-far={42}
+        shadow-camera-left={-12}
+        shadow-camera-right={12}
+        shadow-camera-top={22}
+        shadow-camera-bottom={-22}
       />
 
       <Architecture />
 
-      {demoWorld.rooms.map((room) => {
-        const vendor = vendorsById.get(room.vendorId)
-        return vendor ? <RoomRenderer key={room.id} room={room} vendor={vendor} /> : null
-      })}
+      {demoWorld.rooms.map((room) => (
+        <RoomRenderer
+          key={room.id}
+          room={room}
+          vendor={room.vendorId ? vendorsById.get(room.vendorId) : undefined}
+        />
+      ))}
 
       <WorldDecor />
       <ExperienceEffects />

@@ -19,6 +19,13 @@ export type Diagnostics = {
   textures: number
 }
 
+function preferredQuality(): RenderQuality {
+  if (typeof window === 'undefined') return 'cinematic'
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory
+  return coarse || window.innerWidth < 900 || (typeof memory === 'number' && memory <= 4) ? 'balanced' : 'cinematic'
+}
+
 type AppState = {
   catalog: Catalog
   catalogMode: 'seed' | 'api'
@@ -55,8 +62,8 @@ export const useAppStore = create<AppState>((set) => ({
   selected: null,
   nearby: null,
   started: false,
-  player: { x: 0, z: 23 },
-  quality: 'cinematic',
+  player: { x: 0, z: 20 },
+  quality: preferredQuality(),
   navigationRequest: null,
   activeRoomId: null,
   visitedRoomIds: [],

@@ -9,12 +9,12 @@ export default function ExperienceEffects() {
       <AdaptiveDpr pixelated />
       {quality === 'cinematic' && (
         <Sparkles
-          count={110}
-          scale={[24, 5.6, 50]}
-          size={1.25}
-          speed={0.12}
-          opacity={0.18}
-          color="#bfe8ff"
+          count={42}
+          scale={[10, 4.4, 36]}
+          size={0.75}
+          speed={0.06}
+          opacity={0.11}
+          color="#f3d9ad"
         />
       )}
     </>

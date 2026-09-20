@@ -13,8 +13,8 @@ const worldIssues = validateWorldDefinition(demoWorld, seedCatalog)
 if (worldIssues.length) console.error('[world-validation]', worldIssues)
 
 function CatalogLoader() {
-  const setCatalog = useAppStore((s) => s.setCatalog)
-  const setCatalogError = useAppStore((s) => s.setCatalogError)
+  const setCatalog = useAppStore((state) => state.setCatalog)
+  const setCatalogError = useAppStore((state) => state.setCatalogError)
 
   useEffect(() => {
     if (import.meta.env.VITE_STATIC_DEMO === 'true') return
@@ -41,13 +41,13 @@ export default function App() {
     <main className="app-shell">
       <CatalogLoader />
       <Canvas
-        shadows
-        dpr={quality === 'cinematic' ? [1, 1.75] : [0.8, 1.25]}
-        camera={{ fov: 67, near: 0.08, far: 120, position: [0, 1.72, 23] }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        shadows={quality === 'cinematic'}
+        dpr={quality === 'cinematic' ? [1, 1.55] : [0.72, 1.12]}
+        camera={{ fov: 66, near: 0.08, far: 90, position: [0, 1.68, 18.8] }}
+        gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.toneMapping = ACESFilmicToneMapping
-          gl.toneMappingExposure = 1.12
+          gl.toneMappingExposure = 1.06
           gl.outputColorSpace = SRGBColorSpace
         }}
       >

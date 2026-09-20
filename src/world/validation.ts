@@ -14,7 +14,7 @@ export function validateWorldDefinition(world: WorldDefinition, catalog: Catalog
     if (roomIds.has(room.id)) errors.push(`duplicate room id: ${room.id}`)
     roomIds.add(room.id)
 
-    if (!vendorIds.has(room.vendorId)) errors.push(`${room.id} references missing vendor: ${room.vendorId}`)
+    if (room.vendorId && !vendorIds.has(room.vendorId)) errors.push(`${room.id} references missing vendor: ${room.vendorId}`)
     if (room.footprint[0] <= 0 || room.footprint[1] <= 0) errors.push(`${room.id} has invalid footprint`)
     if (room.discoveryRadius <= 0) errors.push(`${room.id} has invalid discoveryRadius`)
     if (!room.asset.assetId.trim() || !room.asset.version.trim()) errors.push(`${room.id} asset metadata is incomplete`)
@@ -27,8 +27,12 @@ export function validateWorldDefinition(world: WorldDefinition, catalog: Catalog
       if (hotspotIds.has(hotspot.id)) errors.push(`duplicate hotspot id: ${hotspot.id}`)
       hotspotIds.add(hotspot.id)
 
-      if ('vendorId' in hotspot.action && hotspot.action.vendorId !== room.vendorId) {
+      if ('vendorId' in hotspot.action && room.vendorId && hotspot.action.vendorId !== room.vendorId) {
         errors.push(`${hotspot.id} points to a vendor different from its room`)
+      }
+
+      if ('vendorId' in hotspot.action && !vendorIds.has(hotspot.action.vendorId)) {
+        errors.push(`${hotspot.id} references missing vendor: ${hotspot.action.vendorId}`)
       }
 
       if (hotspot.action.kind === 'product-slot' && hotspot.action.productIndex < 0) {

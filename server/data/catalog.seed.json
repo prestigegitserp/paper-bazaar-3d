@@ -1,6 +1,6 @@
 {
   "title": "Paper Bazaar 3D — بازار عمده کاغذ ایران",
-  "generatedAt": "2026-09-20T08:40:00+03:30",
+  "generatedAt": "2026-09-20T11:38:00+03:30",
   "currency": "IRT",
   "disclaimer": "این پروژه یک دموی مستقل است. طراحی غرفه‌ها مفهومی است و نمایندگی یا هویت بصری رسمی فروشندگان محسوب نمی‌شود. قیمت‌ها اسنپ‌شات صفحات عمومی وب هستند و پیش از خرید باید در منبع اصلی استعلام شوند.",
   "vendors": [
@@ -138,6 +138,33 @@
           "numericPrice": 720000,
           "unit": "قیمت درج‌شده در فروشگاه",
           "sourceUrl": "https://kaghaz20.ir/",
+          "observedAt": "2026-09-20"
+        }
+      ]
+    },
+    {
+      "id": "seraj-cellulose",
+      "name": "سراج سلولز / برادران محمودی",
+      "shortName": "Seraj Cellulose",
+      "tagline": "کاغذ و مقوای صنعتی، کرافت، تحریر و خدمات برش",
+      "website": "https://serajcellulosepars.com/",
+      "sourceLabel": "serajcellulosepars.com",
+      "products": [
+        {
+          "id": "seraj-kraft-yash",
+          "name": "کاغذ کرافت یاش — بند و پالت",
+          "priceText": "استعلام قیمت",
+          "unit": "قیمت عمومی ثابت در صفحه درج نشده؛ درخواست استعلام",
+          "sourceUrl": "https://serajcellulosepars.com/",
+          "observedAt": "2026-09-20",
+          "note": "فروشگاه برای این گروه کالا درخواست استعلام قیمت ارائه می‌کند."
+        },
+        {
+          "id": "seraj-writing-paper",
+          "name": "کاغذ تحریر",
+          "priceText": "استعلام قیمت",
+          "unit": "رول و ورق؛ استعلام روز",
+          "sourceUrl": "https://serajcellulosepars.com/",
           "observedAt": "2026-09-20"
         }
       ]

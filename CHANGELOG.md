@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.5.0 — Tehran paper alley + mobile controls
+
+### Environment
+- expands the world from 4 rooms to 6 shops/spaces
+- replaces the glossy exhibition-hall mood with a narrower Tehran paper-market alley
+- adds warm plaster/brick materials, arch ribs, Persian shop signs, awnings and dense paper shelves
+- adds Seraj Cellulose as an additional sourced vendor
+- keeps one dedicated scan-ready room for the first real GLB/LiDAR experiment
+
+### Camera / interaction
+- mouse wheel zoom now changes camera FOV inside the 3D world instead of relying on browser zoom
+- two-finger pinch and mobile +/- buttons control the same camera zoom
+- key 0 resets camera zoom
+- mobile virtual joystick, touch-look zone, interact and reset controls
+- mobile movement remains collision-aware and uses the same world/navigation contracts as desktop
+
+### Performance
+- mobile/coarse-pointer devices start in Balanced mode automatically
+- lower mobile DPR and shadows disabled in Balanced mode
+- repeated shelves, paper bundles, arch ribs and floor marks use instancing
+- removes the expensive mirrored aisle from the default market skin
+- fewer real-time lights while preserving emissive fixtures and warm visual contrast
+
+### Versioning / deployment
+- release/v0.3.0 and release/v0.4.0 snapshot branches preserve previous milestones
+- main remains the latest stable release line
+- every push/merge to main builds and deploys the latest version once GitHub Pages is enabled once in repository Settings
+
+# Changelog
+
 ## 0.4.0 — Immersive experience foundation
 
 ### Visual

@@ -3,6 +3,13 @@ import { Euler, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { buildWorldColliders, isPositionBlocked } from '../engine/collision'
 import { interactionFromObject, interactionKey } from '../engine/interactions'
+import {
+  consumeMobileLook,
+  consumeMobileZoom,
+  getMobileInteractSequence,
+  getMobileMove,
+  resetMobileInput
+} from '../input/mobileInput'
 import { useAppStore } from '../store'
 import { findActiveRoom } from '../world/spatial'
 import type { WorldDefinition } from '../world/types'
@@ -11,6 +18,17 @@ const CENTER = new Vector2(0, 0)
 const RAYCASTER = new Raycaster()
 const PLAYER_RADIUS = 0.32
 const INTERACTION_DISTANCE = 5.2
+const DEFAULT_FOV = 66
+const MIN_FOV = 43
+const MAX_FOV = 78
+
+function clampFov(value: number) {
+  return Math.max(MIN_FOV, Math.min(MAX_FOV, value))
+}
+
+function touchDistance(a: Touch, b: Touch) {
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
+}
 
 export default function PlayerController({ world }: { world: WorldDefinition }) {
   const { camera, gl, scene } = useThree()
@@ -24,6 +42,10 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const keys = useRef(new Set<string>())
   const yaw = useRef(0)
   const pitch = useRef(0)
+  const baseFovTarget = useRef(DEFAULT_FOV)
+  const lastPinchDistance = useRef<number | null>(null)
+  const touchMode = useRef(false)
+  const lastMobileInteract = useRef(getMobileInteractSequence())
   const frameCount = useRef(0)
   const lastNearby = useRef('')
   const lastActiveRoom = useRef<string | null>(null)
@@ -33,6 +55,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const right = useRef(new Vector3())
   const desiredVelocity = useRef(new Vector3())
   const velocity = useRef(new Vector3())
+  const stepVector = useRef(new Vector3())
   const bobPhase = useRef(0)
   const collisions = useMemo(() => buildWorldColliders(world), [world])
 
@@ -68,6 +91,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   }, [camera, setPlayer])
 
   useEffect(() => {
+    touchMode.current = (window.matchMedia?.('(pointer: coarse)').matches ?? false) || navigator.maxTouchPoints > 0
     moveTo(world.spawn, 0)
   }, [moveTo, world])
 
@@ -95,14 +119,49 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       pitch.current = Math.max(-1.25, Math.min(1.25, pitch.current))
     }
 
+    const onWheel = (event: WheelEvent) => {
+      if (!started) return
+      event.preventDefault()
+      const delta = Math.max(-120, Math.min(120, event.deltaY))
+      baseFovTarget.current = clampFov(baseFovTarget.current + delta * 0.045)
+    }
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 2) {
+        event.preventDefault()
+        lastPinchDistance.current = touchDistance(event.touches[0], event.touches[1])
+      }
+    }
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 2) return
+      event.preventDefault()
+      const distance = touchDistance(event.touches[0], event.touches[1])
+      if (lastPinchDistance.current !== null) {
+        const delta = lastPinchDistance.current - distance
+        baseFovTarget.current = clampFov(baseFovTarget.current + delta * 0.08)
+      }
+      lastPinchDistance.current = distance
+    }
+
+    const onTouchEnd = () => {
+      lastPinchDistance.current = null
+    }
+
+    const preventGesture = (event: Event) => {
+      if (started) event.preventDefault()
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
       keys.current.add(event.code)
 
       if (event.code === 'KeyE' && !event.repeat && document.pointerLockElement === canvas) activateTarget()
 
       if (event.code === 'KeyR' && !event.repeat) {
-        useAppStore.getState().requestNavigation({ target: world.spawn, yaw: 0, label: 'ورودی پاساژ' })
+        useAppStore.getState().requestNavigation({ target: world.spawn, yaw: 0, label: 'ورودی بازار' })
       }
+
+      if (event.code === 'Digit0' && !event.repeat) baseFovTarget.current = DEFAULT_FOV
     }
 
     const onKeyUp = (event: KeyboardEvent) => keys.current.delete(event.code)
@@ -113,7 +172,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     }
 
     const onCanvasMouseDown = (event: MouseEvent) => {
-      if (!started) return
+      if (!started || touchMode.current) return
       if (document.pointerLockElement === canvas) {
         if (event.button === 0) activateTarget()
         return
@@ -139,6 +198,13 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     window.addEventListener('blur', clearKeys)
     canvas.addEventListener('mousedown', onCanvasMouseDown)
     canvas.addEventListener('contextmenu', onContextMenu)
+    canvas.addEventListener('wheel', onWheel, { passive: false })
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false })
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false })
+    canvas.addEventListener('touchend', onTouchEnd, { passive: true })
+    canvas.addEventListener('touchcancel', onTouchEnd, { passive: true })
+    canvas.addEventListener('gesturestart', preventGesture, { passive: false })
+    canvas.addEventListener('gesturechange', preventGesture, { passive: false })
 
     return () => {
       document.removeEventListener('mousemove', onMouseMove)
@@ -148,6 +214,14 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       window.removeEventListener('blur', clearKeys)
       canvas.removeEventListener('mousedown', onCanvasMouseDown)
       canvas.removeEventListener('contextmenu', onContextMenu)
+      canvas.removeEventListener('wheel', onWheel)
+      canvas.removeEventListener('touchstart', onTouchStart)
+      canvas.removeEventListener('touchmove', onTouchMove)
+      canvas.removeEventListener('touchend', onTouchEnd)
+      canvas.removeEventListener('touchcancel', onTouchEnd)
+      canvas.removeEventListener('gesturestart', preventGesture)
+      canvas.removeEventListener('gesturechange', preventGesture)
+      resetMobileInput()
     }
   }, [activateTarget, clearNearby, gl.domElement, started, world.spawn])
 
@@ -157,43 +231,74 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   )
 
   useFrame(({ clock }, delta) => {
+    const mobileZoom = consumeMobileZoom()
+    if (mobileZoom) baseFovTarget.current = clampFov(baseFovTarget.current + mobileZoom)
+
     if (!started) {
       const t = clock.elapsedTime
-      camera.position.set(Math.sin(t * 0.18) * 0.55, world.spawn[1] + 0.09 + Math.sin(t * 0.4) * 0.025, world.spawn[2])
-      const idleLook = lookEuler.current.set(-0.02, Math.sin(t * 0.16) * 0.045, 0, 'YXZ')
+      camera.position.set(Math.sin(t * 0.16) * 0.35, world.spawn[1] + 0.05 + Math.sin(t * 0.38) * 0.018, world.spawn[2])
+      const idleLook = lookEuler.current.set(-0.015, Math.sin(t * 0.13) * 0.035, 0, 'YXZ')
       camera.quaternion.setFromEuler(idleLook)
+
+      if (camera instanceof PerspectiveCamera) {
+        camera.fov += (DEFAULT_FOV - camera.fov) * (1 - Math.exp(-5 * delta))
+        camera.updateProjectionMatrix()
+      }
       return
+    }
+
+    const mobileLook = consumeMobileLook()
+    if (touchMode.current && (mobileLook.x || mobileLook.y)) {
+      yaw.current -= mobileLook.x * 0.0042
+      pitch.current -= mobileLook.y * 0.0036
+      pitch.current = Math.max(-1.2, Math.min(1.2, pitch.current))
+    }
+
+    const currentInteract = getMobileInteractSequence()
+    if (currentInteract !== lastMobileInteract.current) {
+      lastMobileInteract.current = currentInteract
+      activateTarget()
     }
 
     const look = lookEuler.current.set(pitch.current, yaw.current, 0, 'YXZ')
     camera.quaternion.setFromEuler(look)
 
     const pointerLocked = document.pointerLockElement === gl.domElement
+    const mobileMove = getMobileMove()
+    const mobileMoving = Math.hypot(mobileMove.x, mobileMove.y) > 0.04
+    const movementEnabled = pointerLocked || touchMode.current
     let moving = false
     let sprinting = false
 
-    if (pointerLocked) {
+    if (movementEnabled) {
       const horizontalRotation = yawEuler.current.set(0, yaw.current, 0, 'YXZ')
       forward.current.set(0, 0, -1).applyEuler(horizontalRotation)
       right.current.set(1, 0, 0).applyEuler(horizontalRotation)
       desiredVelocity.current.set(0, 0, 0)
 
-      if (keys.current.has('KeyW') || keys.current.has('ArrowUp')) desiredVelocity.current.add(forward.current)
-      if (keys.current.has('KeyS') || keys.current.has('ArrowDown')) desiredVelocity.current.sub(forward.current)
-      if (keys.current.has('KeyD') || keys.current.has('ArrowRight')) desiredVelocity.current.add(right.current)
-      if (keys.current.has('KeyA') || keys.current.has('ArrowLeft')) desiredVelocity.current.sub(right.current)
+      if (pointerLocked) {
+        if (keys.current.has('KeyW') || keys.current.has('ArrowUp')) desiredVelocity.current.add(forward.current)
+        if (keys.current.has('KeyS') || keys.current.has('ArrowDown')) desiredVelocity.current.sub(forward.current)
+        if (keys.current.has('KeyD') || keys.current.has('ArrowRight')) desiredVelocity.current.add(right.current)
+        if (keys.current.has('KeyA') || keys.current.has('ArrowLeft')) desiredVelocity.current.sub(right.current)
+      }
+
+      if (mobileMoving) {
+        desiredVelocity.current.addScaledVector(forward.current, mobileMove.y)
+        desiredVelocity.current.addScaledVector(right.current, mobileMove.x)
+      }
 
       moving = desiredVelocity.current.lengthSq() > 0
-      sprinting = moving && (keys.current.has('ShiftLeft') || keys.current.has('ShiftRight'))
-      const speed = sprinting ? 8.15 : 5.1
+      sprinting = pointerLocked && moving && (keys.current.has('ShiftLeft') || keys.current.has('ShiftRight'))
+      const speed = sprinting ? 7.4 : touchMode.current ? 4.35 : 4.85
 
       if (moving) desiredVelocity.current.normalize().multiplyScalar(speed)
-      const response = 1 - Math.exp(-(moving ? 11 : 8) * Math.min(delta, 0.05))
+      const response = 1 - Math.exp(-(moving ? 10 : 8) * Math.min(delta, 0.05))
       velocity.current.lerp(desiredVelocity.current, response)
 
-      const step = velocity.current.clone().multiplyScalar(Math.min(delta, 0.04))
-      const nextX = camera.position.x + step.x
-      const nextZ = camera.position.z + step.z
+      stepVector.current.copy(velocity.current).multiplyScalar(Math.min(delta, 0.04))
+      const nextX = camera.position.x + stepVector.current.x
+      const nextZ = camera.position.z + stepVector.current.z
 
       if (!blocked(nextX, camera.position.z)) camera.position.x = nextX
       else velocity.current.x = 0
@@ -206,29 +311,31 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     }
 
     const horizontalSpeed = Math.hypot(velocity.current.x, velocity.current.z)
-    if (pointerLocked && horizontalSpeed > 0.2) bobPhase.current += delta * (sprinting ? 11.5 : 8.6)
-    const bobAmount = pointerLocked && horizontalSpeed > 0.2 ? Math.sin(bobPhase.current) * (sprinting ? 0.045 : 0.03) : 0
+    if (movementEnabled && horizontalSpeed > 0.2) bobPhase.current += delta * (sprinting ? 10.8 : 7.8)
+    const bobAmount = movementEnabled && horizontalSpeed > 0.2 ? Math.sin(bobPhase.current) * (sprinting ? 0.037 : 0.022) : 0
     camera.position.y = world.spawn[1] + bobAmount
 
     if (camera instanceof PerspectiveCamera) {
-      const targetFov = sprinting && horizontalSpeed > 2 ? 71 : 67
-      const nextFov = camera.fov + (targetFov - camera.fov) * (1 - Math.exp(-5 * delta))
-      if (Math.abs(nextFov - camera.fov) > 0.005) {
+      const sprintBonus = sprinting && horizontalSpeed > 2 ? 3.5 : 0
+      const targetFov = clampFov(baseFovTarget.current + sprintBonus)
+      const nextFov = camera.fov + (targetFov - camera.fov) * (1 - Math.exp(-7 * delta))
+      if (Math.abs(nextFov - camera.fov) > 0.003) {
         camera.fov = nextFov
         camera.updateProjectionMatrix()
       }
     }
 
     frameCount.current += 1
+    const aiming = pointerLocked || touchMode.current
 
-    if (pointerLocked && frameCount.current % 5 === 0) {
+    if (aiming && frameCount.current % 5 === 0) {
       const target = findTarget()
       const key = interactionKey(target)
       if (key !== lastNearby.current) {
         lastNearby.current = key
         setNearby(target)
       }
-    } else if (!pointerLocked) {
+    } else if (!aiming) {
       clearNearby()
     }
 
