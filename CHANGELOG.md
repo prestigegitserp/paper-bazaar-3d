@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.14.0 — Demand render + packed photoreal PBR
+
+### Runtime performance
+- switches the post-entry Canvas from continuous rendering to demand rendering
+- adds a renderer wakeup bridge for mobile input and imperative controls
+- keeps continuous frames only while movement, inertia or FOV easing is active
+- replaces per-room streaming frame callbacks with player-state-driven distance checks
+- code-splits the GLTF/file-backed renderer out of the startup room module
+- prewarms both the lazy renderer chunk and GLB bytes at the existing prefetch radius
+- removes the large transparent aisle-gloss plane and lets physical floor clearcoat handle highlights
+
+### Texture realism / bandwidth
+- introduces channel-aware PBR plans rather than one resolution for every map
+- near Cinematic authored surfaces use 2K color with 1K normal and 1K ARM
+- adds packed AO/Roughness/Metal support with roughness-only fallback
+- applies AO intensity per physical surface profile
+- removes the ineffective PBR bump-map path when a normal map is present
+- keeps 1K passage/startup maps and ref-counted progressive residency
+
+### Authored asset contract
+- generated GLB keeps TEXCOORD_0 and now also exposes TEXCOORD_1
+- authored GLB v3 geometry, semantic hotspots, instancing, decals and labels remain unchanged
+- no previous release branch is modified
+
 ## 0.13.0 — Photoreal texture + static-scene performance
 
 ### Performance

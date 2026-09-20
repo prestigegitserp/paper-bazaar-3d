@@ -31,3 +31,15 @@ It is **not** represented as a photogrammetric reconstruction or an exact replic
 Both assets are published under Poly Haven's CC0 license. v0.10 uses the 1K JPG variants at runtime, with procedural fallbacks if the remote assets are unavailable.
 
 The same registry is consumed by procedural React rooms and by the authored GLB material-upgrade layer, so material identity is not duplicated between renderers.
+
+
+## v0.14 packed-map usage
+
+v0.14 does not introduce a new licensed texture source. It extends the same Poly Haven CC0 surfaces already credited above by consuming their published ARM (AO / Roughness / Metal) maps where available.
+
+Near-field Cinematic authored materials intentionally use mixed resolution:
+- diffuse/color: 2K
+- normal GL: 1K
+- ARM: 1K
+
+This improves perceptual color detail and adds AO while avoiding the bandwidth/VRAM cost of loading every structural map at 2K. If an ARM file is unavailable, runtime falls back to the credited 1K roughness map and disables AO for that texture set.

@@ -8,7 +8,7 @@
 
 ## Snapshotهای موجود در GitHub
 
-در زمان آماده‌سازی v0.13، این release branchها واقعاً در repository وجود دارند:
+در زمان آماده‌سازی v0.14، این release branchها واقعاً در repository وجود دارند:
 
 - `release/v0.3.0`
 - `release/v0.4.0`
@@ -20,6 +20,7 @@
 - `release/v0.10.0`
 - `release/v0.11.0`
 - `release/v0.12.0`
+- `release/v0.13.0`
 
 `v0.1` و `v0.2` قبل از release-snapshot policy فعلی ساخته شدند و branch مستقل `release/v0.1.0` یا `release/v0.2.0` در GitHub ندارند. بنابراین نباید ادعا شود که تمام نسخه‌ها از v0.1 به بعد به‌صورت release branch ذخیره شده‌اند.
 

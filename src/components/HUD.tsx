@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Photoreal static perf · v0.13</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Demand render + ARM PBR · v0.14</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,14 +326,14 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">PHOTOREAL TEXTURE + STATIC PERF · v0.13.0</div>
+            <div className="intro-eyebrow">DEMAND RENDER + PACKED PBR · v0.14.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.13 تمام دستاوردهای v0.12 را حفظ می‌کند و دو گلوگاه بعدی را می‌زند: shadow-map دیگر هر فریم regenerate نمی‌شود، raycast/نورهای واقعی اضافی کم شده‌اند؛ در عوض authored shop نزدیک با PBR 2K و micro-detail بدون دانلود اضافه، واقعی‌تر دیده می‌شود.</p>
+            <p>v0.14 تمام جزئیات v0.13 را حفظ می‌کند اما loop رندر را activity-driven می‌کند، GLTF loader را از startup bundle جدا می‌کند و PBR نزدیک را به albedo 2K + normal/ARM 1K می‌برد؛ AO واقعی‌تر و roughness دقیق‌تر با فشار شبکه و GPU کمتر.</p>
             <div className="intro-features">
-              <span>UV-mapped authored GLB v3</span>
-              <span>Real bevels & cylinders</span>
-              <span>Physical labels & decals</span>
-              <span>AgX highlight rolloff</span>
+              <span>Demand-driven render loop</span>
+              <span>Lazy GLTF renderer chunk</span>
+              <span>2K color + packed ARM</span>
+              <span>Physical AO / roughness</span>
               <span>Scan-ready architecture</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>

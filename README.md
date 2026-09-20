@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.13.0**
+نسخه فعلی: **v0.14.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 روی پایه‌ی v0.12 دو ارتقای هم‌زمان دارد: هزینه‌ی static scene پایین‌تر با shadow event-driven، raycast محدود و نورپردازی پوششی؛ و texture واقعی‌تر با 2K نزدیک و micro-detail بدون شبکه. قراردادهای World/Catalog/Documents/Scan دست‌نخورده‌اند.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.14 روی پایه‌ی تمام نسخه‌های قبل، رندر را activity-driven می‌کند، renderer فایل‌محور را code-split می‌کند و texture pipeline را به mixed-resolution PBR با ARM/AO ارتقا می‌دهد؛ بدون حذف جزئیات authored یا تغییر قراردادهای World/Catalog/Documents/Scan.
 
 ## اجرا
 
@@ -30,19 +30,25 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.13 — Photoreal Texture + Static-Scene Performance
+## v0.14 — Demand Render + Packed Photoreal PBR
 
-- shadow map در Cinematic دیگر هر frame regenerate نمی‌شود؛ فقط در start/quality/asset-load refresh می‌شود.
-- meshهای authored که interaction ندارند از raycast حذف و matrix محلی‌شان freeze می‌شود.
-- distance probe فایل‌های GLB هر 10 frame اجرا می‌شود و از squared-distance استفاده می‌کند.
-- ظاهر 13 چراغ سقفی حفظ شده اما point light واقعی فقط هر سومین fixture است؛ پوشش نور با intensity/range تنظیم شده است.
-- authored shop نزدیک در Cinematic از PBR 2K استفاده می‌کند؛ اگر CDN 2K fail شود خودکار به 1K fallback می‌کند.
-- پاساژ و دید دور همچنان 1K progressive باقی می‌ماند تا startup سنگین نشود.
-- micro-bump 128px procedural و cache‌شده روی PBR واقعی اضافه می‌شود؛ network request جدید ندارد.
-- micro-detail روی procedural materials و authored GLB هر دو اعمال می‌شود.
-- GLB v3، UV، bevel، decals، labels، AgX، environment reflections، progressive loading، instancing و تمام interaction/collision contracts حفظ شده‌اند.
+- Canvas بعد از ورود هم `frameloop="demand"` است؛ فقط هنگام حرکت، look، zoom، navigation، async asset/material update یا ورودی موبایل فریم بعدی درخواست می‌شود.
+- bridge مستقل `renderWakeup` ورودی موبایل را بدون coupling به React Three Fiber بیدار می‌کند.
+- distance streaming دیگر per-room `useFrame` ندارد؛ با تغییر player/activeRoom event-driven اجرا می‌شود و teleport از minimap را هم درست پوشش می‌دهد.
+- `FileBackedRoom` با dynamic import از startup chunk جدا شده است. در شعاع preload، JS chunk و GLB bytes گرم می‌شوند؛ parse واقعی نزدیک room انجام می‌شود.
+- authored shop در Cinematic از **2K albedo + 1K normal + 1K ARM** استفاده می‌کند. در v0.13 هر سه map نزدیک می‌توانستند 2K باشند.
+- ARM بسته‌بندی‌شده همان texture را برای Roughness و AO مصرف می‌کند؛ اگر ARM در CDN موجود نباشد، سیستم خودکار به roughness-only 1K برمی‌گردد.
+- `SurfaceMaterial` دیگر bumpMap را هم‌زمان با normalMap bind نمی‌کند؛ طبق رفتار Three.js آن مسیر مؤثر نبود.
+- GLB generated حالا `TEXCOORD_1` هم (با همان UV accessor) صادر می‌کند تا AO compatibility صریح باشد.
+- transparent gloss overlay بزرگ کف حذف شده؛ clearcoat/roughness خود PBR مسئول برق سطح است، بنابراین هم texture کمتر wash می‌شود هم overdraw کم می‌شود.
+- StaticShadowController، instancing، GLB v3، bevel/cylinder، decals/labels، AgX، progressive loading، mobile controls، catalog/document و scan/server contracts همه حفظ شده‌اند.
 
-جزئیات فنی: [docs/DEBUG_REPORT_V013.md](docs/DEBUG_REPORT_V013.md)
+Baseline v0.13 CI:
+- main JS: **1,249.78 kB / 354.08 kB gzip**
+- CatalogReader chunk: **4.75 kB / 1.69 kB gzip**
+- authored GLB: **97,412 bytes**
+
+جزئیات فنی: [docs/DEBUG_REPORT_V014.md](docs/DEBUG_REPORT_V014.md)
 
 ## اجرا و تست کاتالوگ
 
@@ -58,7 +64,7 @@ npm run dev
 نسخه‌های milestone روی branchهای release نگه داشته می‌شوند:
 
 ```text
-release/v0.3.0 … release/v0.12.0
+release/v0.3.0 … release/v0.13.0
 main            → latest stable
 ```
 
