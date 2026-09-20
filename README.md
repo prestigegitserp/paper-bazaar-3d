@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.6.0**
+نسخه فعلی: **v0.7.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. در v0.6 پروژه از یک skin واحد عبور کرده و به یک Retail Experience Platform داده‌محور نزدیک شده است: هر مغازه profile مستقل، متریال و fixture متفاوت، نمونه‌های کاغذ و کاتالوگ تعاملی دارد؛ World/Catalog/Documents هم از repositoryهای قابل‌تعویض لود می‌شوند تا مهاجرت آینده به API، CMS یا سرور ساده بماند.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.7 یک visual pass واقع‌گراتر با الهام از راسته‌های بازار تهران و فضای مغازه‌های محدوده ۱۵ خرداد است: راهروی باریک‌تر، طاق آجری، کف فرسوده، کرکره فلزی، پیشخوان شیشه‌ای، قفسه‌های متراکم تا سقف و PBR واقعی. این نسخه بازسازی دقیق یک پلاک یا راسته مشخص نیست و معماری ماژولار Digital Twin نسخه‌های قبلی را حفظ می‌کند.
 
 ## اجرا
 
@@ -30,16 +30,18 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.6
+## v0.7 — 15 Khordad-inspired realism
 
-- ۶ profile بصری متفاوت برای مغازه‌ها: modern gallery، warehouse، editorial library، bright retail، heritage warehouse و scan lab.
-- Surface Registry procedural برای plaster، wood، brick، terrazzo، paper، fabric و brushed metal با map/bump/roughness مستقل.
-- fixtureهای ماژولار: دیوار نمونه کاغذ، رول‌رک، pallet، book wall، pegboard، acrylic display، قاب نمونه چاپ و swatch fan.
-- کاتالوگ سه‌بعدی روی میز هر فروشنده؛ کلیک روی آن Reader دوصفحه‌ای باز می‌کند و صفحات محصولات، نمونه رنگ/کاغذ و اطلاعات فروشنده را ورق می‌زند.
-- interaction جدید `document` مستقل از mesh و renderer.
-- Runtime Repository layer برای `Catalog + World + Documents`؛ فعلاً seed/API فعلی، بعداً قابل جایگزینی با backend/CMS.
-- HUD/mini-map/diagnostics دیگر مستقیم به `demoWorld` وابسته نیستند و World را از runtime state می‌گیرند.
-- Scan/GLB path حفظ شده و profileهای procedural فقط یکی از rendererهای قابل تعویض باقی مانده‌اند.
+- راهرو از حالت نمایشگاهی خارج شده و به راسته‌ای باریک‌تر با طاق نیم‌استوانه آجری، پایه‌های آجری و چراغ‌های فلورسنت نزدیک شده است.
+- ۶ مغازه profile مستقل دارند اما همه از زبان مشترک بازار تهران استفاده می‌کنند: قاب فلزی، کرکره باز/نیمه‌باز، تابلو فارسی، پیشخوان شیشه‌ای و قفسه متراکم.
+- PBR Registry جدید برای آجر فرسوده، گچ قدیمی، کف ساییده، کرکره رنگ‌شده و plywood.
+- PBRهای 1K از Poly Haven با مجوز CC0 در runtime لود می‌شوند؛ اگر CDN/CORS قطع باشد fallback procedural فعال می‌ماند.
+- در Cinematic علاوه بر albedo، normal و roughness هم لود می‌شوند؛ Balanced از albedo + fallback سبک‌تر استفاده می‌کند.
+- hand cart، کارتن‌های انبار، چهارپایه، رول کاغذ و دوچرخه به راسته اضافه شده‌اند و planterهای نمایشگاهی حذف شده‌اند.
+- fixtureها به فایل‌های مستقل StockWall / ShopCounter / ProductDisplays / MarketProps شکسته شده‌اند تا توسعه فروشگاه‌های بعدی تمیز بماند.
+- Scan/GLB، hotspotهای semantic، Catalog Reader و Runtime Repository layer بدون تغییر بنیادی حفظ شده‌اند.
+
+> ظاهر v0.7 از ویژگی‌های عمومی و تصاویر مرجع بازار تهران/۱۵ خرداد الهام گرفته است؛ ادعای بازسازی دقیق مکانی ندارد.
 
 ## اجرا و تست کاتالوگ
 
@@ -60,7 +62,7 @@ release/v0.4.0
 main            → latest stable
 ```
 
-milestoneهای پایدار روی `release/vX.Y.Z` snapshot می‌شوند؛ v0.6 نیز بعد از CI و merge snapshot خواهد شد. تاریخچه‌ی Git هم commitهای قبلی را نگه می‌دارد، بنابراین تغییر skin نسخه‌های قدیمی را حذف نمی‌کند.
+milestoneهای پایدار روی `release/vX.Y.Z` snapshot می‌شوند؛ هر milestone پایدار بعد از CI و merge snapshot می‌شود. تاریخچه‌ی Git هم commitهای قبلی را نگه می‌دارد، بنابراین تغییر skin نسخه‌های قدیمی را حذف نمی‌کند.
 
 جزئیات: [docs/VERSIONING.md](docs/VERSIONING.md)
 
@@ -111,6 +113,7 @@ asset: {
 مدل اسکن واقعی باید runtime asset بهینه باشد؛ raw photo set یا point cloud چندگیگابایتی نباید داخل repository اپ commit شود.
 
 - [docs/ASSET_PIPELINE.md](docs/ASSET_PIPELINE.md)
+- [docs/ASSET_CREDITS.md](docs/ASSET_CREDITS.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/DEBUGGING.md](docs/DEBUGGING.md)
 - [docs/MOBILE.md](docs/MOBILE.md)

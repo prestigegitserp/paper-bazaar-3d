@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.7.0 — 15 Khordad-inspired photoreal market pass
+
+### Environment
+- narrows the market aisle and moves shopfronts closer to the pedestrian corridor
+- replaces the flat exhibition ceiling with a brick barrel-vault interior and repeated masonry ribs/piers
+- adds fluorescent aisle fixtures, visible electrical runs, worn floor treatment and closed infill shutters between active shops
+- removes decorative planters and adds delivery cart, cardboard stock, folding stool, paper rolls and a bicycle for market density
+
+### Shops
+- replaces gallery/neon storefront language with metal frames, rolled or half-open shutters and compact Persian shop signs
+- glass sales counters with merchandise inside
+- denser floor-to-ceiling stock walls and handwritten yellow shelf labels
+- paper sample walls, swatch fans, stock pallets, roll racks, book walls, pegboards and shipping cartons remain profile-driven
+- shop fixtures split into smaller modules for easier future authoring
+
+### Materials
+- adds network-safe PBR surface registry with procedural fallback
+- integrates 1K CC0 Poly Haven materials for worn brick, worn plaster, worn tile floor, painted metal shutter and plywood
+- Cinematic loads color + normal + roughness maps; Balanced keeps a lighter path
+- PBR failures never crash the room and fall back to generated textures
+
+### Architecture
+- preserves RuntimeBundle, semantic interactions, scan/GLB renderer boundary and document reader
+- world layout and colliders updated for the narrower alley and new glass-counter orientation
+- v0.7 remains server/CMS-ready and does not encode business data into renderer components
+
 ## 0.6.0 — Modular retail experience + interactive catalogs
 
 ### Retail realism

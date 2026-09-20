@@ -1,4 +1,5 @@
 import { Html } from '@react-three/drei'
+import type { CSSProperties } from 'react'
 import type { Vendor } from '../../domain/catalog'
 import type { BoothProfile } from '../../world/boothProfiles'
 import type { RoomDefinition } from '../../world/types'
@@ -21,7 +22,7 @@ function ShopSign({ room, vendor, profile }: { room: RoomDefinition; vendor?: Ve
           style={{
             '--sign-text': profile.shopfront.signText,
             '--sign-accent': room.theme.accent
-          } as React.CSSProperties}
+          } as CSSProperties}
         >
           <b>{vendor?.name ?? room.label}</b>
           <span>{vendor?.shortName ?? 'DIGITAL TWIN / SCAN SPACE'}</span>

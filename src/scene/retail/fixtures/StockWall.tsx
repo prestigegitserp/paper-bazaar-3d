@@ -1,4 +1,5 @@
 import { Html, Instance, Instances } from '@react-three/drei'
+import type { CSSProperties } from 'react'
 import type { BoothProfile } from '../../../world/boothProfiles'
 import type { RoomDefinition } from '../../../world/types'
 import SurfaceMaterial from '../../materials/SurfaceMaterial'
@@ -56,7 +57,7 @@ export default function StockWall({ room, profile }: { room: RoomDefinition; pro
           distanceFactor={8.8}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="market-shelf-label" style={{ '--label': profile.shopfront.labelColor } as React.CSSProperties}>
+          <div className="market-shelf-label" style={{ '--label': profile.shopfront.labelColor } as CSSProperties}>
             {label}
           </div>
         </Html>

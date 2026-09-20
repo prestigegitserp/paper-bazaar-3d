@@ -2,7 +2,7 @@
 
 ## هدف
 
-v0.6 بین «داده‌ی مغازه» و «renderer مغازه» مرز مشخص می‌گذارد. سرور آینده نباید JSX یا نام component بداند؛ فقط شناسه‌های پایدار و داده‌های serializable را می‌فرستد.
+v0.7 بین «داده‌ی مغازه» و «renderer مغازه» مرز مشخص می‌گذارد. سرور آینده نباید JSX یا نام component بداند؛ فقط شناسه‌های پایدار و داده‌های serializable را می‌فرستد.
 
 ## Room instance
 
@@ -31,7 +31,7 @@ Profile باید reusable باشد؛ vendor data داخل profile قرار نم�
 
 ## Surface registry
 
-Surface ID امروز procedural texture تولید می‌کند:
+Surface ID می‌تواند در v0.7 به PBR واقعی resolve شود و در صورت خطا procedural fallback داشته باشد:
 
 ```text
 plaster-ivory
@@ -48,8 +48,8 @@ metal-brass
 surface id
   ↓
 material registry
-  ├─ current: CanvasTexture + bump
-  └─ future: KTX2 albedo/normal/roughness/AO from CDN
+  ├─ current: Poly Haven 1K PBR + CanvasTexture fallback
+  └─ future: owned CDN + KTX2 albedo/normal/ORM
 ```
 
 ## Documents
@@ -93,3 +93,16 @@ UI و Scene فقط RuntimeBundle را می‌بینند.
 - URL texture مستقیم داخل vendor data پخش نشود؛ surface ID استفاده شود.
 - document interaction به DOM/PDF viewer callback وابسته نشود.
 - scan room باید بتواند همان semantic interactionها را با point hotspot مصرف کند.
+
+
+## Market fixture modules
+
+v0.7 procedural retail renderer is split into reusable fixture modules:
+
+- `StockWall`: shelving, paper bundles and labels
+- `ShopCounter`: glass sales counter, calculator and document prop
+- `ProductDisplays`: price board and featured paper reams
+- `MarketProps`: sample walls, roll racks, pallets, cartons, books, pegboard and fan
+- `RetailShell`: shop envelope, shutter, metal frame, signage and lighting
+
+The profile only toggles/configures these modules. Vendor data still lives in Catalog/Document repositories.
