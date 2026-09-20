@@ -187,9 +187,10 @@ export default function HUD() {
   const setStarted = useAppStore((state) => state.setStarted)
   const setQuality = useAppStore((state) => state.setQuality)
   const requestNavigation = useAppStore((state) => state.requestNavigation)
+  const diagnosticsEnabled = useAppStore((state) => state.diagnosticsEnabled)
+  const setDiagnosticsEnabled = useAppStore((state) => state.setDiagnosticsEnabled)
   const { active: loadingAssets, progress } = useProgress()
   const [mapOpen, setMapOpen] = useState(true)
-  const [debugOpen, setDebugOpen] = useState(false)
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -197,14 +198,14 @@ export default function HUD() {
       if (event.code === 'KeyM') setMapOpen((value) => !value)
       if (event.code === 'F3') {
         event.preventDefault()
-        setDebugOpen((value) => !value)
+        setDiagnosticsEnabled(!useAppStore.getState().diagnosticsEnabled)
       }
       if (event.code === 'KeyQ') setQuality(quality === 'cinematic' ? 'balanced' : 'cinematic')
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [quality, setQuality])
+  }, [quality, setDiagnosticsEnabled, setQuality])
 
   const selectedVendor = useMemo(() => {
     if (!selected) return null
@@ -309,7 +310,7 @@ export default function HUD() {
         </div>
       )}
 
-      {debugOpen && <DebugPanel />}
+      {diagnosticsEnabled && <DebugPanel />}
       <MobileControls />
 
       {selected && selected.kind !== 'document' && selectedVendor && (
