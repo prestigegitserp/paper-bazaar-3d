@@ -9,11 +9,13 @@ async function source(relative) {
 test('v0.13 is a fidelity-preserving rebuild on v0.12 contracts', async () => {
   const world = await source('../src/world/demoWorld.ts')
   const renderer = await source('../src/components/RoomRenderer.tsx')
+  const fileRenderer = await source('../src/components/FileRoomRenderer.tsx')
   const generator = await source('./generate-authored-shop.mjs')
 
   assert.match(renderer, /FILE_PREFETCH_RADIUS = 24/)
   assert.match(renderer, /FILE_REVEAL_RADIUS = 18/)
-  assert.match(renderer, /InstancedMesh/)
+  assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
+  assert.match(fileRenderer, /InstancedMesh/)
   assert.match(world, /iran-paper-authored-v3\.glb/)
   assert.match(world, /authored:iran-paper-net:store:v3/)
   assert.match(generator, /TEXCOORD_0/)
@@ -23,7 +25,7 @@ test('v0.13 is a fidelity-preserving rebuild on v0.12 contracts', async () => {
 test('static scene no longer regenerates cinematic shadows every frame', async () => {
   const controller = await source('../src/components/StaticShadowController.tsx')
   const mall = await source('../src/components/MallScene.tsx')
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
 
   assert.match(controller, /shadowMap\.autoUpdate = false/)
   assert.match(controller, /shadowMap\.needsUpdate = true/)
@@ -64,7 +66,7 @@ test('file streaming probe is throttled and sqrt-free', async () => {
 })
 
 test('raycast optimization preserves structural occlusion', async () => {
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
 
   assert.match(renderer, /tinyDecorativeBatch/)
   assert.match(renderer, /nonOccludingDecoration/)
@@ -92,16 +94,20 @@ test('texture decode and GPU upload are scheduled away from the hot path', async
 
   assert.match(cache, /ImageBitmapLoader/)
   assert.match(cache, /loadWithFallback/)
+  assert.match(cache, /const detailUrls = getPbrSurfaceUrls\(surface, '1k'\)/)
+  assert.match(cache, /loadSharedTexture\(detailUrls\.normal\)/)
   assert.match(cache, /MAX_CONCURRENT_BUILDS = 2/)
   assert.match(uploader, /requestIdleCallback/)
   assert.match(uploader, /renderer\.initTexture/)
   assert.match(uploader, /uploadTail/)
+  assert.match(uploader, /uploadTail\s*\.catch/)
+  assert.match(uploader, /reject\(error\)/)
 })
 
 test('micro material detail uses physically compatible channels', async () => {
   const micro = await source('../src/scene/materials/microDetailTextures.ts')
   const surface = await source('../src/scene/materials/SurfaceMaterial.tsx')
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
 
   assert.match(micro, /getMicroNormalVariant/)
   assert.match(micro, /getMicroRoughnessVariant/)
@@ -119,4 +125,21 @@ test('v0.13 keeps progressive startup and lazy catalog behavior from v0.12', asy
   assert.match(app, /lazy\(\(\) => import\('\.\/features\/catalog-reader\/CatalogReader'\)\)/)
   assert.match(app, /frameloop=\{started \? 'always' : 'demand'\}/)
   assert.match(environment, /if \(!started\) return/)
+})
+
+
+test('heavy file-backed renderer is code-split from the startup room renderer', async () => {
+  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const fileRenderer = await source('../src/components/FileRoomRenderer.tsx')
+  assert.match(renderer, /lazy\(loadFileRoomModule\)/)
+  assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
+  assert.doesNotMatch(renderer, /MeshPhysicalMaterial/)
+  assert.match(fileRenderer, /MeshPhysicalMaterial/)
+})
+
+
+test('interaction raycaster is distance-bounded without losing first-hit occlusion', async () => {
+  const player = await source('../src/components/PlayerController.tsx')
+  assert.match(player, /RAYCASTER\.far = INTERACTION_DISTANCE/)
+  assert.match(player, /intersectObjects\(scene\.children, true\)\[0\]/)
 })

@@ -5,6 +5,7 @@ import test from 'node:test'
 const worldFiles = [
   '../src/components/Architecture.tsx',
   '../src/components/RoomRenderer.tsx',
+  '../src/components/FileRoomRenderer.tsx',
   '../src/scene/retail/RetailShell.tsx',
   '../src/scene/retail/fixtures/StockWall.tsx',
   '../src/scene/retail/fixtures/ProductDisplays.tsx',

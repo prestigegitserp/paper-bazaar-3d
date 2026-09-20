@@ -28,15 +28,18 @@ test('intro rendering defers expensive continuous and shadow work', async () => 
 
 test('file-backed rooms use distance prefetch and local Suspense fallback', async () => {
   const renderer = await source('../src/components/RoomRenderer.tsx')
+  const fileRenderer = await source('../src/components/FileRoomRenderer.tsx')
   assert.match(renderer, /FILE_PREFETCH_RADIUS = 24/)
   assert.match(renderer, /FILE_REVEAL_RADIUS = 18/)
-  assert.match(renderer, /useGLTF\.preload/)
+  assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
+  assert.match(renderer, /preloadFileRoom/)
+  assert.match(fileRenderer, /useGLTF\.preload/)
   assert.match(renderer, /Suspense fallback=\{<Booth/)
   assert.match(renderer, /useProgressiveFileAsset/)
 })
 
 test('authored repeated meshes are batched without touching semantic hotspots', async () => {
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
   assert.match(renderer, /InstancedMesh/)
   assert.match(renderer, /batchStaticAuthoredMeshes/)
   assert.match(renderer, /object\.userData\.interaction/)

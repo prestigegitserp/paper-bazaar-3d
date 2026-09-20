@@ -67,6 +67,8 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   }, [setNearby])
 
   const findTarget = useCallback(() => {
+    RAYCASTER.near = 0
+    RAYCASTER.far = INTERACTION_DISTANCE
     RAYCASTER.setFromCamera(CENTER, camera)
     const firstHit = RAYCASTER.intersectObjects(scene.children, true)[0]
     if (!firstHit || firstHit.distance > INTERACTION_DISTANCE) return null

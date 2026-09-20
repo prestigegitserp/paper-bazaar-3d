@@ -77,7 +77,7 @@ Cinematic + desktop + enough memory/CPU + high-value surface
   → automatic 1K fallback
 ```
 
-2K سراسری نیست؛ چون هدف هم realism و هم سرعت است.
+2K سراسری نیست؛ چون هدف هم realism و هم سرعت است. در high-resolution plan فقط albedo به 2K می‌رود؛ normal و roughness روی 1K می‌مانند. micro-normal نزدیک نیز detail فرکانس‌بالا را بدون سه برابر کردن پهنای‌باند حفظ می‌کند.
 
 ### Decode / upload
 
@@ -125,3 +125,11 @@ Regression suite جدید قفل می‌کند:
 - authored GLB v3/UV/bevel preservation
 
 تمام تست‌های legacy نیز باید قبل از main/deploy سبز بمانند.
+
+
+## Late deep-debug fixes
+
+- GPU upload queue now recovers after a failed upload; one rejected texture can no longer poison every later upload job.
+- idle upload explicitly propagates exceptions so PBR leases can be released rather than hanging.
+- interaction Raycaster uses `far = INTERACTION_DISTANCE`, reducing unnecessary distant intersection work while preserving first-hit structural occlusion.
+- file-backed renderer code is dynamically split and prefetched together with the GLB only near the relevant room.
