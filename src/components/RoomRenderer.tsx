@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { resolveAssetUrl } from '../assets/resolveAssetUrl'
 import type { Vendor } from '../domain/catalog'
 import { useAppStore } from '../store'
@@ -42,24 +41,22 @@ function prefetchFileAsset(url: string) {
 
 function useProgressiveFileAsset(room: RoomDefinition) {
   const started = useAppStore((state) => state.started)
+  const player = useAppStore((state) => state.player)
+  const activeRoomId = useAppStore((state) => state.activeRoomId)
   const url = fileAssetUrl(room)
   const [ready, setReady] = useState(() => !url)
   const prefetchStarted = useRef(false)
-  const streamFrame = useRef(0)
 
   useEffect(() => {
     prefetchStarted.current = false
     setReady(!url)
   }, [room.asset.assetId, room.asset.version, url])
 
-  useFrame(() => {
+  useEffect(() => {
     if (!url || !started || ready) return
-    streamFrame.current = (streamFrame.current + 1) % 10
-    if (streamFrame.current !== 0) return
 
-    const state = useAppStore.getState()
-    const dx = state.player.x - room.position[0]
-    const dz = state.player.z - room.position[2]
+    const dx = player.x - room.position[0]
+    const dz = player.z - room.position[2]
     const distanceSq = dx * dx + dz * dz
 
     if (!prefetchStarted.current && distanceSq <= FILE_PREFETCH_RADIUS * FILE_PREFETCH_RADIUS) {
@@ -67,14 +64,23 @@ function useProgressiveFileAsset(room: RoomDefinition) {
       void prefetchFileAsset(url)
     }
 
-    if (distanceSq <= FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS || state.activeRoomId === room.id) {
+    if (distanceSq <= FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS || activeRoomId === room.id) {
       if (!prefetchStarted.current) {
         prefetchStarted.current = true
         void prefetchFileAsset(url)
       }
       setReady(true)
     }
-  })
+  }, [
+    activeRoomId,
+    player.x,
+    player.z,
+    ready,
+    room.id,
+    room.position,
+    started,
+    url
+  ])
 
   return ready
 }
