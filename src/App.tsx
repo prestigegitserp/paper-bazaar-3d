@@ -1,12 +1,13 @@
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { AgXToneMapping, SRGBColorSpace } from 'three'
-import CatalogReader from './features/catalog-reader/CatalogReader'
 import MallScene from './components/MallScene'
 import HUD from './components/HUD'
 import { loadRuntimeBundle } from './infrastructure/repositories/runtimeRepositories'
 import { useAppStore } from './store'
 import { validateWorldDefinition } from './world/validation'
+
+const CatalogReader = lazy(() => import('./features/catalog-reader/CatalogReader'))
 
 function RuntimeLoader() {
   const setRuntimeBundle = useAppStore((state) => state.setRuntimeBundle)
@@ -36,13 +37,20 @@ function RuntimeLoader() {
 export default function App() {
   const quality = useAppStore((state) => state.quality)
   const world = useAppStore((state) => state.world)
+  const started = useAppStore((state) => state.started)
+  const documentOpen = useAppStore((state) => state.selected?.kind === 'document')
 
   return (
     <main className="app-shell">
       <RuntimeLoader />
       <Canvas
-        shadows={quality === 'cinematic'}
-        dpr={quality === 'cinematic' ? [1, 1.55] : [0.72, 1.12]}
+        shadows={started && quality === 'cinematic'}
+        dpr={started
+          ? quality === 'cinematic'
+            ? [1, 1.55]
+            : [0.72, 1.12]
+          : [0.65, 0.9]}
+        frameloop={started ? 'always' : 'demand'}
         camera={{ fov: 66, near: 0.08, far: 90, position: world.spawn as [number, number, number] }}
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
@@ -56,7 +64,11 @@ export default function App() {
         </Suspense>
       </Canvas>
       <HUD />
-      <CatalogReader />
+      {documentOpen && (
+        <Suspense fallback={null}>
+          <CatalogReader />
+        </Suspense>
+      )}
     </main>
   )
 }
