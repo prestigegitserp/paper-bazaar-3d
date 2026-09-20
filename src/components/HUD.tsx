@@ -1,8 +1,11 @@
+import { useProgress } from '@react-three/drei'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useAppStore } from '../store'
 import type { CrawlStatus, Product, Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
 import { demoWorld } from '../world/demoWorld'
+import { roomEntryPoint, roomEntryYaw } from '../world/spatial'
+import type { RoomDefinition } from '../world/types'
 
 function formatDate(value: string) {
   try {
@@ -23,7 +26,7 @@ function crawlStatusLabel(status?: CrawlStatus) {
 }
 
 function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interaction }) {
-  const product: Product | undefined = selected.kind === 'product' ? vendor.products.find((p) => p.id === selected.productId) : undefined
+  const product: Product | undefined = selected.kind === 'product' ? vendor.products.find((item) => item.id === selected.productId) : undefined
   const room = demoWorld.rooms.find((candidate) => candidate.vendorId === vendor.id)
   const accent = room?.theme.accent ?? '#38bdf8'
 
@@ -40,7 +43,7 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
           <div className="info-card">
             <span className="kicker">وب‌سایت غرفه</span>
             <strong dir="ltr">{vendor.sourceLabel}</strong>
-            <p>این میز نقش کانتر مدیریت غرفه را دارد. در نسخه بعد می‌تواند به پروفایل فروشنده، CRM یا چت فروش متصل شود.</p>
+            <p>این میز نقش کانتر مدیریت را دارد و بعداً می‌تواند به CRM، چت فروش، تقویم جلسه یا پنل اختصاصی فروشنده متصل شود.</p>
           </div>
           <a className="primary-action" href={vendor.website} target="_blank" rel="noreferrer">باز کردن سایت فروشنده ↗</a>
         </>
@@ -86,9 +89,19 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
   )
 }
 
-function MiniMap({ open, onToggle }: { open: boolean; onToggle: () => void }) {
-  const player = useAppStore((s) => s.player)
-  const vendors = useAppStore((s) => s.catalog.vendors)
+function MiniMap({
+  open,
+  onToggle,
+  onNavigate,
+  activeRoomId
+}: {
+  open: boolean
+  onToggle: () => void
+  onNavigate: (room: RoomDefinition) => void
+  activeRoomId: string | null
+}) {
+  const player = useAppStore((state) => state.player)
+  const vendors = useAppStore((state) => state.catalog.vendors)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
   const { bounds } = demoWorld
   const px = ((player.x - bounds.minX) / (bounds.maxX - bounds.minX)) * 100
@@ -101,53 +114,103 @@ function MiniMap({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
     <div className="minimap-shell">
       <div className="minimap-title">
-        <span>نقشه پاساژ</span>
+        <span>نقشه · روی غرفه بزن</span>
         <button type="button" onClick={onToggle} aria-label="بستن نقشه"><kbd>M</kbd></button>
       </div>
       <div className="minimap">
         <div className="minimap-aisle" />
-        {demoWorld.rooms.map((room) => {
+        {demoWorld.rooms.map((room, index) => {
           const vendor = vendorsById.get(room.vendorId)
           if (!vendor) return null
           const x = ((room.position[0] - bounds.minX) / (bounds.maxX - bounds.minX)) * 100 - 10
           const y = ((bounds.maxZ - room.position[2]) / (bounds.maxZ - bounds.minZ)) * 100 - 7.5
           return (
-            <div key={room.id} className="minimap-booth" style={{ left: `${x}%`, top: `${y}%`, borderColor: room.theme.accent }} title={vendor.name}>
+            <button
+              key={room.id}
+              type="button"
+              className={`minimap-booth ${activeRoomId === room.id ? 'active' : ''}`}
+              style={{ left: `${x}%`, top: `${y}%`, borderColor: room.theme.accent }}
+              title={`رفتن سریع به ${vendor.name}`}
+              onClick={() => onNavigate(room)}
+            >
               <span>{vendor.name.replace('انتشارات ملت / کیمیا تجارت', 'ملت')}</span>
-            </div>
+              <b>{index + 1}</b>
+            </button>
           )
         })}
         <div className="minimap-entry">ورودی</div>
         <div className="minimap-player" style={{ left: `${px}%`, top: `${py}%` }} />
       </div>
+      <small className="minimap-help">برای کلیک روی نقشه اگر موس قفل است ابتدا Esc بزن.</small>
+    </div>
+  )
+}
+
+function DebugPanel() {
+  const player = useAppStore((state) => state.player)
+  const diagnostics = useAppStore((state) => state.diagnostics)
+  const quality = useAppStore((state) => state.quality)
+  const activeRoomId = useAppStore((state) => state.activeRoomId)
+  const visitedRoomIds = useAppStore((state) => state.visitedRoomIds)
+  const assetErrors = useAppStore((state) => state.assetErrors)
+
+  return (
+    <div className="debug-panel" dir="ltr">
+      <strong>Runtime diagnostics · F3</strong>
+      <div><span>position</span><b>{player.x.toFixed(2)}, {player.z.toFixed(2)}</b></div>
+      <div><span>room</span><b>{activeRoomId ?? 'hall'}</b></div>
+      <div><span>quality</span><b>{quality}</b></div>
+      <div><span>draw calls</span><b>{diagnostics.calls}</b></div>
+      <div><span>triangles</span><b>{diagnostics.triangles.toLocaleString()}</b></div>
+      <div><span>geometries</span><b>{diagnostics.geometries}</b></div>
+      <div><span>textures</span><b>{diagnostics.textures}</b></div>
+      <div><span>visited</span><b>{visitedRoomIds.length}/{demoWorld.rooms.length}</b></div>
+      <div><span>asset errors</span><b>{Object.keys(assetErrors).length}</b></div>
     </div>
   )
 }
 
 export default function HUD() {
-  const catalog = useAppStore((s) => s.catalog)
-  const catalogMode = useAppStore((s) => s.catalogMode)
-  const catalogError = useAppStore((s) => s.catalogError)
-  const selected = useAppStore((s) => s.selected)
-  const nearby = useAppStore((s) => s.nearby)
-  const started = useAppStore((s) => s.started)
-  const setSelected = useAppStore((s) => s.setSelected)
-  const setStarted = useAppStore((s) => s.setStarted)
+  const catalog = useAppStore((state) => state.catalog)
+  const catalogMode = useAppStore((state) => state.catalogMode)
+  const catalogError = useAppStore((state) => state.catalogError)
+  const selected = useAppStore((state) => state.selected)
+  const nearby = useAppStore((state) => state.nearby)
+  const started = useAppStore((state) => state.started)
+  const quality = useAppStore((state) => state.quality)
+  const activeRoomId = useAppStore((state) => state.activeRoomId)
+  const setSelected = useAppStore((state) => state.setSelected)
+  const setStarted = useAppStore((state) => state.setStarted)
+  const setQuality = useAppStore((state) => state.setQuality)
+  const requestNavigation = useAppStore((state) => state.requestNavigation)
+  const { active: loadingAssets, progress } = useProgress()
   const [mapOpen, setMapOpen] = useState(true)
+  const [debugOpen, setDebugOpen] = useState(false)
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== 'KeyM' || event.repeat) return
-      setMapOpen((value) => !value)
+      if (event.repeat) return
+      if (event.code === 'KeyM') setMapOpen((value) => !value)
+      if (event.code === 'F3') {
+        event.preventDefault()
+        setDebugOpen((value) => !value)
+      }
+      if (event.code === 'KeyQ') setQuality(quality === 'cinematic' ? 'balanced' : 'cinematic')
     }
+
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [quality, setQuality])
 
   const selectedVendor = useMemo(() => {
     if (!selected) return null
     return catalog.vendors.find((vendor) => vendor.id === selected.vendorId) ?? null
   }, [catalog.vendors, selected])
+
+  const activeRoom = useMemo(
+    () => demoWorld.rooms.find((room) => room.id === activeRoomId) ?? null,
+    [activeRoomId]
+  )
 
   const enter = () => {
     setStarted(true)
@@ -156,9 +219,20 @@ export default function HUD() {
       try {
         void canvas.requestPointerLock()
       } catch {
-        // The scene remains usable with click interactions even when Pointer Lock is unavailable.
+        // Pointer Lock may be unavailable in embedded previews.
       }
     }
+  }
+
+  const navigateToRoom = (room: RoomDefinition) => {
+    if (document.pointerLockElement) document.exitPointerLock()
+    setSelected(null)
+    setStarted(true)
+    requestNavigation({
+      target: roomEntryPoint(room),
+      yaw: roomEntryYaw(room),
+      label: room.label
+    })
   }
 
   return (
@@ -166,20 +240,52 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>دموی Digital Twin بازار کاغذ</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Digital Twin prototype · v0.4</span></div>
         </div>
-        <div className="data-status" title={catalogError ?? undefined}>
-          <i className={catalogMode === 'api' ? 'live' : catalogError ? 'error' : ''} />
-          {catalogMode === 'api' ? 'API catalog' : catalogError ? 'Seed fallback' : 'Seed snapshot'} · {formatDate(catalog.generatedAt)}
+
+        <div className="top-actions">
+          <button
+            className="quality-toggle"
+            type="button"
+            onClick={() => setQuality(quality === 'cinematic' ? 'balanced' : 'cinematic')}
+            title="میانبر Q"
+          >
+            {quality === 'cinematic' ? 'Cinematic' : 'Balanced'} <kbd>Q</kbd>
+          </button>
+          <div className="data-status" title={catalogError ?? undefined}>
+            <i className={catalogMode === 'api' ? 'live' : catalogError ? 'error' : ''} />
+            {catalogMode === 'api' ? 'API catalog' : catalogError ? 'Seed fallback' : 'Seed snapshot'} · {formatDate(catalog.generatedAt)}
+          </div>
         </div>
       </div>
 
-      <MiniMap open={mapOpen} onToggle={() => setMapOpen((value) => !value)} />
+      <MiniMap
+        open={mapOpen}
+        onToggle={() => setMapOpen((value) => !value)}
+        onNavigate={navigateToRoom}
+        activeRoomId={activeRoomId}
+      />
+
+      {loadingAssets && progress < 100 && (
+        <div className="asset-loader">
+          <span>Loading 3D assets</span>
+          <strong>{Math.round(progress)}%</strong>
+          <i><b style={{ width: `${progress}%` }} /></i>
+        </div>
+      )}
+
+      {activeRoom && started && !selected && (
+        <div className="room-toast" style={{ '--room-accent': activeRoom.theme.accent } as CSSProperties}>
+          <span>اکنون در محدوده</span>
+          <strong>{activeRoom.label}</strong>
+        </div>
+      )}
+
       {started && !selected && <div className="crosshair" />}
 
       {nearby && started && !selected && (
         <div className="interaction-prompt">
-          <span>تعامل</span>
+          <span>تعامل نزدیک</span>
           <strong>{nearby.label}</strong>
           <kbd>E</kbd><em>یا کلیک</em>
         </div>
@@ -189,11 +295,14 @@ export default function HUD() {
         <div className="controls-hint">
           <span><kbd>WASD</kbd> حرکت</span>
           <span><kbd>Shift</kbd> سریع</span>
+          <span><kbd>R</kbd> ورودی</span>
           <span><kbd>M</kbd> نقشه</span>
-          <span><kbd>Mouse</kbd> نگاه</span>
-          <span><kbd>Esc</kbd> آزاد کردن موس</span>
+          <span><kbd>Q</kbd> کیفیت</span>
+          <span><kbd>F3</kbd> دیباگ</span>
         </div>
       )}
+
+      {debugOpen && <DebugPanel />}
 
       {selected && selectedVendor && (
         <aside className="detail-panel">
@@ -209,14 +318,18 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">PROTOTYPE · 0.3</div>
-            <h1>پاساژ سه‌بعدی<br /><span>عمده‌فروشان کاغذ ایران</span></h1>
-            <p>داخل پاساژ راه برو، وارد غرفه‌ها شو، روی میز مدیریت و بورد قیمت نشانه بگیر و اطلاعات واقعیِ نمونه را ببین.</p>
+            <div className="intro-eyebrow">IMMERSIVE PROTOTYPE · v0.4.0</div>
+            <h1>بازار سه‌بعدی<br /><span>کاغذ و تامین عمده</span></h1>
+            <p>نسخه‌ی جدید با حرکت نرم‌تر، نور و بازتاب بهتر، راه‌یابی سریع، تشخیص غرفه، feedback تعاملی و زیرساخت آماده‌تر برای GLB و اسکن واقعی.</p>
             <div className="intro-features">
-              <span>۴ غرفه مفهومی</span><span>تعامل سه‌بعدی</span><span>قیمت منبع‌دار</span><span>آماده برای GLB</span>
+              <span>۴ غرفه مفهومی</span>
+              <span>راه‌یابی روی نقشه</span>
+              <span>Asset fallback</span>
+              <span>GLB / Scan ready</span>
+              <span>Runtime diagnostics</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به پاساژ <b>↵</b></button>
-            <small>بهتر است روی دسکتاپ و با موس اجرا شود. برای خروج از Pointer Lock کلید Esc را بزن.</small>
+            <small>دسکتاپ پیشنهاد می‌شود. Esc آزادسازی موس · F3 دیباگ · Q تغییر کیفیت.</small>
           </div>
         </div>
       )}
