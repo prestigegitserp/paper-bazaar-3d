@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>15 Khordad realism · v0.8</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Charsou passage · v0.9</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,13 +326,13 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">AUTHORED DIGITAL TWIN PIPELINE · v0.8.0</div>
+            <div className="intro-eyebrow">MODERN PAPER PASSAGE · v0.9.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>نسخه‌ی v0.8 اولین مغازه‌ی authored واقعی را به‌صورت GLB وارد همان World ماژولار می‌کند؛ interactionها روی nodeهای معنایی مدل قرار گرفته‌اند و نوشته‌های داخلی فقط در غرفه‌ی فعال دیده می‌شوند تا آرامش بصری راسته حفظ شود.</p>
+            <p>v0.9 فضای عمومی را روشن‌تر و نزدیک‌تر به زبان معماری چارسو می‌کند: کف porcelain روشن، شیشه و فلز، سقف پنلی و نور خطی. متن‌های داخل World دیگر DOM شناور نیستند و روی mesh واقعی رندر می‌شوند تا پشت دیوار و غرفه واقعاً پنهان شوند.</p>
             <div className="intro-features">
-              <span>First authored GLB shop</span>
-              <span>Semantic node hotspots</span>
-              <span>Room-scoped labels</span>
+              <span>Charsou-inspired passage</span>
+              <span>Physical 3D signage</span>
+              <span>Authored GLB v2 details</span>
               <span>Interactive catalogs</span>
               <span>Scan-ready architecture</span>
             </div>

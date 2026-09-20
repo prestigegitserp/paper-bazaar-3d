@@ -35,7 +35,10 @@ const presets: Record<SurfacePresetId, SurfacePreset> = {
   'bazaar-plaster': { id: 'bazaar-plaster', kind: 'plaster', base: '#c9c0ae', detail: '#7e7364', roughness: 0.94, metalness: 0, bumpScale: 0.03 },
   'bazaar-floor': { id: 'bazaar-floor', kind: 'terrazzo', base: '#706c63', detail: '#282b2a', roughness: 0.78, metalness: 0.02, bumpScale: 0.024 },
   'bazaar-shutter': { id: 'bazaar-shutter', kind: 'metal', base: '#777b78', detail: '#323632', roughness: 0.68, metalness: 0.62, bumpScale: 0.018 },
-  'bazaar-plywood': { id: 'bazaar-plywood', kind: 'wood', base: '#9a744d', detail: '#4f351f', roughness: 0.64, metalness: 0.01, bumpScale: 0.023 }
+  'bazaar-plywood': { id: 'bazaar-plywood', kind: 'wood', base: '#9a744d', detail: '#4f351f', roughness: 0.64, metalness: 0.01, bumpScale: 0.023 },
+  'mall-porcelain': { id: 'mall-porcelain', kind: 'terrazzo', base: '#d8d8d4', detail: '#9fa3a3', roughness: 0.28, metalness: 0.03, bumpScale: 0.006 },
+  'mall-plaster': { id: 'mall-plaster', kind: 'plaster', base: '#ecece8', detail: '#c7c9c6', roughness: 0.64, metalness: 0, bumpScale: 0.008 },
+  'mall-metal': { id: 'mall-metal', kind: 'metal', base: '#34393d', detail: '#98a0a4', roughness: 0.3, metalness: 0.82, bumpScale: 0.005 }
 }
 
 const cache = new Map<SurfacePresetId, { map: CanvasTexture; bump: CanvasTexture }>()

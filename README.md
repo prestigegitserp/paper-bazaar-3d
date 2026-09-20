@@ -1,6 +1,6 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.8.0**
+نسخه فعلی: **v0.9.0**
 
 یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.8 علاوه بر فضای واقع‌گرای الهام‌گرفته از بازار تهران، اولین مغازه‌ی authored را به‌صورت GLB مستقل وارد pipeline می‌کند. تعامل‌ها به nodeهای نام‌دار GLB متصل‌اند، نوشته‌های داخلی فقط داخل Room فعال نمایش داده می‌شوند، و قرارداد World/Asset/Hotspot همچنان برای اسکن واقعی و backend آینده مستقل باقی مانده است.
 
@@ -30,29 +30,18 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.8 — authored shop + visual calm + logic hardening
+## v0.9 — Charsou-inspired passage + authored detail pass
 
-- مغازه‌ی «شبکه کاغذ ایران» دیگر procedural React booth نیست؛ در build یک فایل GLB مستقل و deterministic برای آن تولید می‌شود.
-- مدل authored شامل پوسته مغازه، shopfront، قفسه‌های متراکم، بندیل کاغذ، پیشخوان شیشه‌ای، ماشین‌حساب، کاتالوگ، price board، محصولات، کارتن، رول کاغذ، نمونه دیواری و جزئیات سقف است.
-- Hotspot جدید `node` اضافه شده و interactionهای GLB مستقیماً به nodeهای semantic مثل `hotspot_catalog` و `hotspot_prices` متصل می‌شوند.
-- `RoomScopedHtml` مشکل نوشته‌های شناور را حل می‌کند: labelهای داخلی فقط وقتی Room همان غرفه فعال است mount می‌شوند.
-- منطق `findActiveRoom` اصلاح شده: ابتدا containment واقعی بررسی می‌شود و فقط بعد از آن نزدیک‌ترین discovery fallback انتخاب می‌شود.
-- validator اکنون ترکیب‌های ناسازگار hotspot/asset را رد می‌کند.
-- regression test برای GLB، منطق Room و ممنوعیت Html خام داخل fixtureهای داخلی اضافه شده است.
+- فضای عمومی از brick-vault سنگین به corridor روشن‌تر با porcelain tile، پنل سفید، شیشه، فلز تیره و نور خطی منتقل شده است.
+- آجر فقط به‌عنوان heritage accent محدود باقی مانده است.
+- تابلوهای سردر، wayfinding، shelf label و price board از DOM overlay به `CanvasTexture` روی mesh واقعی تبدیل شده‌اند؛ بنابراین depth buffer آن‌ها را پشت geometry پنهان می‌کند.
+- مدل authored به `iran-paper-authored-v2.glb` ارتقا یافته و جزئیات بیشتری مثل shelf lip، bundle strap، receipt printer، tape dispenser، pen cup، drawer/handle، CCTV، HVAC vent، outlet، cable trunk و price ticket دارد.
+- public props تمیزتر شده‌اند: planter، bench و kiosk مدرن در ورودی؛ hand-cart و paper roll به لبه‌ی مسیر منتقل شده‌اند.
+- API/CMS/World/Document/Scan contracts بدون coupling به skin جدید حفظ شده‌اند.
 
-### تولید مدل authored
+### اصل جدید برای نوشته‌های داخل World
 
-```bash
-npm run generate:authored-shop
-```
-
-خروجی:
-
-```text
-public/models/iran-paper-authored-v1.glb
-```
-
-این فایل در `prebuild` و `predev:web` خودکار تولید می‌شود؛ بنابراین source-of-truth مدل در generator قابل version-control است و binary build artifact به‌صورت دستی نگهداری نمی‌شود.
+UI روی HUD می‌تواند DOM باشد، اما هیچ نوشته‌ی محیطی داخل Canvas نباید با Drei `Html` ساخته شود. برای متن محیطی از `WorldTextPanel` یا texture/material واقعی استفاده می‌شود.
 
 ## اجرا و تست کاتالوگ
 

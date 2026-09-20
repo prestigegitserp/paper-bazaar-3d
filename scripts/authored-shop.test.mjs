@@ -19,11 +19,16 @@ test('authored shop generator emits a valid GLB with semantic anchor nodes', () 
     'hotspot_product_1',
     'counter_glass_top',
     'paper_roll_0',
-    'junction_box'
+    'junction_box',
+    'receipt_printer',
+    'cctv_body',
+    'hvac_vent',
+    'counter_glass_shelf',
+    'service_bell'
   ]) {
     assert.ok(names.has(required), `missing authored node: ${required}`)
   }
 
-  assert.ok(gltf.nodes.length >= 80, 'authored shop should remain meaningfully detailed')
+  assert.ok(gltf.nodes.length >= 120, 'authored shop should remain meaningfully detailed after v0.9 detail pass')
   assert.ok(gltf.materials.some((material) => material.name === 'glass'))
 })

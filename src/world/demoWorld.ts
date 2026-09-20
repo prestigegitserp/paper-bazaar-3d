@@ -124,9 +124,9 @@ function authoredShop(
     ...base,
     asset: {
       kind: 'gltf',
-      url: 'models/iran-paper-authored-v1.glb',
-      assetId: 'authored:iran-paper-net:store:v1',
-      version: '1.0.0',
+      url: 'models/iran-paper-authored-v2.glb',
+      assetId: 'authored:iran-paper-net:store:v2',
+      version: '2.0.0',
       metersPerUnit: 1,
       source: 'authored'
     },
@@ -136,8 +136,8 @@ function authoredShop(
 
 export const demoWorld: WorldDefinition = {
   id: 'paper-bazaar-15khordad-inspired',
-  name: 'Paper Bazaar 3D — 15 Khordad inspired paper alley',
-  version: 6,
+  name: 'Paper Bazaar 3D — Charsou-inspired modern paper passage',
+  version: 7,
   spawn: [0, 1.68, 18.45],
   bounds: { minX: -8.38, maxX: 8.38, minZ: -18.9, maxZ: 20.3 },
   rooms: [

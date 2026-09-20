@@ -1,6 +1,6 @@
-import { Html, useGLTF } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
-import { useEffect, useMemo, type CSSProperties } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Mesh, type Object3D } from 'three'
 import type { Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
@@ -11,23 +11,20 @@ import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
 import Booth from './Booth'
 import RoomAssetBoundary from './RoomAssetBoundary'
-import RoomScopedHtml from './RoomScopedHtml'
+import WorldTextPanel from './WorldTextPanel'
 
 function PointHotspot({ position, interaction }: { position: readonly [number, number, number]; interaction: Interaction }) {
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
 
-  const onClick = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation()
-    if (document.pointerLockElement) return
-    setSelected(interaction)
-  }
-
   return (
     <mesh
       position={position as [number, number, number]}
       userData={{ interaction }}
-      onClick={onClick}
+      onClick={(event) => {
+        event.stopPropagation()
+        if (!document.pointerLockElement) setSelected(interaction)
+      }}
       onPointerOver={(event) => {
         event.stopPropagation()
         if (!document.pointerLockElement) setNearby(interaction)
@@ -46,7 +43,6 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, vendor?: 
   scene.traverse((object) => {
     object.userData = { ...object.userData }
     delete object.userData.interaction
-
     if (object instanceof Mesh) {
       object.castShadow = true
       object.receiveShadow = true
@@ -62,7 +58,6 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, vendor?: 
       console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
       continue
     }
-
     const interaction = resolveHotspotInteraction(hotspot, vendor)
     if (interaction) object.userData.interaction = interaction
   }
@@ -79,21 +74,19 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
     return clone
   }, [gltf.scene, room, vendor])
 
-  const interactionAt = (object: Object3D) => interactionFromObject(object)
-
   return (
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
       <primitive
         object={scene}
         scale={scale}
         onClick={(event: ThreeEvent<MouseEvent>) => {
-          const interaction = interactionAt(event.object)
+          const interaction = interactionFromObject(event.object)
           if (!interaction || document.pointerLockElement) return
           event.stopPropagation()
           setSelected(interaction)
         }}
         onPointerOver={(event: ThreeEvent<PointerEvent>) => {
-          const interaction = interactionAt(event.object)
+          const interaction = interactionFromObject(event.object)
           if (!interaction || document.pointerLockElement) return
           event.stopPropagation()
           setNearby(interaction)
@@ -104,18 +97,18 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
       />
 
       {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
-        <Html center position={[2.84, 3.54, 0]} distanceFactor={7.8} style={{ pointerEvents: 'none' }}>
-          <div
-            className="market-shop-sign authored-shop-sign"
-            style={{
-              '--sign-text': '#f5eee0',
-              '--sign-accent': room.theme.accent
-            } as CSSProperties}
-          >
-            <b>{vendor.name}</b>
-            <span>{vendor.shortName} · AUTHORED GLB</span>
-          </div>
-        </Html>
+        <WorldTextPanel
+          position={[2.805, 3.54, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+          width={4.82}
+          height={0.54}
+          background="#31504c"
+          borderColor="rgba(255,255,255,.12)"
+          lines={[
+            { text: vendor.name, size: 68, color: '#f6f3eb', weight: 900 },
+            { text: `${vendor.shortName} · AUTHORED GLB`, size: 28, color: room.theme.accent, weight: 800, direction: 'ltr' }
+          ]}
+        />
       )}
 
       {vendor && room.hotspots.map((hotspot) => {
@@ -132,11 +125,15 @@ function UnsupportedRoom({ room }: { room: RoomDefinition }) {
     <group position={room.position as [number, number, number]} rotation={[0, room.rotationY, 0]}>
       <mesh position={[0, 1.4, 0]}>
         <boxGeometry args={[3.2, 2.8, 3.2]} />
-        <meshStandardMaterial color="#4a4037" wireframe emissive="#7a654e" emissiveIntensity={0.2} />
+        <meshStandardMaterial color="#d7dcdd" wireframe emissive="#789096" emissiveIntensity={0.12} />
       </mesh>
-      <RoomScopedHtml roomId={room.id} position={[0, 3.25, 0]} distanceFactor={9}>
-        <div className="world-tag">Renderer pending · {room.asset.kind === 'scan' ? room.asset.format : room.asset.kind}</div>
-      </RoomScopedHtml>
+      <WorldTextPanel
+        position={[0, 2.8, 1.62]}
+        width={2.6}
+        height={0.42}
+        background="#39474b"
+        lines={[{ text: `Renderer pending · ${room.asset.kind === 'scan' ? room.asset.format : room.asset.kind}`, size: 44, color: '#eef6f7', weight: 800, direction: 'ltr' }]}
+      />
     </group>
   )
 }

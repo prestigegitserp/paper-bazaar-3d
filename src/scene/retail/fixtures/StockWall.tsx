@@ -1,8 +1,7 @@
 import { Instance, Instances } from '@react-three/drei'
-import type { CSSProperties } from 'react'
+import WorldTextPanel from '../../../components/WorldTextPanel'
 import type { BoothProfile } from '../../../world/boothProfiles'
 import type { RoomDefinition } from '../../../world/types'
-import RoomScopedHtml from '../../../components/RoomScopedHtml'
 import SurfaceMaterial from '../../materials/SurfaceMaterial'
 
 const shelfLabels = ['تحریر ۷۰ گرم', 'گلاسه', 'کاغذ رنگی', 'مقوا و کرافت']
@@ -29,10 +28,16 @@ export default function StockWall({ room, profile }: { room: RoomDefinition; pro
   return (
     <group>
       {[0.32, 0.94, 1.57, 2.2, 2.83, 3.46].map((y) => (
-        <mesh key={y} position={[-2.23, y, 0]} castShadow={false}>
-          <boxGeometry args={[0.34, 0.055, 6.25]} />
-          <SurfaceMaterial surface={profile.surfaces.wood} repeat={[1, 5]} />
-        </mesh>
+        <group key={y}>
+          <mesh position={[-2.23, y, 0]} castShadow={false}>
+            <boxGeometry args={[0.34, 0.055, 6.25]} />
+            <SurfaceMaterial surface={profile.surfaces.wood} repeat={[1, 5]} />
+          </mesh>
+          <mesh position={[-2.02, y + 0.055, 0]}>
+            <boxGeometry args={[0.025, 0.045, 6.08]} />
+            <meshStandardMaterial color="#72787a" metalness={0.5} roughness={0.42} />
+          </mesh>
+        </group>
       ))}
 
       {[-3.02, -2.02, -1.02, 0, 1.02, 2.02, 3.02].map((z) => (
@@ -51,22 +56,21 @@ export default function StockWall({ room, profile }: { room: RoomDefinition; pro
       </Instances>
 
       {profile.features.handwrittenLabels && shelfLabels.map((label, index) => (
-        <RoomScopedHtml roomId={room.id}
+        <WorldTextPanel
           key={label}
-          center
-          position={[-1.82, 0.89 + index * 0.68, -2.46 + (index % 2) * 1.35]}
-          distanceFactor={8.8}
-          style={{ pointerEvents: 'none' }}
-        >
-          <div className="market-shelf-label" style={{ '--label': profile.shopfront.labelColor } as CSSProperties}>
-            {label}
-          </div>
-        </RoomScopedHtml>
+          position={[-1.72, 0.89 + index * 0.68, -2.46 + (index % 2) * 1.35]}
+          rotation={[0, Math.PI / 2, index % 2 ? 0.02 : -0.02]}
+          width={0.62}
+          height={0.18}
+          background={profile.shopfront.labelColor}
+          borderColor="rgba(60,52,18,.24)"
+          lines={[{ text: label, size: 78, color: '#342b16', weight: 900 }]}
+        />
       ))}
 
       <mesh position={[-2.56, 1.9, 3.19]} castShadow>
         <boxGeometry args={[0.11, 3.65, 0.22]} />
-        <meshStandardMaterial color="#343632" roughness={0.75} metalness={0.42} />
+        <meshStandardMaterial color="#34383a" roughness={0.42} metalness={0.62} />
       </mesh>
     </group>
   )

@@ -1,4 +1,4 @@
-import RoomScopedHtml from '../../../components/RoomScopedHtml'
+import WorldTextPanel from '../../../components/WorldTextPanel'
 import type { Vendor } from '../../../domain/catalog'
 import type { Interaction } from '../../../domain/interaction'
 import { findHotspot, resolveHotspotInteraction } from '../../../world/hotspots'
@@ -23,30 +23,31 @@ export function PriceBoard({ room, vendor, profile }: { room: RoomDefinition; ve
         <boxGeometry args={[0.095, 1.34, 2.28]} />
         <SurfaceMaterial surface="bazaar-plywood" repeat={[1, 2]} />
       </mesh>
-      <mesh position={[0.058, 0, 0]}>
-        <boxGeometry args={[0.018, 1.16, 2.08]} />
-        <SurfaceMaterial surface="paper-cream" repeat={[1.6, 1]} />
-      </mesh>
+      <WorldTextPanel
+        position={[0.059, 0, 0]}
+        rotation={[0, Math.PI / 2, 0]}
+        width={2.04}
+        height={1.12}
+        background="#f3efe5"
+        borderColor="rgba(78,64,45,.22)"
+        lines={[
+          { text: vendor?.shortName ?? room.label, size: 86, color: '#2f3334', weight: 900 },
+          { text: vendor ? `${vendor.products.length} قلم · قیمت ثبت‌شده` : 'فضای تست مدل واقعی', size: 45, color: '#657074', weight: 800 },
+          { text: vendor ? 'برای جزئیات روی برد تعامل کنید' : 'GLB · LiDAR · Photogrammetry', size: 33, color: room.theme.accent, weight: 800 }
+        ]}
+      />
 
       {[
-        [-0.58, 0.48],
-        [0.58, 0.48],
-        [-0.58, -0.48],
-        [0.58, -0.48]
+        [-0.84, 0.52],
+        [0.84, 0.52],
+        [-0.84, -0.52],
+        [0.84, -0.52]
       ].map(([z, y], index) => (
-        <mesh key={index} position={[0.076, y, z]} rotation={[0, 0, index % 2 ? 0.12 : -0.12]}>
-          <boxGeometry args={[0.015, 0.1, 0.28]} />
-          <meshStandardMaterial color="#d7c19b" roughness={0.82} />
+        <mesh key={index} position={[0.075, y, z]}>
+          <boxGeometry args={[0.014, 0.09, 0.22]} />
+          <meshStandardMaterial color="#c9b78f" roughness={0.74} />
         </mesh>
       ))}
-
-      <RoomScopedHtml roomId={room.id} position={[0.11, 0, 0]} distanceFactor={8.2} style={{ pointerEvents: 'none' }}>
-        <div className="bazaar-price-board bazaar-price-board--paper">
-          <strong>{vendor?.shortName ?? room.label}</strong>
-          <span>{vendor ? `${vendor.products.length} قلم · آخرین قیمت ثبت‌شده` : 'فضای تست مدل واقعی'}</span>
-          <small>{vendor ? 'برای دیدن لیست کلیک / E' : 'GLB · LiDAR · Photogrammetry'}</small>
-        </div>
-      </RoomScopedHtml>
     </InteractiveNode>
   )
 }
@@ -87,17 +88,24 @@ export function ProductPaperStack({
             <boxGeometry args={[0.012, 0.07, 0.66]} />
             <meshStandardMaterial color={index === 3 ? room.theme.accent : '#cab17e'} roughness={0.78} />
           </mesh>
+          {index % 2 === 0 && (
+            <mesh position={[0, 0.051, 0]}>
+              <boxGeometry args={[0.08, 0.012, 0.74]} />
+              <meshStandardMaterial color="#bda774" roughness={0.7} />
+            </mesh>
+          )}
         </group>
       ))}
 
-      <mesh position={[0, 1.12, -0.01]}>
-        <boxGeometry args={[0.8, 0.03, 0.42]} />
-        <meshStandardMaterial color={room.theme.primary} roughness={0.62} />
-      </mesh>
-
-      <RoomScopedHtml roomId={room.id} position={[0, 1.55, 0]} distanceFactor={8.8} style={{ pointerEvents: 'none' }}>
-        <div className="world-tag product-tag market-product-tag">{label}</div>
-      </RoomScopedHtml>
+      <WorldTextPanel
+        position={[0.515, 0.86, 0]}
+        rotation={[0, Math.PI / 2, 0]}
+        width={0.68}
+        height={0.2}
+        background={room.theme.primary}
+        borderColor="rgba(255,255,255,.14)"
+        lines={[{ text: label, size: 58, color: '#f7f3e8', weight: 900 }]}
+      />
     </InteractiveNode>
   )
 }
