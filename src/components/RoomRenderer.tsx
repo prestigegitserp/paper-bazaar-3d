@@ -21,6 +21,7 @@ import type { SurfacePresetId } from '../world/boothProfiles'
 import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
+import AuthoredSurfaceDetails from './AuthoredSurfaceDetails'
 import Booth from './Booth'
 import RoomAssetBoundary from './RoomAssetBoundary'
 import WorldTextPanel from './WorldTextPanel'
@@ -286,26 +287,32 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
         }}
       />
 
-      {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
-        <WorldTextPanel
-          position={[2.805, 3.54, 0]}
-          rotation={[0, Math.PI / 2, 0]}
-          width={4.82}
-          height={0.54}
-          background="#31504c"
-          borderColor="rgba(255,255,255,.12)"
-          lines={[
-            { text: vendor.name, size: 68, color: '#f6f3eb', weight: 900 },
-            { text: `${vendor.shortName} · AUTHORED GLB`, size: 28, color: room.theme.accent, weight: 800, direction: 'ltr' }
-          ]}
-        />
-      )}
+      <group scale={scale}>
+        {room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
+          <AuthoredSurfaceDetails room={room} />
+        )}
 
-      {vendor && room.hotspots.map((hotspot) => {
-        if (hotspot.anchor.kind !== 'point') return null
-        const interaction = resolveHotspotInteraction(hotspot, vendor)
-        return interaction ? <PointHotspot key={hotspot.id} position={hotspot.anchor.position} interaction={interaction} /> : null
-      })}
+        {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
+          <WorldTextPanel
+            position={[2.805, 3.54, 0]}
+            rotation={[0, Math.PI / 2, 0]}
+            width={4.82}
+            height={0.54}
+            background="#31504c"
+            borderColor="rgba(255,255,255,.12)"
+            lines={[
+              { text: vendor.name, size: 68, color: '#f6f3eb', weight: 900 },
+              { text: `${vendor.shortName} · AUTHORED GLB`, size: 28, color: room.theme.accent, weight: 800, direction: 'ltr' }
+            ]}
+          />
+        )}
+
+        {vendor && room.hotspots.map((hotspot) => {
+          if (hotspot.anchor.kind !== 'point') return null
+          const interaction = resolveHotspotInteraction(hotspot, vendor)
+          return interaction ? <PointHotspot key={hotspot.id} position={hotspot.anchor.position} interaction={interaction} /> : null
+        })}
+      </group>
     </group>
   )
 }

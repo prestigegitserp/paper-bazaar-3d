@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.10.0**
+نسخه فعلی: **v0.11.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.10 یک material-realism pass عمیق است: PBR واقعی برای کف و گچ پاساژ، cache مشترک متریال بین procedural room و authored GLB، reflection environment داخلی، anisotropic filtering، شیشه/فلز physical و macro wear کنترل‌شده؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.11 لایه‌ی هندسیِ واقع‌گرایی را روی دستاوردهای v0.10 می‌گذارد: GLB authored با UV واقعی، bevel و cylinder، decalهای سه‌بعدی، variation فیزیکی و tone mapping جدید؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
 
 ## اجرا
 
@@ -30,18 +30,19 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.10 — Material Realism Pass
+## v0.11 — Geometry + Surface Realism
 
-- `mall-porcelain` به Poly Haven Floor Tiles 04 و `mall-plaster` به White Plaster 02 متصل شده‌اند؛ هر دو CC0.
-- Cinematic از albedo + normal + roughness استفاده می‌کند؛ Balanced برای سرعت real albedo + fallback سبک‌تر دارد.
-- `SurfaceMaterial` از `MeshPhysicalMaterial`، clearcoat کنترل‌شده، environment response و anisotropy استفاده می‌کند.
-- `MaterialEnvironment` با RoomEnvironment داخلی Three.js reflection map می‌سازد و به HDRI خارجی وابسته نیست.
-- `FloorImperfections` لایه‌ی بسیار ظریف سایش و لکه‌های non-repeating اضافه می‌کند.
-- Sparkles و grout دستی حذف شده‌اند چون حس CG را بیشتر می‌کردند.
-- authored GLB حالا floor/plaster/wood را از همان PBR registry می‌گیرد؛ glass/metal/paper/cardboard نیز physical profile مستقل دارند.
-- cache متریال مشترک است و rendererهای procedural و GLB pipeline جداگانه‌ی asset ندارند.
+- generator authored از cube دستی بدون UV به geometryهای استاندارد Three.js با `POSITION + NORMAL + TEXCOORD_0` ارتقا یافته است.
+- `RoundedBoxGeometry` برای لبه‌های واقعی و `CylinderGeometry` برای رول کاغذ، مغزی رول، خودکار، دوربین و conduit استفاده می‌شود.
+- فایل authored به `iran-paper-authored-v3.glb` ارتقا یافته و semantic hotspot nodeها بدون تغییر باقی مانده‌اند.
+- بندیل‌ها، کارتن‌ها و reamها variation بسیار جزئی در rotation/placement دارند تا تکرار مکانیکی کمتر شود.
+- `AssetDetailProfile`، decal و labelهای بصری را از business data جدا نگه می‌دارد.
+- `SurfaceDecal` لکه، scuff و fingerprint را به‌صورت mesh واقعی و depth-tested می‌سازد.
+- fixtureهای procedural اصلی از `BeveledBox` reusable استفاده می‌کنند.
+- tone mapping از ACES به AgX منتقل شده تا highlight rolloff متعادل‌تری برای glass/metal/نورهای خطی داشته باشیم.
+- تمام PBR، environment reflection، interaction، catalog reader، mobile controls، collision، server-ready repositories و scan contracts نسخه‌های قبل حفظ شده‌اند.
 
-جزئیات فنی: [docs/DEBUG_REPORT_V010.md](docs/DEBUG_REPORT_V010.md)
+جزئیات فنی: [docs/DEBUG_REPORT_V011.md](docs/DEBUG_REPORT_V011.md)
 
 ## اجرا و تست کاتالوگ
 

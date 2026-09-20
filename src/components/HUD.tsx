@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Material realism · v0.10</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Geometry realism · v0.11</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,14 +326,14 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">MATERIAL REALISM PASS · v0.10.0</div>
+            <div className="intro-eyebrow">GEOMETRY + SURFACE REALISM · v0.11.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.10 تمرکز را از هندسه به جنس واقعی سطوح می‌برد: PBR واقعی برای کف و دیوار، normal/roughness چندلایه، anisotropic filtering، reflection محیطی، شیشه‌ی فیزیکی‌تر و سایش ظریف روی کف؛ در عین حال ساختار ماژولار و مسیر Scan/API مستقل باقی مانده‌اند.</p>
+            <p>v0.11 مشکل بعدی واقع‌گرایی را هدف می‌گیرد: GLB authored حالا UV واقعی، لبه‌های bevel، primitiveهای استوانه‌ای، variation جزئی، لیبل فیزیکی و decalهای موضعی دارد؛ procedural fixtureها نیز bevel شده‌اند و همه‌ی قراردادهای World / Catalog / Documents / Scan حفظ شده‌اند.</p>
             <div className="intro-features">
-              <span>CC0 multi-map PBR</span>
-              <span>Environment reflections</span>
-              <span>Physical glass & metals</span>
-              <span>Macro surface wear</span>
+              <span>UV-mapped authored GLB v3</span>
+              <span>Real bevels & cylinders</span>
+              <span>Physical labels & decals</span>
+              <span>AgX highlight rolloff</span>
               <span>Scan-ready architecture</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>

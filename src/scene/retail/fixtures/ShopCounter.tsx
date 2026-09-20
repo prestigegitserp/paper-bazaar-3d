@@ -1,3 +1,4 @@
+import BeveledBox from '../../../components/BeveledBox'
 import type { Vendor } from '../../../domain/catalog'
 import { findHotspot, resolveHotspotInteraction } from '../../../world/hotspots'
 import type { BoothProfile } from '../../../world/boothProfiles'
@@ -8,10 +9,9 @@ import InteractiveNode from '../InteractiveNode'
 function Calculator({ accent }: { accent: string }) {
   return (
     <group position={[0.05, 1.15, 0.6]} rotation={[0, 0.08, 0]}>
-      <mesh castShadow>
-        <boxGeometry args={[0.34, 0.07, 0.48]} />
+      <BeveledBox args={[0.34, 0.07, 0.48]} radius={0.018} castShadow>
         <meshStandardMaterial color="#34383a" roughness={0.5} />
-      </mesh>
+      </BeveledBox>
       <mesh position={[0, 0.045, -0.13]}>
         <boxGeometry args={[0.24, 0.012, 0.1]} />
         <meshBasicMaterial color={accent} toneMapped={false} />
@@ -34,16 +34,14 @@ function CounterGoods({ room }: { room: RoomDefinition }) {
   return (
     <group>
       {[-0.72, -0.22, 0.28, 0.78].map((z, index) => (
-        <mesh key={z} position={[0, 0.71, z]} rotation={[0, 0, (index - 1.5) * 0.015]}>
-          <boxGeometry args={[0.46, 0.09, 0.34]} />
+        <BeveledBox key={z} args={[0.46, 0.09, 0.34]} radius={0.014} position={[0, 0.71, z]} rotation={[0, 0, (index - 1.5) * 0.015]}>
           <meshStandardMaterial color={index === 2 ? room.theme.accent : index % 2 ? '#f3efe6' : '#ded5c6'} roughness={0.86} />
-        </mesh>
+        </BeveledBox>
       ))}
       {[-0.58, 0, 0.58].map((z, index) => (
-        <mesh key={z} position={[0.03, 0.52, z]}>
-          <boxGeometry args={[0.34, 0.16, 0.34]} />
+        <BeveledBox key={z} args={[0.34, 0.16, 0.34]} radius={0.018} position={[0.03, 0.52, z]}>
           <meshStandardMaterial color={index === 1 ? '#c7aa74' : '#ece7dc'} roughness={0.88} />
-        </mesh>
+        </BeveledBox>
       ))}
     </group>
   )
@@ -86,22 +84,19 @@ export function SalesCounter({ room, vendor, profile }: { room: RoomDefinition; 
       haloPosition={[0, 1.42, 0]}
       haloRadius={0.62}
     >
-      <mesh position={[0, 0.34, 0]} castShadow>
-        <boxGeometry args={[0.78, 0.68, 2.55]} />
+      <BeveledBox args={[0.78, 0.68, 2.55]} radius={0.035} position={[0, 0.34, 0]} castShadow>
         <SurfaceMaterial surface={profile.surfaces.counter} repeat={[1, 3]} />
-      </mesh>
+      </BeveledBox>
 
       <CounterGoods room={room} />
 
-      <mesh position={[0.02, 0.79, 0]} castShadow>
-        <boxGeometry args={[0.72, 0.58, 2.46]} />
-        <meshPhysicalMaterial color="#e8f1ed" transparent opacity={0.18} transmission={0.74} roughness={0.06} metalness={0} thickness={0.08} depthWrite={false} />
-      </mesh>
+      <BeveledBox args={[0.72, 0.58, 2.46]} radius={0.025} position={[0.02, 0.79, 0]} castShadow>
+        <meshPhysicalMaterial color="#e8f1ed" transparent opacity={0.2} transmission={0.82} roughness={0.055} metalness={0} thickness={0.08} ior={1.46} depthWrite={false} />
+      </BeveledBox>
 
-      <mesh position={[0.4, 1.06, 0]} castShadow>
-        <boxGeometry args={[0.82, 0.075, 2.62]} />
+      <BeveledBox args={[0.82, 0.075, 2.62]} radius={0.022} position={[0.4, 1.06, 0]} castShadow>
         <SurfaceMaterial surface={profile.surfaces.wood} repeat={[1, 3]} />
-      </mesh>
+      </BeveledBox>
 
       {profile.features.calculator && <Calculator accent={room.theme.accent} />}
       <DeskDetails accent={room.theme.accent} />

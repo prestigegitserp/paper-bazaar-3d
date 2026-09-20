@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.11.0 — Geometry + surface realism
+
+### Authored GLB v3
+- fixes a critical realism gap: authored geometry now exports UV coordinates
+- replaces the single hand-built cube primitive with reusable box, rounded-box, cylinder and plane geometries
+- adds physically rounded edges to retail props while leaving architectural slabs intentionally sharp
+- converts paper rolls, cores, pens, conduits, CCTV lens/arm and service-bell details to cylindrical geometry
+- adds carton flaps, calculator keys and subtle deterministic placement/rotation variation
+- bumps the generated runtime asset to `iran-paper-authored-v3.glb`
+
+### Local detail layer
+- adds asset-specific detail profiles keyed by stable assetId
+- adds physical paper-package labels without coupling to vendor business data
+- adds subtle wall smudges, floor scuffs and counter-glass fingerprints
+- all detail layers are WebGL meshes and respect scene depth/occlusion
+
+### Procedural scene
+- introduces reusable `BeveledBox`
+- upgrades major counter, product-display, bench, cart and kiosk edges without changing interaction/collision contracts
+
+### Rendering
+- moves global tone mapping to AgX for more controlled highlight rolloff
+- preserves v0.10 PBR, anisotropy, environment reflections and soft-shadow behavior
+
 ## 0.10.0 — Material realism pass
 
 ### PBR
@@ -25,7 +49,6 @@
 - adds subtle deterministic macro floor smudges and scuffs
 - keeps imperfections separate from business/world definitions
 
-# Changelog
 
 ## 0.9.0 — Charsou-inspired modern passage + physical world text
 

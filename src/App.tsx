@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
-import { ACESFilmicToneMapping, SRGBColorSpace } from 'three'
+import { AgXToneMapping, SRGBColorSpace } from 'three'
 import CatalogReader from './features/catalog-reader/CatalogReader'
 import MallScene from './components/MallScene'
 import HUD from './components/HUD'
@@ -46,8 +46,8 @@ export default function App() {
         camera={{ fov: 66, near: 0.08, far: 90, position: world.spawn as [number, number, number] }}
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
-          gl.toneMapping = ACESFilmicToneMapping
-          gl.toneMappingExposure = 1.04
+          gl.toneMapping = AgXToneMapping
+          gl.toneMappingExposure = 1.0
           gl.outputColorSpace = SRGBColorSpace
         }}
       >
