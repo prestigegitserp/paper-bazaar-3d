@@ -41,7 +41,9 @@ test('authored shop v3 emits UV-mapped beveled/cylindrical GLB with semantic anc
       assert.ok(Number.isInteger(primitive.attributes.POSITION), `${mesh.name} missing POSITION`)
       assert.ok(Number.isInteger(primitive.attributes.NORMAL), `${mesh.name} missing NORMAL`)
       assert.ok(Number.isInteger(primitive.attributes.TEXCOORD_0), `${mesh.name} missing TEXCOORD_0`)
+      assert.ok(Number.isInteger(primitive.attributes.TEXCOORD_1), `${mesh.name} missing TEXCOORD_1`)
       assert.equal(gltf.accessors[primitive.attributes.TEXCOORD_0].type, 'VEC2')
+      assert.equal(gltf.accessors[primitive.attributes.TEXCOORD_1].type, 'VEC2')
     }
   }
 

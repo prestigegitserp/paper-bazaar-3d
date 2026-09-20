@@ -13,18 +13,31 @@ test('modern passage surfaces are backed by real multi-map PBR assets', async ()
   assert.match(registry, /'mall-plaster'/)
   assert.match(registry, /white_plaster_02/)
   assert.match(registry, /nor_gl/)
-  assert.match(registry, /rough/)
+  assert.match(registry, /arm/)
 })
 
 test('surface renderer uses physical material, anisotropic filtering and shared PBR cache', async () => {
-  const material = await source('../src/scene/materials/SurfaceMaterial.tsx')
+  const surface = await source('../src/scene/materials/SurfaceMaterial.tsx')
   const cache = await source('../src/scene/materials/pbrTextureCache.ts')
-  assert.match(material, /meshPhysicalMaterial/)
-  assert.match(material, /clearcoat/)
-  assert.match(material, /anisotropy/)
-  assert.match(material, /acquirePbrTextureSet/)
-  assert.match(cache, /getMaxAnisotropy|anisotropy/)
+  assert.match(surface, /meshPhysicalMaterial/)
+  assert.match(surface, /clearcoat/)
+  assert.match(surface, /anisotropy/)
+  assert.match(surface, /acquirePbrTextureSet/)
+  assert.match(cache, /anisotropy/)
   assert.match(cache, /sourceTexturePromises/)
+})
+
+test('packed ARM drives roughness and ambient occlusion when available', async () => {
+  const registry = await source('../src/scene/materials/pbrSurfaceRegistry.ts')
+  const cache = await source('../src/scene/materials/pbrTextureCache.ts')
+  const surface = await source('../src/scene/materials/SurfaceMaterial.tsx')
+
+  assert.match(registry, /arm: ph\(slug, 'arm'\)/)
+  assert.match(cache, /loadArmOrRoughness/)
+  assert.match(cache, /aoMap: sourceArm\?\.packed \? packedMap : undefined/)
+  assert.match(surface, /roughnessMap=\{loadedPbr\?\.roughnessMap\}/)
+  assert.match(surface, /aoMap=\{loadedPbr\?\.aoMap\}/)
+  assert.match(surface, /aoMapIntensity=\{physical\.aoMapIntensity\}/)
 })
 
 test('scene has local reflection environment and subtle macro floor wear', async () => {
@@ -39,7 +52,7 @@ test('scene has local reflection environment and subtle macro floor wear', async
 })
 
 test('authored GLB shares the same PBR material pipeline', async () => {
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileBackedRoom.tsx')
   assert.match(renderer, /mall-porcelain/)
   assert.match(renderer, /mall-plaster/)
   assert.match(renderer, /bazaar-plywood/)

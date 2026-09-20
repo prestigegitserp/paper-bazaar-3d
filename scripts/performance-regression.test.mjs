@@ -13,30 +13,42 @@ test('catalog reader is a true interaction-time dynamic import', async () => {
   assert.match(app, /documentOpen &&/)
 })
 
-test('intro rendering defers expensive continuous and shadow work', async () => {
+test('render loop stays demand-driven while heavy startup work remains deferred', async () => {
   const app = await source('../src/App.tsx')
   const mall = await source('../src/components/MallScene.tsx')
   const effects = await source('../src/components/ExperienceEffects.tsx')
   const environment = await source('../src/components/MaterialEnvironment.tsx')
 
-  assert.match(app, /frameloop=\{started \? 'always' : 'demand'\}/)
+  assert.match(app, /frameloop="demand"/)
   assert.match(app, /shadows=\{started && quality === 'cinematic'\}/)
   assert.match(mall, /started && <FloorImperfections/)
   assert.match(effects, /started && quality === 'cinematic'/)
   assert.match(environment, /if \(!started\) return/)
 })
 
-test('file-backed rooms use distance prefetch and local Suspense fallback', async () => {
+test('file-backed rooms are code split, byte-prefetched and locally suspended', async () => {
   const renderer = await source('../src/components/RoomRenderer.tsx')
+  assert.match(renderer, /lazy\(loadFileBackedRoom\)/)
+  assert.match(renderer, /import\('\.\/FileBackedRoom'\)/)
+  assert.match(renderer, /fetch\(resolvedUrl, \{ cache: 'force-cache' \}\)/)
   assert.match(renderer, /FILE_PREFETCH_RADIUS = 24/)
   assert.match(renderer, /FILE_REVEAL_RADIUS = 18/)
-  assert.match(renderer, /useGLTF\.preload/)
   assert.match(renderer, /Suspense fallback=\{<Booth/)
   assert.match(renderer, /useProgressiveFileAsset/)
+  assert.doesNotMatch(renderer, /useGLTF/)
+})
+
+test('file streaming reacts to player state instead of a per-room frame callback', async () => {
+  const renderer = await source('../src/components/RoomRenderer.tsx')
+  assert.match(renderer, /const player = useAppStore/)
+  assert.match(renderer, /const activeRoomId = useAppStore/)
+  assert.match(renderer, /distanceSq/)
+  assert.doesNotMatch(renderer, /useFrame/)
+  assert.doesNotMatch(renderer, /Math\.hypot/)
 })
 
 test('authored repeated meshes are batched without touching semantic hotspots', async () => {
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileBackedRoom.tsx')
   assert.match(renderer, /InstancedMesh/)
   assert.match(renderer, /batchStaticAuthoredMeshes/)
   assert.match(renderer, /object\.userData\.interaction/)
@@ -57,7 +69,7 @@ test('PBR residency is ref-counted and build concurrency is bounded', async () =
   assert.match(material, /phase === 'full'/)
 })
 
-test('v0.12 keeps the v0.11 authored asset and realism pipeline intact', async () => {
+test('v0.14 keeps the v0.11 authored asset and modular contracts intact', async () => {
   const world = await source('../src/world/demoWorld.ts')
   const generator = await source('./generate-authored-shop.mjs')
   const material = await source('../src/scene/materials/SurfaceMaterial.tsx')
