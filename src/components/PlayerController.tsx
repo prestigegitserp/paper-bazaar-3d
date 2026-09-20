@@ -3,6 +3,7 @@ import { Euler, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { buildWorldColliders, isPositionBlocked } from '../engine/collision'
 import { interactionFromObject, interactionKey } from '../engine/interactions'
+import { registerRenderWakeup } from '../engine/renderWakeup'
 import {
   consumeMobileLook,
   consumeMobileZoom,
@@ -31,7 +32,7 @@ function touchDistance(a: Touch, b: Touch) {
 }
 
 export default function PlayerController({ world }: { world: WorldDefinition }) {
-  const { camera, gl, scene } = useThree()
+  const { camera, gl, scene, invalidate } = useThree()
   const started = useAppStore((state) => state.started)
   const navigationRequest = useAppStore((state) => state.navigationRequest)
   const clearNavigationRequest = useAppStore((state) => state.clearNavigationRequest)
@@ -58,6 +59,8 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const stepVector = useRef(new Vector3())
   const bobPhase = useRef(0)
   const collisions = useMemo(() => buildWorldColliders(world), [world])
+
+  useEffect(() => registerRenderWakeup(invalidate), [invalidate])
 
   const clearNearby = useCallback(() => {
     if (!lastNearby.current) return
@@ -88,7 +91,8 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     desiredVelocity.current.set(0, 0, 0)
     bobPhase.current = 0
     setPlayer(target[0], target[2])
-  }, [camera, setPlayer])
+    invalidate()
+  }, [camera, invalidate, setPlayer])
 
   useEffect(() => {
     touchMode.current = (window.matchMedia?.('(pointer: coarse)').matches ?? false) || navigator.maxTouchPoints > 0
@@ -117,6 +121,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       yaw.current -= event.movementX * 0.0022
       pitch.current -= event.movementY * 0.002
       pitch.current = Math.max(-1.25, Math.min(1.25, pitch.current))
+      invalidate()
     }
 
     const onWheel = (event: WheelEvent) => {
@@ -124,12 +129,14 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       event.preventDefault()
       const delta = Math.max(-120, Math.min(120, event.deltaY))
       baseFovTarget.current = clampFov(baseFovTarget.current + delta * 0.045)
+      invalidate()
     }
 
     const onTouchStart = (event: TouchEvent) => {
       if (event.touches.length === 2) {
         event.preventDefault()
         lastPinchDistance.current = touchDistance(event.touches[0], event.touches[1])
+        invalidate()
       }
     }
 
@@ -142,10 +149,12 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
         baseFovTarget.current = clampFov(baseFovTarget.current + delta * 0.08)
       }
       lastPinchDistance.current = distance
+      invalidate()
     }
 
     const onTouchEnd = () => {
       lastPinchDistance.current = null
+      invalidate()
     }
 
     const preventGesture = (event: Event) => {
@@ -162,13 +171,18 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       }
 
       if (event.code === 'Digit0' && !event.repeat) baseFovTarget.current = DEFAULT_FOV
+      invalidate()
     }
 
-    const onKeyUp = (event: KeyboardEvent) => keys.current.delete(event.code)
+    const onKeyUp = (event: KeyboardEvent) => {
+      keys.current.delete(event.code)
+      invalidate()
+    }
 
     const onPointerLockChange = () => {
       clearKeys()
       if (document.pointerLockElement !== canvas) clearNearby()
+      invalidate()
     }
 
     const onCanvasMouseDown = (event: MouseEvent) => {
@@ -223,7 +237,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       canvas.removeEventListener('gesturechange', preventGesture)
       resetMobileInput()
     }
-  }, [activateTarget, clearNearby, gl.domElement, started, world.spawn])
+  }, [activateTarget, clearNearby, gl.domElement, invalidate, started, world.spawn])
 
   const blocked = useCallback(
     (x: number, z: number) => isPositionBlocked(world, collisions, x, z, PLAYER_RADIUS),
@@ -347,6 +361,18 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
         lastActiveRoom.current = activeId
         setActiveRoom(activeId)
       }
+    }
+
+    const fovDelta = camera instanceof PerspectiveCamera
+      ? Math.abs(camera.fov - baseFovTarget.current)
+      : 0
+    if (
+      keys.current.size > 0 ||
+      mobileMoving ||
+      velocity.current.lengthSq() > 0.0025 ||
+      fovDelta > 0.02
+    ) {
+      invalidate()
     }
   })
 
