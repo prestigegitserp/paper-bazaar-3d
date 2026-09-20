@@ -94,10 +94,14 @@ test('texture decode and GPU upload are scheduled away from the hot path', async
 
   assert.match(cache, /ImageBitmapLoader/)
   assert.match(cache, /loadWithFallback/)
+  assert.match(cache, /const detailUrls = getPbrSurfaceUrls\(surface, '1k'\)/)
+  assert.match(cache, /loadSharedTexture\(detailUrls\.normal\)/)
   assert.match(cache, /MAX_CONCURRENT_BUILDS = 2/)
   assert.match(uploader, /requestIdleCallback/)
   assert.match(uploader, /renderer\.initTexture/)
   assert.match(uploader, /uploadTail/)
+  assert.match(uploader, /uploadTail\s*\.catch/)
+  assert.match(uploader, /reject\(error\)/)
 })
 
 test('micro material detail uses physically compatible channels', async () => {
@@ -131,4 +135,11 @@ test('heavy file-backed renderer is code-split from the startup room renderer', 
   assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
   assert.doesNotMatch(renderer, /MeshPhysicalMaterial/)
   assert.match(fileRenderer, /MeshPhysicalMaterial/)
+})
+
+
+test('interaction raycaster is distance-bounded without losing first-hit occlusion', async () => {
+  const player = await source('../src/components/PlayerController.tsx')
+  assert.match(player, /RAYCASTER\.far = INTERACTION_DISTANCE/)
+  assert.match(player, /intersectObjects\(scene\.children, true\)\[0\]/)
 })

@@ -11,34 +11,40 @@ type IdleWindow = Window & {
 let uploadTail: Promise<void> = Promise.resolve()
 
 function idleUpload(task: () => void) {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((resolve, reject) => {
+    const run = () => {
+      try {
+        task()
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    }
+
     if (typeof window === 'undefined') {
-      task()
-      resolve()
+      run()
       return
     }
 
     const idleWindow = window as IdleWindow
     if (idleWindow.requestIdleCallback) {
-      idleWindow.requestIdleCallback(() => {
-        task()
-        resolve()
-      }, { timeout: 850 })
+      idleWindow.requestIdleCallback(run, { timeout: 850 })
       return
     }
 
-    window.setTimeout(() => {
-      task()
-      resolve()
-    }, 16)
+    window.setTimeout(run, 16)
   })
 }
 
 function queueTextureUpload(renderer: WebGLRenderer, texture: Texture) {
-  uploadTail = uploadTail.then(() => idleUpload(() => {
-    renderer.initTexture(texture)
-  }))
-  return uploadTail
+  const job = uploadTail
+    .catch(() => undefined)
+    .then(() => idleUpload(() => {
+      renderer.initTexture(texture)
+    }))
+
+  uploadTail = job.catch(() => undefined)
+  return job
 }
 
 export async function warmPbrTextureSet(renderer: WebGLRenderer, set: PbrTextureSet) {

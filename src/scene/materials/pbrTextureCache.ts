@@ -179,14 +179,14 @@ async function createPbrTextureSet(
   resolution: PbrResolution
 ) {
   const asset = getPbrSurfaceAsset(surface)
-  const urls = getPbrSurfaceUrls(surface, resolution)
-  const fallback = getPbrSurfaceUrls(surface, '1k')
-  if (!asset || !urls || !fallback) throw new Error(`No PBR asset registered for ${surface}`)
+  const colorUrls = getPbrSurfaceUrls(surface, resolution)
+  const detailUrls = getPbrSurfaceUrls(surface, '1k')
+  if (!asset || !colorUrls || !detailUrls) throw new Error(`No PBR asset registered for ${surface}`)
 
   const [sourceMap, sourceNormal, sourceRoughness] = await Promise.all([
-    loadWithFallback(urls.color, fallback.color, true),
-    full ? loadWithFallback(urls.normal, fallback.normal) : Promise.resolve(undefined),
-    full ? loadWithFallback(urls.roughness, fallback.roughness) : Promise.resolve(undefined)
+    loadWithFallback(colorUrls.color, detailUrls.color, true),
+    full ? loadSharedTexture(detailUrls.normal) : Promise.resolve(undefined),
+    full ? loadSharedTexture(detailUrls.roughness) : Promise.resolve(undefined)
   ])
 
   return {
