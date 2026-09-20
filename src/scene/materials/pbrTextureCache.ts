@@ -8,7 +8,8 @@ import type { SurfacePresetId } from '../../world/boothProfiles'
 import {
   getPbrSurfaceAsset,
   getPbrSurfaceUrls,
-  type PbrResolution
+  PBR_PLAN_STANDARD,
+  type PbrTexturePlan
 } from './pbrSurfaceRegistry'
 
 const loader = new TextureLoader()
@@ -101,12 +102,36 @@ async function loadWithFallback(
   }
 }
 
-function cloneTexture(source: Texture, repeat: [number, number], anisotropy: number, srgb = false) {
+async function loadArmOrRoughness(
+  primaryArm: string,
+  fallbackArm: string,
+  fallbackRoughness: string
+) {
+  try {
+    return {
+      source: await loadWithFallback(primaryArm, fallbackArm),
+      packed: true
+    }
+  } catch {
+    return {
+      source: await loadSharedTexture(fallbackRoughness),
+      packed: false
+    }
+  }
+}
+
+function cloneTexture(
+  source: Texture,
+  repeat: [number, number],
+  anisotropy: number,
+  srgb = false
+) {
   const texture = source.clone()
   texture.wrapS = RepeatWrapping
   texture.wrapT = RepeatWrapping
   texture.repeat.set(repeat[0], repeat[1])
   texture.anisotropy = anisotropy
+  texture.channel = 0
   if (srgb) texture.colorSpace = SRGBColorSpace
   texture.needsUpdate = true
   return texture
@@ -116,7 +141,9 @@ export type PbrTextureSet = {
   map: Texture
   normalMap?: Texture
   roughnessMap?: Texture
-  resolution: PbrResolution
+  aoMap?: Texture
+  plan: PbrTexturePlan
+  packedArm: boolean
 }
 
 export type PbrTextureLease = {
@@ -137,11 +164,13 @@ function variantKey(
   repeat: [number, number],
   anisotropy: number,
   full: boolean,
-  resolution: PbrResolution
+  plan: PbrTexturePlan
 ) {
   return [
     surface,
-    resolution,
+    `c:${plan.color}`,
+    `n:${plan.normal}`,
+    `a:${plan.arm}`,
     repeat[0].toFixed(3),
     repeat[1].toFixed(3),
     anisotropy.toFixed(2),
@@ -150,9 +179,12 @@ function variantKey(
 }
 
 function disposeSet(set: PbrTextureSet) {
-  set.map.dispose()
-  set.normalMap?.dispose()
-  set.roughnessMap?.dispose()
+  const textures = new Set<Texture>()
+  textures.add(set.map)
+  if (set.normalMap) textures.add(set.normalMap)
+  if (set.roughnessMap) textures.add(set.roughnessMap)
+  if (set.aoMap) textures.add(set.aoMap)
+  textures.forEach((texture) => texture.dispose())
 }
 
 async function createPbrTextureSet(
@@ -160,24 +192,40 @@ async function createPbrTextureSet(
   repeat: [number, number],
   anisotropy: number,
   full: boolean,
-  resolution: PbrResolution
+  plan: PbrTexturePlan
 ) {
   const asset = getPbrSurfaceAsset(surface)
-  const urls = getPbrSurfaceUrls(surface, resolution)
-  const fallback = getPbrSurfaceUrls(surface, '1k')
+  const urls = getPbrSurfaceUrls(surface, plan)
+  const fallback = getPbrSurfaceUrls(surface, PBR_PLAN_STANDARD)
   if (!asset || !urls || !fallback) throw new Error(`No PBR asset registered for ${surface}`)
 
-  const [sourceMap, sourceNormal, sourceRoughness] = await Promise.all([
-    loadWithFallback(urls.color, fallback.color, true),
-    full ? loadWithFallback(urls.normal, fallback.normal) : Promise.resolve(undefined),
-    full ? loadWithFallback(urls.roughness, fallback.roughness) : Promise.resolve(undefined)
+  const sourceMapPromise = loadWithFallback(urls.color, fallback.color, true)
+  const sourceNormalPromise = full
+    ? loadWithFallback(urls.normal, fallback.normal)
+    : Promise.resolve(undefined)
+  const sourceArmPromise = full
+    ? loadArmOrRoughness(urls.arm, fallback.arm, fallback.roughness)
+    : Promise.resolve(undefined)
+
+  const [sourceMap, sourceNormal, sourceArm] = await Promise.all([
+    sourceMapPromise,
+    sourceNormalPromise,
+    sourceArmPromise
   ])
+
+  const packedMap = sourceArm
+    ? cloneTexture(sourceArm.source, repeat, anisotropy)
+    : undefined
 
   return {
     map: cloneTexture(sourceMap, repeat, anisotropy, true),
-    normalMap: sourceNormal ? cloneTexture(sourceNormal, repeat, anisotropy) : undefined,
-    roughnessMap: sourceRoughness ? cloneTexture(sourceRoughness, repeat, anisotropy) : undefined,
-    resolution
+    normalMap: sourceNormal
+      ? cloneTexture(sourceNormal, repeat, anisotropy)
+      : undefined,
+    roughnessMap: packedMap,
+    aoMap: sourceArm?.packed ? packedMap : undefined,
+    plan,
+    packedArm: sourceArm?.packed ?? false
   }
 }
 
@@ -188,19 +236,19 @@ export async function acquirePbrTextureSet(
     anisotropy,
     full,
     priority = 'normal',
-    resolution = '1k'
+    plan = PBR_PLAN_STANDARD
   }: {
     repeat: [number, number]
     anisotropy: number
     full: boolean
     priority?: PbrLoadPriority
-    resolution?: PbrResolution
+    plan?: PbrTexturePlan
   }
 ): Promise<PbrTextureLease | null> {
   const asset = getPbrSurfaceAsset(surface)
   if (!asset) return null
 
-  const key = variantKey(surface, repeat, anisotropy, full, resolution)
+  const key = variantKey(surface, repeat, anisotropy, full, plan)
   let entry = variantCache.get(key)
 
   if (!entry) {
@@ -210,7 +258,7 @@ export async function acquirePbrTextureSet(
     }
 
     next.promise = schedule(
-      () => createPbrTextureSet(surface, repeat, anisotropy, full, resolution),
+      () => createPbrTextureSet(surface, repeat, anisotropy, full, plan),
       priority
     )
       .then((set) => {

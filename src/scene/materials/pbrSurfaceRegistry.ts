@@ -2,6 +2,24 @@ import type { SurfacePresetId } from '../../world/boothProfiles'
 
 export type PbrResolution = '1k' | '2k'
 
+export type PbrTexturePlan = {
+  color: PbrResolution
+  normal: PbrResolution
+  arm: PbrResolution
+}
+
+export const PBR_PLAN_STANDARD: PbrTexturePlan = {
+  color: '1k',
+  normal: '1k',
+  arm: '1k'
+}
+
+export const PBR_PLAN_NEAR_CINEMATIC: PbrTexturePlan = {
+  color: '2k',
+  normal: '1k',
+  arm: '1k'
+}
+
 export type PbrSurfaceAsset = {
   id: SurfacePresetId
   sourceLabel: string
@@ -9,6 +27,7 @@ export type PbrSurfaceAsset = {
   slug: string
   color: string
   normal: string
+  arm: string
   roughness: string
   normalScale?: number
 }
@@ -30,6 +49,7 @@ function asset(
     sourceUrl,
     color: ph(slug, 'diff'),
     normal: ph(slug, 'nor_gl'),
+    arm: ph(slug, 'arm'),
     roughness: ph(slug, 'rough'),
     normalScale
   }
@@ -91,13 +111,25 @@ export function getPbrSurfaceAsset(id: SurfacePresetId) {
   return pbrSurfaceRegistry[id]
 }
 
-export function getPbrSurfaceUrls(id: SurfacePresetId, resolution: PbrResolution = '1k') {
+export function getPbrSurfaceUrls(
+  id: SurfacePresetId,
+  planOrResolution: PbrTexturePlan | PbrResolution = PBR_PLAN_STANDARD
+) {
   const asset = getPbrSurfaceAsset(id)
   if (!asset) return null
 
+  const plan = typeof planOrResolution === 'string'
+    ? {
+        color: planOrResolution,
+        normal: planOrResolution,
+        arm: planOrResolution
+      }
+    : planOrResolution
+
   return {
-    color: ph(asset.slug, 'diff', resolution),
-    normal: ph(asset.slug, 'nor_gl', resolution),
-    roughness: ph(asset.slug, 'rough', resolution)
+    color: ph(asset.slug, 'diff', plan.color),
+    normal: ph(asset.slug, 'nor_gl', plan.normal),
+    arm: ph(asset.slug, 'arm', plan.arm),
+    roughness: ph(asset.slug, 'rough', plan.arm)
   }
 }
