@@ -22,6 +22,7 @@ import {
   type PbrTextureSet
 } from '../scene/materials/pbrTextureCache'
 import type { SurfacePresetId } from '../world/boothProfiles'
+import { getMicroBumpScale, getMicroBumpVariant } from '../scene/materials/microDetailTextures'
 import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
@@ -54,6 +55,7 @@ function useProgressiveFileAsset(room: RoomDefinition) {
   const url = fileAssetUrl(room)
   const [ready, setReady] = useState(() => !url)
   const prefetchStarted = useRef(false)
+  const streamFrame = useRef(0)
 
   useEffect(() => {
     prefetchStarted.current = false
@@ -62,19 +64,21 @@ function useProgressiveFileAsset(room: RoomDefinition) {
 
   useFrame(() => {
     if (!url || !started || ready) return
+    streamFrame.current = (streamFrame.current + 1) % 10
+    if (streamFrame.current !== 0) return
 
     const state = useAppStore.getState()
     const dx = state.player.x - room.position[0]
     const dz = state.player.z - room.position[2]
-    const distance = Math.hypot(dx, dz)
+    const distanceSq = dx * dx + dz * dz
     const resolvedUrl = resolveAssetUrl(url)
 
-    if (!prefetchStarted.current && distance <= FILE_PREFETCH_RADIUS) {
+    if (!prefetchStarted.current && distanceSq <= FILE_PREFETCH_RADIUS * FILE_PREFETCH_RADIUS) {
       prefetchStarted.current = true
       useGLTF.preload(resolvedUrl)
     }
 
-    if (distance <= FILE_REVEAL_RADIUS || state.activeRoomId === room.id) {
+    if (distanceSq <= FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS || state.activeRoomId === room.id) {
       if (!prefetchStarted.current) {
         prefetchStarted.current = true
         useGLTF.preload(resolvedUrl)
@@ -210,19 +214,28 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: 
     }
   })
 
-  if (!vendor) return
+  if (vendor) {
+    for (const hotspot of room.hotspots) {
+      if (hotspot.anchor.kind !== 'node') continue
+      const object = scene.getObjectByName(hotspot.anchor.nodeName)
+      if (!object) {
+        console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
+        continue
+      }
 
-  for (const hotspot of room.hotspots) {
-    if (hotspot.anchor.kind !== 'node') continue
-    const object = scene.getObjectByName(hotspot.anchor.nodeName)
-    if (!object) {
-      console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
-      continue
+      const interaction = resolveHotspotInteraction(hotspot, vendor)
+      if (interaction) object.userData.interaction = interaction
     }
-
-    const interaction = resolveHotspotInteraction(hotspot, vendor)
-    if (interaction) object.userData.interaction = interaction
   }
+
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return
+    object.updateMatrix()
+    object.matrixAutoUpdate = false
+    if (!object.userData.interaction) {
+      object.raycast = () => undefined
+    }
+  })
 }
 
 function batchStaticAuthoredMeshes(scene: Object3D) {
@@ -288,6 +301,8 @@ function applyAuthoredTextureSets(scene: Object3D, sets: Map<string, PbrTextureS
       material.map = set.map
       material.normalMap = set.normalMap ?? null
       material.roughnessMap = set.roughnessMap ?? null
+      material.bumpMap = getMicroBumpVariant(binding.surface, binding.repeat, set.map.anisotropy)
+      material.bumpScale = getMicroBumpScale(binding.surface)
       if (set.normalMap) material.normalScale.set(binding.normalScale, binding.normalScale)
       material.needsUpdate = true
     }
@@ -340,7 +355,8 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
         repeat: binding.repeat,
         anisotropy,
         full: quality === 'cinematic',
-        priority: 'normal'
+        priority: 'normal',
+        resolution: quality === 'cinematic' ? '2k' : '1k'
       })
       if (!lease) return
 
@@ -367,6 +383,11 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
       sets.clear()
     }
   }, [gl, quality, room.asset, scene])
+
+  useEffect(() => {
+    if (quality !== 'cinematic') return
+    gl.shadowMap.needsUpdate = true
+  }, [gl, quality, scene])
 
   useEffect(() => () => {
     disposeSceneMaterials(scene)

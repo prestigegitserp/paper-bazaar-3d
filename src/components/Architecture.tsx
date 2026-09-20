@@ -51,7 +51,9 @@ function CeilingSystem() {
             <boxGeometry args={[3.85, 0.035, 0.085]} />
             <meshStandardMaterial color="#fffdf3" emissive="#fff7de" emissiveIntensity={4.1} toneMapped={false} />
           </mesh>
-          <pointLight position={[0, 4.48, z]} color="#fff5df" intensity={index % 3 === 0 ? 8.5 : 6.8} distance={8.5} decay={2} />
+          {index % 3 === 0 && (
+            <pointLight position={[0, 4.42, z]} color="#fff5df" intensity={13.5} distance={11.5} decay={2} />
+          )}
         </group>
       ))}
 

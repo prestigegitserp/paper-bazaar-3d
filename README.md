@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.12.0**
+نسخه فعلی: **v0.13.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.12 ظاهر و جزئیات v0.11 را حفظ می‌کند و فقط pipeline بارگذاری/رندر را سبک‌تر می‌کند: progressive GLB streaming، staged PBR، texture residency مشترک، instancing و deferred GPU work؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 روی پایه‌ی v0.12 دو ارتقای هم‌زمان دارد: هزینه‌ی static scene پایین‌تر با shadow event-driven، raycast محدود و نورپردازی پوششی؛ و texture واقعی‌تر با 2K نزدیک و micro-detail بدون شبکه. قراردادهای World/Catalog/Documents/Scan دست‌نخورده‌اند.
 
 ## اجرا
 
@@ -30,21 +30,19 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.12 — Progressive Loading بدون افت کیفیت
+## v0.13 — Photoreal Texture + Static-Scene Performance
 
-- فایل‌های GLB دوردست در startup دانلود/decode نمی‌شوند؛ در فاصله 24 متر preload و در 18 متر reveal می‌شوند.
-- هنگام load شدن file-backed room، یک Booth proxy سبک داخل Suspense محلی می‌ماند تا کل World هرگز blank نشود.
-- meshهای تکراری و non-interactive مدل authored به `InstancedMesh` تبدیل می‌شوند؛ hotspotهای semantic دست‌نخورده باقی می‌مانند.
-- PBR variantهای یکسان ref-count/share می‌شوند و ساخت texture setها حداکثر دو مورد هم‌زمان است.
-- در شروع فقط سطح‌های critical پاساژ real albedo می‌گیرند؛ mapهای کامل normal/roughness بعد از ورود و idle time فعال می‌شوند.
-- PMREM reflection، floor imperfection، SoftShadows و shadow-map کامل قبل از ورود ساخته نمی‌شوند.
-- Catalog Reader با dynamic import فقط در اولین interaction کاتالوگ دانلود می‌شود.
-- قبل از ورود Canvas در demand mode و DPR سبک‌تر است؛ پس از ورود همان کیفیت Cinematic/Balanced قبلی برمی‌گردد.
-- GLB v3، UV، bevel، decals، PBR، AgX، interactionها، mobile controls، collision و تمام contractهای scan/server بدون حذف باقی مانده‌اند.
+- shadow map در Cinematic دیگر هر frame regenerate نمی‌شود؛ فقط در start/quality/asset-load refresh می‌شود.
+- meshهای authored که interaction ندارند از raycast حذف و matrix محلی‌شان freeze می‌شود.
+- distance probe فایل‌های GLB هر 10 frame اجرا می‌شود و از squared-distance استفاده می‌کند.
+- ظاهر 13 چراغ سقفی حفظ شده اما point light واقعی فقط هر سومین fixture است؛ پوشش نور با intensity/range تنظیم شده است.
+- authored shop نزدیک در Cinematic از PBR 2K استفاده می‌کند؛ اگر CDN 2K fail شود خودکار به 1K fallback می‌کند.
+- پاساژ و دید دور همچنان 1K progressive باقی می‌ماند تا startup سنگین نشود.
+- micro-bump 128px procedural و cache‌شده روی PBR واقعی اضافه می‌شود؛ network request جدید ندارد.
+- micro-detail روی procedural materials و authored GLB هر دو اعمال می‌شود.
+- GLB v3، UV، bevel، decals، labels، AgX، environment reflections، progressive loading، instancing و تمام interaction/collision contracts حفظ شده‌اند.
 
-Baseline قبل از این pass (v0.11 CI): main JS = 1,247.22 kB / 352.51 kB gzip و authored GLB = 97,412 bytes.
-
-جزئیات فنی: [docs/DEBUG_REPORT_V012.md](docs/DEBUG_REPORT_V012.md)
+جزئیات فنی: [docs/DEBUG_REPORT_V013.md](docs/DEBUG_REPORT_V013.md)
 
 ## اجرا و تست کاتالوگ
 
@@ -60,7 +58,7 @@ Baseline قبل از این pass (v0.11 CI): main JS = 1,247.22 kB / 352.51 kB g
 نسخه‌های milestone روی branchهای release نگه داشته می‌شوند:
 
 ```text
-release/v0.3.0 … release/v0.11.0
+release/v0.3.0 … release/v0.12.0
 main            → latest stable
 ```
 
