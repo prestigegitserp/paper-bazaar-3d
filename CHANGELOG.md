@@ -23,7 +23,6 @@
 - keeps semantic node hotspots, independent colliders and RuntimeBundle repositories
 - visual skin remains replaceable without changing Catalog/Document/server contracts
 
-# Changelog
 
 ## 0.8.0 — Authored GLB shop + scoped world labels
 
@@ -52,7 +51,6 @@
 - adds active-room behavior tests
 - adds a visual regression test preventing raw Drei Html in interior fixture modules
 
-# Changelog
 
 ## 0.7.0 — 15 Khordad-inspired photoreal market pass
 
@@ -133,7 +131,6 @@
 - main remains the latest stable release line
 - every push/merge to main builds and deploys the latest version once GitHub Pages is enabled once in repository Settings
 
-# Changelog
 
 ## 0.4.0 — Immersive experience foundation
 
