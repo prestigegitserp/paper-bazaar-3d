@@ -28,13 +28,13 @@ class ApiFirstCatalogRepository implements CatalogRepository {
 }
 
 class SeedWorldRepository implements WorldRepository {
-  async load() {
+  async load(_signal?: AbortSignal) {
     return demoWorld
   }
 }
 
 class GeneratedDocumentRepository implements DocumentRepository {
-  async load(catalog: RuntimeBundle['catalog'], world: RuntimeBundle['world']) {
+  async load(catalog: RuntimeBundle['catalog'], world: RuntimeBundle['world'], _signal?: AbortSignal) {
     return buildVendorDocuments(catalog, world)
   }
 }
