@@ -1,6 +1,6 @@
 import { Html, useGLTF } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, type CSSProperties } from 'react'
 import { Mesh, type Object3D } from 'three'
 import type { Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
@@ -105,7 +105,13 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
 
       {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
         <Html center position={[2.84, 3.54, 0]} distanceFactor={7.8} style={{ pointerEvents: 'none' }}>
-          <div className="market-shop-sign authored-shop-sign">
+          <div
+            className="market-shop-sign authored-shop-sign"
+            style={{
+              '--sign-text': '#f5eee0',
+              '--sign-accent': room.theme.accent
+            } as CSSProperties}
+          >
             <b>{vendor.name}</b>
             <span>{vendor.shortName} · AUTHORED GLB</span>
           </div>

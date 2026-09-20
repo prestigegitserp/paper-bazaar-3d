@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.8.0 — Authored GLB shop + scoped world labels
+
+### Authored asset pipeline
+- first deterministic, file-backed authored shop in the live World
+- build-time GLB generator with stable semantic node names
+- generated GLB is emitted to `public/models` before dev/build
+- authored room keeps independent World colliders and business data
+
+### Interaction / Digital Twin
+- adds `node` hotspot anchors for GLB and GLTF scan rooms
+- renderer attaches semantic interactions to cloned named model nodes
+- retains point hotspots as a fallback
+- world validator rejects node hotspots on incompatible assets and slot hotspots on file-backed rooms
+
+### Visual calm
+- adds `RoomScopedHtml`
+- interior labels only mount for the active room
+- neighboring booth labels no longer bleed through walls/shops
+- storefront signage remains intentionally readable from the aisle
+
+### Logic / debug
+- exact room containment now wins before discovery proximity
+- discovery fallback chooses the nearest eligible room instead of depending on room array order
+- adds authored GLB structure test
+- adds active-room behavior tests
+- adds a visual regression test preventing raw Drei Html in interior fixture modules
+
+# Changelog
+
 ## 0.7.0 — 15 Khordad-inspired photoreal market pass
 
 ### Environment
