@@ -30,8 +30,9 @@ export default function WorldTextPanel({
 
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 1024
-    canvas.height = Math.max(256, Math.round(1024 * (height / width)))
+    const canvasWidth = width < 0.9 ? 512 : width < 2.2 ? 768 : 1024
+    canvas.width = canvasWidth
+    canvas.height = Math.max(192, Math.min(640, Math.round(canvasWidth * (height / width))))
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas 2D context unavailable')
 
