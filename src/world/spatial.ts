@@ -33,15 +33,35 @@ export function roomEntryYaw(room: RoomDefinition) {
   return yawToLookAt(roomEntryPoint(room), [room.position[0], roomEntryPoint(room)[1], room.position[2]])
 }
 
+function isInsideRoom(room: RoomDefinition, x: number, z: number) {
+  const local = worldPointToRoomLocal(room, x, z)
+  const [width, depth] = room.footprint
+  return Math.abs(local.x) <= width / 2 + 0.35 && Math.abs(local.z) <= depth / 2 + 0.35
+}
+
+function discoveryDistance(room: RoomDefinition, x: number, z: number) {
+  const local = worldPointToRoomLocal(room, x, z)
+  if (Math.abs(local.x) > room.footprint[0] / 2 + 1.2) return Number.POSITIVE_INFINITY
+
+  const distance = Math.hypot(x - room.position[0], z - room.position[2])
+  return distance <= room.discoveryRadius ? distance : Number.POSITIVE_INFINITY
+}
+
 export function findActiveRoom(world: WorldDefinition, x: number, z: number) {
   for (const room of world.rooms) {
-    const local = worldPointToRoomLocal(room, x, z)
-    const [width, depth] = room.footprint
-    const inside = Math.abs(local.x) <= width / 2 + 0.35 && Math.abs(local.z) <= depth / 2 + 0.35
-    if (inside) return room
-
-    const distance = Math.hypot(x - room.position[0], z - room.position[2])
-    if (distance <= room.discoveryRadius && Math.abs(local.x) <= width / 2 + 1.2) return room
+    if (isInsideRoom(room, x, z)) return room
   }
-  return null
+
+  let nearest: RoomDefinition | null = null
+  let nearestDistance = Number.POSITIVE_INFINITY
+
+  for (const room of world.rooms) {
+    const distance = discoveryDistance(room, x, z)
+    if (distance < nearestDistance) {
+      nearest = room
+      nearestDistance = distance
+    }
+  }
+
+  return nearest
 }

@@ -1,8 +1,8 @@
-import { Html, Instance, Instances } from '@react-three/drei'
+import { Instance, Instances } from '@react-three/drei'
 import type { CSSProperties } from 'react'
 import type { BoothProfile } from '../../../world/boothProfiles'
 import type { RoomDefinition } from '../../../world/types'
-import SurfaceMaterial from '../../materials/SurfaceMaterial'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'\nimport SurfaceMaterial from '../../materials/SurfaceMaterial'
 
 const shelfLabels = ['تحریر ۷۰ گرم', 'گلاسه', 'کاغذ رنگی', 'مقوا و کرافت']
 
@@ -60,7 +60,7 @@ export default function StockWall({ room, profile }: { room: RoomDefinition; pro
           <div className="market-shelf-label" style={{ '--label': profile.shopfront.labelColor } as CSSProperties}>
             {label}
           </div>
-        </Html>
+        </RoomScopedHtml>
       ))}
 
       <mesh position={[-2.56, 1.9, 3.19]} castShadow>

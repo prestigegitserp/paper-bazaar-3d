@@ -1,5 +1,5 @@
 import { Html } from '@react-three/drei'
-import type { Vendor } from '../../../domain/catalog'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'\nimport type { Vendor } from '../../../domain/catalog'
 import { findHotspot, resolveHotspotInteraction } from '../../../world/hotspots'
 import type { BoothProfile } from '../../../world/boothProfiles'
 import type { RoomDefinition } from '../../../world/types'
@@ -101,9 +101,9 @@ export function SalesCounter({ room, vendor, profile }: { room: RoomDefinition; 
       {profile.features.calculator && <Calculator accent={room.theme.accent} />}
 
       {vendor && (
-        <Html center position={[0.15, 1.55, 0]} distanceFactor={8.6} style={{ pointerEvents: 'none' }}>
+        <RoomScopedHtml roomId={room.id} position={[0.15, 1.55, 0]} distanceFactor={8.6} style={{ pointerEvents: 'none' }}>
           <div className="world-tag market-counter-tag">پیشخوان فروش · کلیک / E</div>
-        </Html>
+        </RoomScopedHtml>
       )}
     </InteractiveNode>
   )
@@ -136,9 +136,9 @@ export function CatalogProp({ room, vendor, profile }: { room: RoomDefinition; v
           <meshStandardMaterial color={room.theme.accent} roughness={0.58} />
         </mesh>
       </group>
-      <Html center position={[0, 0.42, 0]} distanceFactor={8.8} style={{ pointerEvents: 'none' }}>
+      <RoomScopedHtml roomId={room.id} position={[0, 0.42, 0]} distanceFactor={8.8} style={{ pointerEvents: 'none' }}>
         <div className="world-tag catalog-world-tag">کاتالوگ نمونه‌ها</div>
-      </Html>
+      </RoomScopedHtml>
     </InteractiveNode>
   )
 }
