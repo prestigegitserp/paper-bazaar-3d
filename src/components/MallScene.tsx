@@ -6,6 +6,7 @@ import DiagnosticsProbe from './DiagnosticsProbe'
 import ExperienceEffects from './ExperienceEffects'
 import PlayerController from './PlayerController'
 import RoomRenderer from './RoomRenderer'
+import StaticShadowController from './StaticShadowController'
 import WorldDecor from './WorldDecor'
 import { useAppStore } from '../store'
 
@@ -52,6 +53,7 @@ export default function MallScene() {
 
       <WorldDecor />
       <ExperienceEffects />
+      <StaticShadowController />
       <DiagnosticsProbe />
       <PlayerController world={world} />
     </>
