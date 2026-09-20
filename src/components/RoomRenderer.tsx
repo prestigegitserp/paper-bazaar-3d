@@ -210,19 +210,28 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: 
     }
   })
 
-  if (!vendor) return
+  if (vendor) {
+    for (const hotspot of room.hotspots) {
+      if (hotspot.anchor.kind !== 'node') continue
+      const object = scene.getObjectByName(hotspot.anchor.nodeName)
+      if (!object) {
+        console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
+        continue
+      }
 
-  for (const hotspot of room.hotspots) {
-    if (hotspot.anchor.kind !== 'node') continue
-    const object = scene.getObjectByName(hotspot.anchor.nodeName)
-    if (!object) {
-      console.warn(`[room-hotspot] ${room.id} is missing GLB node "${hotspot.anchor.nodeName}"`)
-      continue
+      const interaction = resolveHotspotInteraction(hotspot, vendor)
+      if (interaction) object.userData.interaction = interaction
     }
-
-    const interaction = resolveHotspotInteraction(hotspot, vendor)
-    if (interaction) object.userData.interaction = interaction
   }
+
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return
+    object.updateMatrix()
+    object.matrixAutoUpdate = false
+    if (!object.userData.interaction) {
+      object.raycast = () => undefined
+    }
+  })
 }
 
 function batchStaticAuthoredMeshes(scene: Object3D) {
@@ -340,7 +349,8 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
         repeat: binding.repeat,
         anisotropy,
         full: quality === 'cinematic',
-        priority: 'normal'
+        priority: 'normal',
+        resolution: quality === 'cinematic' ? '2k' : '1k'
       })
       if (!lease) return
 
@@ -367,6 +377,11 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
       sets.clear()
     }
   }, [gl, quality, room.asset, scene])
+
+  useEffect(() => {
+    if (quality !== 'cinematic') return
+    gl.shadowMap.needsUpdate = true
+  }, [gl, quality, scene])
 
   useEffect(() => () => {
     disposeSceneMaterials(scene)
