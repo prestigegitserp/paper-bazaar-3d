@@ -1,12 +1,9 @@
+import { rotateLocalXZ } from '../world/spatial'
 import type { RoomDefinition, WorldDefinition } from '../world/types'
 
 export type AabbCollider = { minX: number; maxX: number; minZ: number; maxZ: number }
-
-function rotateLocalXZ(x: number, z: number, rotationY: number) {
-  const sin = Math.sin(rotationY)
-  const cos = Math.cos(rotationY)
-  return { x: x * cos + z * sin, z: -x * sin + z * cos }
-}
+export type CircleWorldCollider = { x: number; z: number; radius: number }
+export type WorldCollisionSet = { boxes: AabbCollider[]; circles: CircleWorldCollider[] }
 
 function localPoint(room: RoomDefinition, x: number, z: number) {
   const rotated = rotateLocalXZ(x, z, room.rotationY)
@@ -20,6 +17,7 @@ function aabbFromLocalRect(room: RoomDefinition, centerX: number, centerZ: numbe
     localPoint(room, centerX - width / 2, centerZ + depth / 2),
     localPoint(room, centerX + width / 2, centerZ + depth / 2)
   ]
+
   return {
     minX: Math.min(...corners.map((point) => point.x)),
     maxX: Math.max(...corners.map((point) => point.x)),
@@ -28,35 +26,31 @@ function aabbFromLocalRect(room: RoomDefinition, centerX: number, centerZ: numbe
   }
 }
 
-function proceduralBoothColliders(room: RoomDefinition): AabbCollider[] {
-  return [
-    aabbFromLocalRect(room, -3.58, 0, 0.4, 9.6),
-    aabbFromLocalRect(room, 0, -4.68, 7.2, 0.4),
-    aabbFromLocalRect(room, 0, 4.68, 7.2, 0.4),
-    aabbFromLocalRect(room, 0.75, 0, 2.9, 1.9),
-    aabbFromLocalRect(room, -1.2, -2.65, 1.9, 1.6),
-    aabbFromLocalRect(room, -1.2, 2.65, 1.9, 1.6),
-    aabbFromLocalRect(room, 2.1, -1.55, 1.24, 1.24),
-    aabbFromLocalRect(room, 2.1, 1.55, 1.24, 1.24)
-  ]
-}
+export function buildWorldColliders(world: WorldDefinition): WorldCollisionSet {
+  const boxes: AabbCollider[] = []
+  const circles: CircleWorldCollider[] = world.staticColliders.map(({ x, z, radius }) => ({ x, z, radius }))
 
-export function buildWorldAabbColliders(world: WorldDefinition) {
-  return world.rooms.flatMap((room) => {
-    if (room.asset.kind === 'procedural' && room.asset.renderer === 'paper-booth-v1') {
-      return proceduralBoothColliders(room)
+  for (const room of world.rooms) {
+    for (const collider of room.colliders) {
+      if (collider.kind === 'box') {
+        boxes.push(aabbFromLocalRect(room, collider.center[0], collider.center[1], collider.size[0], collider.size[1]))
+      } else {
+        const center = localPoint(room, collider.center[0], collider.center[1])
+        circles.push({ x: center.x, z: center.z, radius: collider.radius })
+      }
     }
-    return []
-  })
+  }
+
+  return { boxes, circles }
 }
 
-export function isPositionBlocked(world: WorldDefinition, aabbs: AabbCollider[], x: number, z: number, radius: number) {
+export function isPositionBlocked(world: WorldDefinition, collisions: WorldCollisionSet, x: number, z: number, radius: number) {
   const { bounds } = world
   if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return true
 
-  if (aabbs.some((box) => x > box.minX - radius && x < box.maxX + radius && z > box.minZ - radius && z < box.maxZ + radius)) {
+  if (collisions.boxes.some((box) => x > box.minX - radius && x < box.maxX + radius && z > box.minZ - radius && z < box.maxZ + radius)) {
     return true
   }
 
-  return world.staticColliders.some((collider) => Math.hypot(x - collider.x, z - collider.z) < collider.radius + radius)
+  return collisions.circles.some((collider) => Math.hypot(x - collider.x, z - collider.z) < collider.radius + radius)
 }

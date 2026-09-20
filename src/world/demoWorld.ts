@@ -1,3 +1,4 @@
+import { paperBoothColliders, paperBoothEntryAnchor, paperBoothFootprint } from './presets/paperBooth'
 import type { HotspotDefinition, RoomDefinition, WorldDefinition } from './types'
 
 const themes = {
@@ -32,13 +33,7 @@ function boothHotspots(vendorId: string): HotspotDefinition[] {
   ]
 }
 
-function booth(
-  vendorId: keyof typeof themes,
-  label: string,
-  x: number,
-  z: number,
-  rotationY: number
-): RoomDefinition {
+function booth(vendorId: keyof typeof themes, label: string, x: number, z: number, rotationY: number): RoomDefinition {
   return {
     id: `booth:${vendorId}`,
     label,
@@ -46,16 +41,26 @@ function booth(
     vendorId,
     position: [x, 0, z],
     rotationY,
+    footprint: paperBoothFootprint,
+    entryAnchor: paperBoothEntryAnchor,
+    discoveryRadius: 5.25,
     theme: themes[vendorId],
-    asset: { kind: 'procedural', renderer: 'paper-booth-v1' },
-    hotspots: boothHotspots(vendorId)
+    asset: {
+      kind: 'procedural',
+      renderer: 'paper-booth-v1',
+      assetId: `procedural:${vendorId}`,
+      version: '1.0.0',
+      metersPerUnit: 1
+    },
+    hotspots: boothHotspots(vendorId),
+    colliders: paperBoothColliders
   }
 }
 
 export const demoWorld: WorldDefinition = {
   id: 'paper-bazaar-demo',
   name: 'Paper Bazaar 3D',
-  version: 1,
+  version: 2,
   spawn: [0, 1.72, 23],
   bounds: { minX: -13.25, maxX: 13.25, minZ: -26.2, maxZ: 26 },
   rooms: [

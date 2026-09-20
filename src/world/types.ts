@@ -1,5 +1,6 @@
 import type { Interaction } from '../domain/interaction'
 
+export type Vec2 = readonly [number, number]
 export type Vec3 = readonly [number, number, number]
 
 export type BoothTheme = {
@@ -9,22 +10,30 @@ export type BoothTheme = {
   floor: string
 }
 
-export type ProceduralAsset = {
+export type AssetMetadata = {
+  assetId: string
+  version: string
+  metersPerUnit?: number
+}
+
+export type ProceduralAsset = AssetMetadata & {
   kind: 'procedural'
   renderer: 'paper-booth-v1'
 }
 
-export type GltfAsset = {
+export type GltfAsset = AssetMetadata & {
   kind: 'gltf'
   url: string
   scale?: number
+  source?: 'authored' | 'converted'
 }
 
-export type ScanAsset = {
+export type ScanAsset = AssetMetadata & {
   kind: 'scan'
   url: string
   format: 'gltf' | 'gaussian-splat'
   scale?: number
+  capture?: 'lidar' | 'photogrammetry' | 'phone-video' | 'other'
 }
 
 export type WorldAsset = ProceduralAsset | GltfAsset | ScanAsset
@@ -41,6 +50,10 @@ export type HotspotDefinition = {
   action: HotspotAction
 }
 
+export type RoomCollider =
+  | { kind: 'box'; center: Vec2; size: Vec2 }
+  | { kind: 'circle'; center: Vec2; radius: number }
+
 export type RoomDefinition = {
   id: string
   label: string
@@ -48,9 +61,13 @@ export type RoomDefinition = {
   vendorId: string
   position: Vec3
   rotationY: number
+  footprint: Vec2
+  entryAnchor: Vec3
+  discoveryRadius: number
   theme: BoothTheme
   asset: WorldAsset
   hotspots: HotspotDefinition[]
+  colliders: RoomCollider[]
 }
 
 export type WorldBounds = {
