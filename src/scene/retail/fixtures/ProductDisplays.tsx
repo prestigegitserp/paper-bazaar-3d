@@ -1,5 +1,5 @@
-import { Html } from '@react-three/drei'
-import RoomScopedHtml from '../../../components/RoomScopedHtml'\nimport type { Vendor } from '../../../domain/catalog'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'
+import type { Vendor } from '../../../domain/catalog'
 import type { Interaction } from '../../../domain/interaction'
 import { findHotspot, resolveHotspotInteraction } from '../../../world/hotspots'
 import type { BoothProfile } from '../../../world/boothProfiles'

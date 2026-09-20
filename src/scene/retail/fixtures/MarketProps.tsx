@@ -1,5 +1,5 @@
-import { Html } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'\nimport RoomScopedHtml from '../../../components/RoomScopedHtml'
+import { useFrame } from '@react-three/fiber'
+import RoomScopedHtml from '../../../components/RoomScopedHtml'
 import { useRef } from 'react'
 import type { Group } from 'three'
 import type { BoothProfile } from '../../../world/boothProfiles'
