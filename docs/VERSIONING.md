@@ -8,7 +8,7 @@
 
 ## Snapshotهای موجود در GitHub
 
-در زمان آماده‌سازی v0.13، این release branchها واقعاً در repository وجود دارند:
+خط پایدار تاریخی که باید حفظ شود:
 
 - `release/v0.3.0`
 - `release/v0.4.0`
@@ -32,3 +32,13 @@ Git history نسخه‌ها را نگه می‌دارد، اما release branch 
 ## Rule
 
 هیچ migration بصری، performance یا معماری نباید release branch قبلی را force-update کند. بهینه‌سازی‌های جدید باید روی branch جدید انجام شوند و snapshot قبلی بدون تغییر باقی بماند.
+
+
+## v0.13 rebuild rule
+
+v0.13 جدید باید از `release/v0.12.0` مشتق شود. branchها/PRهای آزمایشی post-v0.12 منبع حقیقت نیستند.
+
+پس از سبز شدن CI:
+- `main` به tree تأییدشده‌ی v0.13 جدید منتقل می‌شود.
+- `release/v0.13.0` به commit نهایی جدید اشاره می‌کند.
+- هیچ ref مربوط به `release/v0.3.0` تا `release/v0.12.0` force-update نمی‌شود.

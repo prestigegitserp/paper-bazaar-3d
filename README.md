@@ -2,7 +2,7 @@
 
 نسخه فعلی: **v0.13.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 روی پایه‌ی v0.12 دو ارتقای هم‌زمان دارد: هزینه‌ی static scene پایین‌تر با shadow event-driven، raycast محدود و نورپردازی پوششی؛ و texture واقعی‌تر با 2K نزدیک و micro-detail بدون شبکه. قراردادهای World/Catalog/Documents/Scan دست‌نخورده‌اند.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 جدید مستقیماً از release/v0.12.0 بازسازی شده و دو هدف دارد: سرعت بالاتر در صحنه‌ی تقریباً ثابت و تکسچر/جنس واقعی‌تر در نمای نزدیک، بدون حذف دستاوردهای World/Catalog/Documents/Scan و authored GLB v3.
 
 ## اجرا
 
@@ -30,19 +30,35 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.13 — Photoreal Texture + Static-Scene Performance
+## v0.13 — Photoreal Performance Rebuild
 
-- shadow map در Cinematic دیگر هر frame regenerate نمی‌شود؛ فقط در start/quality/asset-load refresh می‌شود.
-- meshهای authored که interaction ندارند از raycast حذف و matrix محلی‌شان freeze می‌شود.
-- distance probe فایل‌های GLB هر 10 frame اجرا می‌شود و از squared-distance استفاده می‌کند.
-- ظاهر 13 چراغ سقفی حفظ شده اما point light واقعی فقط هر سومین fixture است؛ پوشش نور با intensity/range تنظیم شده است.
-- authored shop نزدیک در Cinematic از PBR 2K استفاده می‌کند؛ اگر CDN 2K fail شود خودکار به 1K fallback می‌کند.
-- پاساژ و دید دور همچنان 1K progressive باقی می‌ماند تا startup سنگین نشود.
-- micro-bump 128px procedural و cache‌شده روی PBR واقعی اضافه می‌شود؛ network request جدید ندارد.
-- micro-detail روی procedural materials و authored GLB هر دو اعمال می‌شود.
-- GLB v3، UV، bevel، decals، labels، AgX، environment reflections، progressive loading، instancing و تمام interaction/collision contracts حفظ شده‌اند.
+این نسخه **از release/v0.12.0** ساخته شده و v0.13/v0.14/v0.15 آزمایشی قبلی مبنای آن نیستند.
 
-جزئیات فنی: [docs/DEBUG_REPORT_V013.md](docs/DEBUG_REPORT_V013.md)
+### Performance
+- shadow map سینمایی برای صحنه‌ی ثابت event-driven شده و هر فریم دوباره render نمی‌شود.
+- پنل‌های سقف، چراغ‌های قابل‌دیدن و ستون‌های تکراری با instancing رسم می‌شوند.
+- subdivision بی‌استفاده‌ی کف حذف شده؛ ظاهر و UV material عوض نشده است.
+- هر 13 fixture سقف دیده می‌شود، اما فقط هر سومین fixture یک PointLight واقعی دارد.
+- probe فاصله‌ی GLB هر 10 فریم و با squared-distance انجام می‌شود.
+- transformهای authored ثابت freeze می‌شوند.
+- diagnostics فقط وقتی F3 باز است frame callback دارد.
+- store موقعیت بازیکن هنگام سکون بی‌جهت update نمی‌شود.
+- texture decode مسیر ImageBitmap دارد و GPU uploadها در idle window سریالی warm می‌شوند.
+
+### Texture / material realism
+- PBR پایه همچنان 1K و progressive است.
+- روی سیستم دسکتاپ مناسب در Cinematic، سطوح high-value و authored room اجازه‌ی 2K دارند.
+- هر درخواست 2K در صورت خطا خودکار به 1K برمی‌گردد.
+- micro normal مستقل برای clearcoat سطوح صیقلی اضافه شده است.
+- کاغذ و مقوا micro bump + roughness اختصاصی دارند تا در نمای نزدیک تخت دیده نشوند.
+- normal واقعی PBR با bump جعلی overwrite نمی‌شود؛ کانال‌های detail با مسیر فیزیکی سازگار استفاده می‌شوند.
+- AgX، PMREM، decals، fingerprints، UV، bevel و cylinderهای v0.11/v0.12 حفظ شده‌اند.
+
+### Interaction safety
+- بهینه‌سازی raycast فقط برای batchهای تزئینی ریز اعمال می‌شود.
+- دیوار، قفسه و سطوح ساختاری همچنان occluder هستند؛ تعامل از پشت دیوار دوباره ایجاد نمی‌شود.
+
+جزئیات فنی: [docs/DEBUG_REPORT_V013_REBUILD.md](docs/DEBUG_REPORT_V013_REBUILD.md)
 
 ## اجرا و تست کاتالوگ
 
@@ -59,6 +75,7 @@ npm run dev
 
 ```text
 release/v0.3.0 … release/v0.12.0
+release/v0.13.0 → این milestone پس از CI نهایی ساخته می‌شود
 main            → latest stable
 ```
 

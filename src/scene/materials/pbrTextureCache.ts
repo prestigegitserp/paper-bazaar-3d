@@ -1,4 +1,5 @@
 import {
+  ImageBitmapLoader,
   RepeatWrapping,
   SRGBColorSpace,
   Texture,
@@ -11,8 +12,12 @@ import {
   type PbrResolution
 } from './pbrSurfaceRegistry'
 
-const loader = new TextureLoader()
-loader.setCrossOrigin('anonymous')
+const bitmapLoader = new ImageBitmapLoader()
+bitmapLoader.setCrossOrigin('anonymous')
+bitmapLoader.setOptions({ imageOrientation: 'flipY', premultiplyAlpha: 'none' })
+
+const textureLoader = new TextureLoader()
+textureLoader.setCrossOrigin('anonymous')
 
 const sourceTexturePromises = new Map<string, Promise<Texture>>()
 
@@ -64,35 +69,46 @@ function schedule<T>(task: () => Promise<T>, priority: PbrLoadPriority) {
   })
 }
 
+function configureSourceTexture(texture: Texture, srgb: boolean) {
+  texture.wrapS = RepeatWrapping
+  texture.wrapT = RepeatWrapping
+  if (srgb) texture.colorSpace = SRGBColorSpace
+  texture.needsUpdate = true
+  return texture
+}
+
+async function decodeTexture(url: string, srgb: boolean) {
+  if (typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await bitmapLoader.loadAsync(url)
+      const texture = new Texture(bitmap)
+      texture.flipY = false
+      return configureSourceTexture(texture, srgb)
+    } catch {
+      // Safari/WebView/CORS edge cases fall back to the regular image loader.
+    }
+  }
+
+  const texture = await textureLoader.loadAsync(url)
+  return configureSourceTexture(texture, srgb)
+}
+
 function loadSharedTexture(url: string, srgb = false) {
-  let promise = sourceTexturePromises.get(url)
+  const key = `${url}|${srgb ? 'srgb' : 'linear'}`
+  let promise = sourceTexturePromises.get(key)
+
   if (!promise) {
-    promise = new Promise<Texture>((resolve, reject) => {
-      loader.load(
-        url,
-        (texture) => {
-          texture.wrapS = RepeatWrapping
-          texture.wrapT = RepeatWrapping
-          if (srgb) texture.colorSpace = SRGBColorSpace
-          resolve(texture)
-        },
-        undefined,
-        reject
-      )
-    })
-    sourceTexturePromises.set(url, promise)
+    promise = decodeTexture(url, srgb)
+    sourceTexturePromises.set(key, promise)
     void promise.catch(() => {
-      if (sourceTexturePromises.get(url) === promise) sourceTexturePromises.delete(url)
+      if (sourceTexturePromises.get(key) === promise) sourceTexturePromises.delete(key)
     })
   }
+
   return promise
 }
 
-async function loadWithFallback(
-  primary: string,
-  fallback: string,
-  srgb = false
-) {
+async function loadWithFallback(primary: string, fallback: string, srgb = false) {
   if (primary === fallback) return loadSharedTexture(primary, srgb)
   try {
     return await loadSharedTexture(primary, srgb)

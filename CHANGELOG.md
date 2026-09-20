@@ -1,22 +1,35 @@
 # Changelog
 
-## 0.13.0 — Photoreal texture + static-scene performance
+## 0.13.0 — Photoreal performance rebuild from v0.12
+
+### Lineage
+- rebuilt directly from `release/v0.12.0`
+- preserves all release snapshots through v0.12
+- experimental post-v0.12 work is not treated as ancestry for this release
 
 ### Performance
-- converts cinematic shadow maps from per-frame updates to event-driven refreshes
-- refreshes shadows on initial start, quality changes and file-backed room mount
-- disables raycasting on non-interactive authored meshes
-- freezes local transform recomputation for static authored meshes
-- throttles GLB distance probes to every tenth frame and removes sqrt distance work
-- keeps all emissive ceiling fixtures while reducing real point-light count from 13 to 5
+- static cinematic shadow maps update on scene events rather than every frame
+- repeated passage columns and ceiling fixtures use instancing
+- removes unnecessary floor geometry subdivisions
+- keeps all visible light fixtures while reducing real point-light count
+- throttles file-stream distance probes and removes square-root distance work
+- freezes local matrices for static authored geometry
+- diagnostics frame sampling exists only while F3 is open
+- suppresses stationary player-position store writes
+- uses ImageBitmap decoding when supported
+- serializes GPU texture warm-up during idle time
 
-### Texture realism
-- adds selective 2K PBR resolution for near-field authored rooms in Cinematic mode
-- 2K source failures automatically fall back to the existing 1K maps
-- keeps global passage/startup textures at 1K for speed
-- adds deterministic 128px micro-bump detail generated locally with zero network requests
-- micro detail is shared/cached and applied to both procedural and authored materials
-- preserves v0.12 staged PBR loading, ref-counted residency and instancing
+### Materials
+- adaptive 1K/2K PBR based on quality/device capability
+- automatic 2K → 1K fallback
+- close-range clearcoat micro-normal detail
+- paper/cardboard micro bump and roughness detail
+- keeps real PBR normal maps authoritative rather than combining them incorrectly with bump maps
+
+### Interaction safety
+- structural meshes remain raycastable as occluders
+- only tiny decorative instance batches may opt out of raycast
+- semantic hotspot behavior remains unchanged
 
 ## 0.12.0 — Progressive loading without visual downgrade
 

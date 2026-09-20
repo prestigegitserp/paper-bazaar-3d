@@ -9,13 +9,13 @@ export default function StaticShadowController() {
   const quality = useAppStore((state) => state.quality)
 
   useEffect(() => {
+    gl.shadowMap.autoUpdate = false
+
     if (!started || quality !== 'cinematic') {
-      gl.shadowMap.autoUpdate = false
       gl.shadowMap.needsUpdate = false
       return
     }
 
-    gl.shadowMap.autoUpdate = false
     gl.shadowMap.needsUpdate = true
     invalidate()
 

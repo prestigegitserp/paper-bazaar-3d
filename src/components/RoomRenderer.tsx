@@ -8,6 +8,7 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   StaticDrawUsage,
+  Vector2,
   type Material,
   type Object3D
 } from 'three'
@@ -22,7 +23,15 @@ import {
   type PbrTextureSet
 } from '../scene/materials/pbrTextureCache'
 import type { SurfacePresetId } from '../world/boothProfiles'
-import { getMicroBumpScale, getMicroBumpVariant } from '../scene/materials/microDetailTextures'
+import {
+  getMicroBumpScale,
+  getMicroBumpVariant,
+  getMicroNormalScale,
+  getMicroNormalVariant,
+  getMicroRoughnessVariant
+} from '../scene/materials/microDetailTextures'
+import { preferredPbrResolution } from '../scene/materials/textureQuality'
+import { warmPbrTextureSet } from '../scene/materials/textureUploadScheduler'
 import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
@@ -33,6 +42,8 @@ import WorldTextPanel from './WorldTextPanel'
 
 const FILE_PREFETCH_RADIUS = 24
 const FILE_REVEAL_RADIUS = 18
+const FILE_PREFETCH_RADIUS_SQ = FILE_PREFETCH_RADIUS * FILE_PREFETCH_RADIUS
+const FILE_REVEAL_RADIUS_SQ = FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS
 
 const authoredTextureBindings: Partial<Record<string, {
   surface: SurfacePresetId
@@ -43,6 +54,8 @@ const authoredTextureBindings: Partial<Record<string, {
   plaster: { surface: 'mall-plaster', repeat: [3.2, 4.2], normalScale: 0.2 },
   wood: { surface: 'bazaar-plywood', repeat: [2.2, 2.2], normalScale: 0.22 }
 }
+
+const tinyDecorativeBatch = /^(calculator_key_|bundle_strap_|shelf_front_lip_|hvac_slot_|carton_tape_|paper_label_|counter_ticket_clip_)/
 
 function fileAssetUrl(room: RoomDefinition) {
   if (room.asset.kind === 'gltf') return room.asset.url
@@ -59,11 +72,13 @@ function useProgressiveFileAsset(room: RoomDefinition) {
 
   useEffect(() => {
     prefetchStarted.current = false
+    streamFrame.current = 0
     setReady(!url)
   }, [room.asset.assetId, room.asset.version, url])
 
   useFrame(() => {
     if (!url || !started || ready) return
+
     streamFrame.current = (streamFrame.current + 1) % 10
     if (streamFrame.current !== 0) return
 
@@ -73,12 +88,12 @@ function useProgressiveFileAsset(room: RoomDefinition) {
     const distanceSq = dx * dx + dz * dz
     const resolvedUrl = resolveAssetUrl(url)
 
-    if (!prefetchStarted.current && distanceSq <= FILE_PREFETCH_RADIUS * FILE_PREFETCH_RADIUS) {
+    if (!prefetchStarted.current && distanceSq <= FILE_PREFETCH_RADIUS_SQ) {
       prefetchStarted.current = true
       useGLTF.preload(resolvedUrl)
     }
 
-    if (distanceSq <= FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS || state.activeRoomId === room.id) {
+    if (distanceSq <= FILE_REVEAL_RADIUS_SQ || state.activeRoomId === room.id) {
       if (!prefetchStarted.current) {
         prefetchStarted.current = true
         useGLTF.preload(resolvedUrl)
@@ -116,7 +131,45 @@ function PointHotspot({ position, interaction }: { position: readonly [number, n
   )
 }
 
-function upgradeAuthoredMaterial(material: Material, quality: RenderQuality) {
+function applyAuthoredMicroDetail(
+  material: MeshPhysicalMaterial,
+  materialName: string,
+  anisotropy: number
+) {
+  if (materialName === 'paper') {
+    material.bumpMap = getMicroBumpVariant('paper-white', [1.4, 1.4], anisotropy)
+    material.bumpScale = getMicroBumpScale('paper-white')
+    material.roughnessMap = getMicroRoughnessVariant('paper-white', [1.4, 1.4], anisotropy)
+    return
+  }
+
+  if (materialName === 'cardboard') {
+    material.bumpMap = getMicroBumpVariant('paper-cream', [1.1, 1.1], anisotropy)
+    material.bumpScale = getMicroBumpScale('paper-cream') * 1.35
+    material.roughnessMap = getMicroRoughnessVariant('paper-cream', [1.1, 1.1], anisotropy)
+    return
+  }
+
+  const surface = materialName === 'floor'
+    ? 'mall-porcelain'
+    : materialName === 'wood'
+      ? 'bazaar-plywood'
+      : materialName === 'metal' || materialName === 'silver'
+        ? 'mall-metal'
+        : null
+
+  if (!surface || material.clearcoat <= 0) return
+  const repeat: [number, number] = materialName === 'floor' ? [2.6, 4.2] : materialName === 'wood' ? [2.2, 2.2] : [5, 5]
+  material.clearcoatNormalMap = getMicroNormalVariant(surface, repeat, anisotropy)
+  const scale = getMicroNormalScale(surface)
+  material.clearcoatNormalScale = new Vector2(scale, scale)
+}
+
+function upgradeAuthoredMaterial(
+  material: Material,
+  quality: RenderQuality,
+  detailAnisotropy: number
+) {
   if (!(material instanceof MeshStandardMaterial)) return material.clone()
 
   const physical = new MeshPhysicalMaterial({
@@ -188,15 +241,22 @@ function upgradeAuthoredMaterial(material: Material, quality: RenderQuality) {
       physical.clearcoat = quality === 'cinematic' ? 0.045 : 0
   }
 
+  applyAuthoredMicroDetail(physical, material.name, detailAnisotropy)
   return physical
 }
 
-function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: RenderQuality, vendor?: Vendor) {
+function attachNodeInteractions(
+  scene: Object3D,
+  room: RoomDefinition,
+  quality: RenderQuality,
+  detailAnisotropy: number,
+  vendor?: Vendor
+) {
   const materialCache = new Map<Material, Material>()
   const upgraded = (material: Material) => {
     const cached = materialCache.get(material)
     if (cached) return cached
-    const next = upgradeAuthoredMaterial(material, quality)
+    const next = upgradeAuthoredMaterial(material, quality, detailAnisotropy)
     materialCache.set(material, next)
     return next
   }
@@ -232,9 +292,6 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: 
     if (!(object instanceof Mesh)) return
     object.updateMatrix()
     object.matrixAutoUpdate = false
-    if (!object.userData.interaction) {
-      object.raycast = () => undefined
-    }
   })
 }
 
@@ -279,6 +336,14 @@ function batchStaticAuthoredMeshes(scene: Object3D) {
 
     instanced.instanceMatrix.needsUpdate = true
     instanced.userData.batchCount = meshes.length
+
+    if (meshes.every((mesh) => tinyDecorativeBatch.test(mesh.name))) {
+      instanced.raycast = () => undefined
+      instanced.userData.nonOccludingDecoration = true
+    }
+
+    instanced.updateMatrix()
+    instanced.matrixAutoUpdate = false
     scene.add(instanced)
 
     for (const mesh of meshes) mesh.parent?.remove(mesh)
@@ -301,8 +366,8 @@ function applyAuthoredTextureSets(scene: Object3D, sets: Map<string, PbrTextureS
       material.map = set.map
       material.normalMap = set.normalMap ?? null
       material.roughnessMap = set.roughnessMap ?? null
-      material.bumpMap = getMicroBumpVariant(binding.surface, binding.repeat, set.map.anisotropy)
-      material.bumpScale = getMicroBumpScale(binding.surface)
+      material.bumpMap = null
+      material.bumpScale = 0
       if (set.normalMap) material.normalScale.set(binding.normalScale, binding.normalScale)
       material.needsUpdate = true
     }
@@ -325,18 +390,22 @@ function disposeSceneMaterials(scene: Object3D) {
 function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vendor?: Vendor; url: string; scale?: number }) {
   const gltf = useGLTF(resolveAssetUrl(url))
   const gl = useThree((state) => state.gl)
+  const invalidate = useThree((state) => state.invalidate)
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
   const quality = useAppStore((state) => state.quality)
+  const detailAnisotropy = quality === 'cinematic'
+    ? Math.min(8, gl.capabilities.getMaxAnisotropy())
+    : Math.min(4, gl.capabilities.getMaxAnisotropy())
 
   const scene = useMemo(() => {
     const clone = gltf.scene.clone(true)
-    attachNodeInteractions(clone, room, quality, vendor)
+    attachNodeInteractions(clone, room, quality, detailAnisotropy, vendor)
     if (room.asset.kind === 'gltf' && room.asset.source === 'authored') {
       batchStaticAuthoredMeshes(clone)
     }
     return clone
-  }, [gltf.scene, quality, room, vendor])
+  }, [detailAnisotropy, gltf.scene, quality, room, vendor])
 
   useEffect(() => {
     const authored = room.asset.kind === 'gltf' && room.asset.source === 'authored'
@@ -345,20 +414,30 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
     let active = true
     const leases: PbrTextureLease[] = []
     const sets = new Map<string, PbrTextureSet>()
-    const anisotropy = quality === 'cinematic'
-      ? Math.min(8, gl.capabilities.getMaxAnisotropy())
-      : Math.min(4, gl.capabilities.getMaxAnisotropy())
+    const resolution = preferredPbrResolution(quality, true)
 
     const tasks = Object.entries(authoredTextureBindings).map(async ([materialName, binding]) => {
       if (!binding) return
       const lease = await acquirePbrTextureSet(binding.surface, {
         repeat: binding.repeat,
-        anisotropy,
+        anisotropy: detailAnisotropy,
         full: quality === 'cinematic',
         priority: 'normal',
-        resolution: quality === 'cinematic' ? '2k' : '1k'
+        resolution
       })
       if (!lease) return
+
+      if (!active) {
+        releasePbrTextureSet(lease)
+        return
+      }
+
+      try {
+        await warmPbrTextureSet(gl, lease.set)
+      } catch {
+        releasePbrTextureSet(lease)
+        return
+      }
 
       if (!active) {
         releasePbrTextureSet(lease)
@@ -371,10 +450,13 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
 
     void Promise.all(tasks)
       .then(() => {
-        if (active) applyAuthoredTextureSets(scene, sets)
+        if (active) {
+          applyAuthoredTextureSets(scene, sets)
+          invalidate()
+        }
       })
       .catch(() => {
-        // Procedural/glTF material colors remain as a safe fallback.
+        // Authored material colors remain as a safe fallback.
       })
 
     return () => {
@@ -382,12 +464,13 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
       for (const lease of leases.splice(0)) releasePbrTextureSet(lease)
       sets.clear()
     }
-  }, [gl, quality, room.asset, scene])
+  }, [detailAnisotropy, gl, invalidate, quality, room.asset, scene])
 
   useEffect(() => {
     if (quality !== 'cinematic') return
     gl.shadowMap.needsUpdate = true
-  }, [gl, quality, scene])
+    invalidate()
+  }, [gl, invalidate, quality, scene])
 
   useEffect(() => () => {
     disposeSceneMaterials(scene)

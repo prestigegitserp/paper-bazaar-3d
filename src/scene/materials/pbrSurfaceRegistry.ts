@@ -7,13 +7,10 @@ export type PbrSurfaceAsset = {
   sourceLabel: string
   sourceUrl: string
   slug: string
-  color: string
-  normal: string
-  roughness: string
   normalScale?: number
 }
 
-const ph = (slug: string, suffix: string, resolution: PbrResolution = '1k') =>
+const ph = (slug: string, suffix: string, resolution: PbrResolution) =>
   `https://dl.polyhaven.org/file/ph-assets/Textures/jpg/${resolution}/${slug}/${slug}_${suffix}_${resolution}.jpg`
 
 function asset(
@@ -23,16 +20,7 @@ function asset(
   sourceUrl: string,
   normalScale?: number
 ): PbrSurfaceAsset {
-  return {
-    id,
-    slug,
-    sourceLabel,
-    sourceUrl,
-    color: ph(slug, 'diff'),
-    normal: ph(slug, 'nor_gl'),
-    roughness: ph(slug, 'rough'),
-    normalScale
-  }
+  return { id, slug, sourceLabel, sourceUrl, normalScale }
 }
 
 export const pbrSurfaceRegistry: Partial<Record<SurfacePresetId, PbrSurfaceAsset>> = {
@@ -92,12 +80,11 @@ export function getPbrSurfaceAsset(id: SurfacePresetId) {
 }
 
 export function getPbrSurfaceUrls(id: SurfacePresetId, resolution: PbrResolution = '1k') {
-  const asset = getPbrSurfaceAsset(id)
-  if (!asset) return null
-
+  const item = getPbrSurfaceAsset(id)
+  if (!item) return null
   return {
-    color: ph(asset.slug, 'diff', resolution),
-    normal: ph(asset.slug, 'nor_gl', resolution),
-    roughness: ph(asset.slug, 'rough', resolution)
+    color: ph(item.slug, 'diff', resolution),
+    normal: ph(item.slug, 'nor_gl', resolution),
+    roughness: ph(item.slug, 'rough', resolution)
   }
 }

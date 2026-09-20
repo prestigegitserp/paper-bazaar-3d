@@ -1,3 +1,4 @@
+import { Instance, Instances } from '@react-three/drei'
 import { useMemo } from 'react'
 import WorldTextPanel from './WorldTextPanel'
 import SurfaceMaterial from '../scene/materials/SurfaceMaterial'
@@ -10,10 +11,14 @@ function TiledFloor() {
   return (
     <>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
-        <planeGeometry args={[16.55, MARKET_LENGTH, 12, 30]} />
-        <SurfaceMaterial surface="mall-porcelain" loadPriority="critical" repeat={[4.15, 10]} />
+        <planeGeometry args={[16.55, MARKET_LENGTH]} />
+        <SurfaceMaterial
+          surface="mall-porcelain"
+          loadPriority="critical"
+          allowHighResolution
+          repeat={[4.15, 10]}
+        />
       </mesh>
-
 
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
         <planeGeometry args={[AISLE_WIDTH, 38.8]} />
@@ -34,27 +39,54 @@ function TiledFloor() {
 
 function CeilingSystem() {
   const panels = useMemo(() => Array.from({ length: 13 }, (_, index) => -18 + index * 3), [])
+  const evenPanels = useMemo(() => panels.filter((_, index) => index % 2 === 0), [panels])
+  const oddPanels = useMemo(() => panels.filter((_, index) => index % 2 === 1), [panels])
+  const realLights = useMemo(() => panels.filter((_, index) => index % 3 === 0), [panels])
+
   return (
     <>
       <mesh position={[0, 5.0, 0]} receiveShadow>
         <boxGeometry args={[16.4, 0.16, 39.2]} />
-        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[8, 16]} />
+        <SurfaceMaterial
+          surface="mall-plaster"
+          loadPriority="critical"
+          allowHighResolution
+          repeat={[8, 16]}
+        />
       </mesh>
 
-      {panels.map((z, index) => (
-        <group key={z}>
-          <mesh position={[0, 4.88, z]}>
-            <boxGeometry args={[5.3, 0.08, 2.45]} />
-            <meshStandardMaterial color={index % 2 ? '#e8e8e5' : '#f7f7f4'} roughness={0.64} />
-          </mesh>
-          <mesh position={[0, 4.82, z]}>
-            <boxGeometry args={[3.85, 0.035, 0.085]} />
-            <meshStandardMaterial color="#fffdf3" emissive="#fff7de" emissiveIntensity={4.1} toneMapped={false} />
-          </mesh>
-          {index % 3 === 0 && (
-            <pointLight position={[0, 4.42, z]} color="#fff5df" intensity={13.5} distance={11.5} decay={2} />
-          )}
-        </group>
+      <Instances limit={evenPanels.length}>
+        <boxGeometry args={[5.3, 0.08, 2.45]} />
+        <meshStandardMaterial color="#f7f7f4" roughness={0.64} />
+        {evenPanels.map((z) => <Instance key={z} position={[0, 4.88, z]} />)}
+      </Instances>
+
+      <Instances limit={oddPanels.length}>
+        <boxGeometry args={[5.3, 0.08, 2.45]} />
+        <meshStandardMaterial color="#e8e8e5" roughness={0.64} />
+        {oddPanels.map((z) => <Instance key={z} position={[0, 4.88, z]} />)}
+      </Instances>
+
+      <Instances limit={panels.length}>
+        <boxGeometry args={[3.85, 0.035, 0.085]} />
+        <meshStandardMaterial
+          color="#fffdf3"
+          emissive="#fff7de"
+          emissiveIntensity={4.1}
+          toneMapped={false}
+        />
+        {panels.map((z) => <Instance key={z} position={[0, 4.82, z]} />)}
+      </Instances>
+
+      {realLights.map((z) => (
+        <pointLight
+          key={z}
+          position={[0, 4.42, z]}
+          color="#fff5df"
+          intensity={13.5}
+          distance={11.5}
+          decay={2}
+        />
       ))}
 
       {[-2.72, 2.72].map((x) => (
@@ -67,22 +99,32 @@ function CeilingSystem() {
   )
 }
 
-function MallColumn({ x, z }: { x: number; z: number }) {
+function ColumnSystem() {
+  const columns = useMemo(() => [-16.5, -11.25, -6, -0.75, 4.5, 9.75, 15].flatMap((z) => [
+    { x: -2.88, z },
+    { x: 2.88, z }
+  ]), [])
+
   return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0, 2.45, 0]} castShadow receiveShadow>
+    <>
+      <Instances limit={columns.length} castShadow receiveShadow>
         <boxGeometry args={[0.34, 4.9, 0.42]} />
         <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[1, 3]} />
-      </mesh>
-      <mesh position={[0, 0.13, 0]}>
+        {columns.map(({ x, z }) => <Instance key={`shaft:${x}:${z}`} position={[x, 2.45, z]} />)}
+      </Instances>
+
+      <Instances limit={columns.length}>
         <boxGeometry args={[0.39, 0.26, 0.47]} />
         <meshStandardMaterial color="#4d5357" roughness={0.38} metalness={0.18} />
-      </mesh>
-      <mesh position={[0, 3.05, 0.218]}>
+        {columns.map(({ x, z }) => <Instance key={`base:${x}:${z}`} position={[x, 0.13, z]} />)}
+      </Instances>
+
+      <Instances limit={columns.length}>
         <boxGeometry args={[0.28, 0.52, 0.025]} />
         <meshStandardMaterial color="#d8d9d6" roughness={0.32} />
-      </mesh>
-    </group>
+        {columns.map(({ x, z }) => <Instance key={`plate:${x}:${z}`} position={[x, 3.05, z + 0.218]} />)}
+      </Instances>
+    </>
   )
 }
 
@@ -97,12 +139,32 @@ function GlassBay({ x, z, rotationY, label, accent }: {
     <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
       <mesh position={[2.72, 1.72, 0]} castShadow>
         <boxGeometry args={[0.05, 3.4, 2.7]} />
-        <meshPhysicalMaterial color="#dcebed" transparent opacity={0.96} transmission={0.88} roughness={0.065} thickness={0.065} ior={1.46} envMapIntensity={1.35} clearcoat={0.18} clearcoatRoughness={0.12} depthWrite={false} />
+        <meshPhysicalMaterial
+          color="#dcebed"
+          transparent
+          opacity={0.96}
+          transmission={0.88}
+          roughness={0.065}
+          thickness={0.065}
+          ior={1.46}
+          envMapIntensity={1.35}
+          clearcoat={0.18}
+          clearcoatRoughness={0.12}
+          depthWrite={false}
+        />
       </mesh>
       {[-1.31, 1.31].map((zFrame) => (
         <mesh key={zFrame} position={[2.74, 1.72, zFrame]}>
           <boxGeometry args={[0.1, 3.45, 0.08]} />
-          <meshPhysicalMaterial color="#24282b" metalness={0.82} roughness={0.28} clearcoat={0.08} clearcoatRoughness={0.24} envMapIntensity={1.45} anisotropy={0.32} />
+          <meshPhysicalMaterial
+            color="#24282b"
+            metalness={0.82}
+            roughness={0.28}
+            clearcoat={0.08}
+            clearcoatRoughness={0.24}
+            envMapIntensity={1.45}
+            anisotropy={0.32}
+          />
         </mesh>
       ))}
       <mesh position={[2.74, 3.47, 0]}>
@@ -202,10 +264,6 @@ function HeritageAccent() {
 
 export default function Architecture() {
   const quality = useAppStore((state) => state.quality)
-  const columns = useMemo(() => [-16.5, -11.25, -6, -0.75, 4.5, 9.75, 15].flatMap((z) => [
-    { x: -2.88, z },
-    { x: 2.88, z }
-  ]), [])
 
   return (
     <>
@@ -213,25 +271,56 @@ export default function Architecture() {
 
       <mesh position={[-8.25, 2.6, 0]} receiveShadow>
         <boxGeometry args={[0.3, 5.2, MARKET_LENGTH]} />
-        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[2, 12]} />
+        <SurfaceMaterial
+          surface="mall-plaster"
+          loadPriority="critical"
+          allowHighResolution
+          repeat={[2, 12]}
+        />
       </mesh>
       <mesh position={[8.25, 2.6, 0]} receiveShadow>
         <boxGeometry args={[0.3, 5.2, MARKET_LENGTH]} />
-        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[2, 12]} />
+        <SurfaceMaterial
+          surface="mall-plaster"
+          loadPriority="critical"
+          allowHighResolution
+          repeat={[2, 12]}
+        />
       </mesh>
       <mesh position={[0, 2.6, -19.55]} receiveShadow>
         <boxGeometry args={[16.55, 5.2, 0.3]} />
-        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[8, 3]} />
+        <SurfaceMaterial
+          surface="mall-plaster"
+          loadPriority="critical"
+          allowHighResolution
+          repeat={[8, 3]}
+        />
       </mesh>
 
       <CeilingSystem />
-      {columns.map((column) => <MallColumn key={`${column.x}:${column.z}`} {...column} />)}
+      <ColumnSystem />
       <HeritageAccent />
 
       {quality === 'cinematic' && (
         <>
-          <spotLight position={[-1.9, 4.6, 7.3]} target-position={[-5.2, 1.7, 7.5]} color="#fff0d9" intensity={10} distance={9} angle={0.58} penumbra={0.92} />
-          <spotLight position={[1.9, 4.6, -3]} target-position={[5.2, 1.7, -3]} color="#f2f7ff" intensity={9} distance={9} angle={0.58} penumbra={0.92} />
+          <spotLight
+            position={[-1.9, 4.6, 7.3]}
+            target-position={[-5.2, 1.7, 7.5]}
+            color="#fff0d9"
+            intensity={10}
+            distance={9}
+            angle={0.58}
+            penumbra={0.92}
+          />
+          <spotLight
+            position={[1.9, 4.6, -3]}
+            target-position={[5.2, 1.7, -3]}
+            color="#f2f7ff"
+            intensity={9}
+            distance={9}
+            angle={0.58}
+            penumbra={0.92}
+          />
         </>
       )}
 

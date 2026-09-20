@@ -14,6 +14,7 @@ export default function MallScene() {
   const vendors = useAppStore((state) => state.catalog.vendors)
   const world = useAppStore((state) => state.world)
   const started = useAppStore((state) => state.started)
+  const diagnosticsEnabled = useAppStore((state) => state.diagnosticsEnabled)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
 
   return (
@@ -54,7 +55,7 @@ export default function MallScene() {
       <WorldDecor />
       <ExperienceEffects />
       <StaticShadowController />
-      <DiagnosticsProbe />
+      {diagnosticsEnabled && <DiagnosticsProbe />}
       <PlayerController world={world} />
     </>
   )
