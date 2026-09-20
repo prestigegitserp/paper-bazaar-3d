@@ -432,7 +432,13 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
         return
       }
 
-      await warmPbrTextureSet(gl, lease.set)
+      try {
+        await warmPbrTextureSet(gl, lease.set)
+      } catch {
+        releasePbrTextureSet(lease)
+        return
+      }
+
       if (!active) {
         releasePbrTextureSet(lease)
         return

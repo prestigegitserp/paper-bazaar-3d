@@ -204,6 +204,10 @@ export default function SurfaceMaterial({
 
         setLoadedPbr(nextLease.set)
       } catch {
+        if (lease) {
+          releasePbrTextureSet(lease)
+          lease = null
+        }
         if (active) setLoadedPbr(null)
       }
     })()
