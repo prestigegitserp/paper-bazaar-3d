@@ -22,9 +22,9 @@ test('surface renderer uses physical material, anisotropic filtering and shared 
   assert.match(material, /meshPhysicalMaterial/)
   assert.match(material, /clearcoat/)
   assert.match(material, /anisotropy/)
-  assert.match(material, /loadPbrTextureSet/)
+  assert.match(material, /acquirePbrTextureSet/)
   assert.match(cache, /getMaxAnisotropy|anisotropy/)
-  assert.match(cache, /texturePromises/)
+  assert.match(cache, /sourceTexturePromises/)
 })
 
 test('scene has local reflection environment and subtle macro floor wear', async () => {
@@ -43,7 +43,7 @@ test('authored GLB shares the same PBR material pipeline', async () => {
   assert.match(renderer, /mall-porcelain/)
   assert.match(renderer, /mall-plaster/)
   assert.match(renderer, /bazaar-plywood/)
-  assert.match(renderer, /loadPbrTextureSet/)
+  assert.match(renderer, /acquirePbrTextureSet/)
   assert.match(renderer, /transmission/)
   assert.match(renderer, /MeshPhysicalMaterial/)
 })

@@ -245,7 +245,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Geometry realism · v0.11</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Progressive loading · v0.12</span></div>
         </div>
 
         <div className="top-actions">
@@ -326,9 +326,9 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">GEOMETRY + SURFACE REALISM · v0.11.0</div>
+            <div className="intro-eyebrow">PROGRESSIVE LOADING · v0.12.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.11 مشکل بعدی واقع‌گرایی را هدف می‌گیرد: GLB authored حالا UV واقعی، لبه‌های bevel، primitiveهای استوانه‌ای، variation جزئی، لیبل فیزیکی و decalهای موضعی دارد؛ procedural fixtureها نیز bevel شده‌اند و همه‌ی قراردادهای World / Catalog / Documents / Scan حفظ شده‌اند.</p>
+            <p>v0.12 ظاهر v0.11 را حفظ می‌کند اما هزینه‌ی شروع را مرحله‌ای می‌کند: GLB دوردست فقط نزدیک کاربر preload می‌شود، PBRها به‌صورت کنترل‌شده و idle-upgrade می‌آیند، meshهای تکراری authored batch می‌شوند و هزینه‌های GPU سنگین بعد از ورود فعال می‌شوند.</p>
             <div className="intro-features">
               <span>UV-mapped authored GLB v3</span>
               <span>Real bevels & cylinders</span>

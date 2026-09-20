@@ -12,6 +12,7 @@ import { useAppStore } from '../store'
 export default function MallScene() {
   const vendors = useAppStore((state) => state.catalog.vendors)
   const world = useAppStore((state) => state.world)
+  const started = useAppStore((state) => state.started)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
 
   return (
@@ -25,7 +26,7 @@ export default function MallScene() {
         position={[5, 12, 8]}
         intensity={1.08}
         color="#fff6e6"
-        castShadow
+        castShadow={started}
         shadow-mapSize={[1536, 1536]}
         shadow-camera-near={1}
         shadow-camera-far={46}
@@ -39,7 +40,7 @@ export default function MallScene() {
 
       <MaterialEnvironment />
       <Architecture />
-      <FloorImperfections />
+      {started && <FloorImperfections />}
 
       {world.rooms.map((room) => (
         <RoomRenderer

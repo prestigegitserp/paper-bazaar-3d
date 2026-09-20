@@ -1,10 +1,13 @@
 import { useGLTF } from '@react-three/drei'
-import { useThree, type ThreeEvent } from '@react-three/fiber'
-import { useEffect, useMemo } from 'react'
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  InstancedMesh,
+  Matrix4,
   Mesh,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
+  StaticDrawUsage,
   type Material,
   type Object3D
 } from 'three'
@@ -13,8 +16,9 @@ import type { Interaction } from '../domain/interaction'
 import { interactionFromObject } from '../engine/interactions'
 import { resolveAssetUrl } from '../assets/resolveAssetUrl'
 import {
-  disposePbrTextureSet,
-  loadPbrTextureSet,
+  acquirePbrTextureSet,
+  releasePbrTextureSet,
+  type PbrTextureLease,
   type PbrTextureSet
 } from '../scene/materials/pbrTextureCache'
 import type { SurfacePresetId } from '../world/boothProfiles'
@@ -26,6 +30,9 @@ import Booth from './Booth'
 import RoomAssetBoundary from './RoomAssetBoundary'
 import WorldTextPanel from './WorldTextPanel'
 
+const FILE_PREFETCH_RADIUS = 24
+const FILE_REVEAL_RADIUS = 18
+
 const authoredTextureBindings: Partial<Record<string, {
   surface: SurfacePresetId
   repeat: [number, number]
@@ -34,6 +41,49 @@ const authoredTextureBindings: Partial<Record<string, {
   floor: { surface: 'mall-porcelain', repeat: [2.6, 4.2], normalScale: 0.24 },
   plaster: { surface: 'mall-plaster', repeat: [3.2, 4.2], normalScale: 0.2 },
   wood: { surface: 'bazaar-plywood', repeat: [2.2, 2.2], normalScale: 0.22 }
+}
+
+function fileAssetUrl(room: RoomDefinition) {
+  if (room.asset.kind === 'gltf') return room.asset.url
+  if (room.asset.kind === 'scan' && room.asset.format === 'gltf') return room.asset.url
+  return null
+}
+
+function useProgressiveFileAsset(room: RoomDefinition) {
+  const started = useAppStore((state) => state.started)
+  const url = fileAssetUrl(room)
+  const [ready, setReady] = useState(() => !url)
+  const prefetchStarted = useRef(false)
+
+  useEffect(() => {
+    prefetchStarted.current = false
+    setReady(!url)
+  }, [room.asset.assetId, room.asset.version, url])
+
+  useFrame(() => {
+    if (!url || !started || ready) return
+
+    const state = useAppStore.getState()
+    const dx = state.player.x - room.position[0]
+    const dz = state.player.z - room.position[2]
+    const distance = Math.hypot(dx, dz)
+    const resolvedUrl = resolveAssetUrl(url)
+
+    if (!prefetchStarted.current && distance <= FILE_PREFETCH_RADIUS) {
+      prefetchStarted.current = true
+      useGLTF.preload(resolvedUrl)
+    }
+
+    if (distance <= FILE_REVEAL_RADIUS || state.activeRoomId === room.id) {
+      if (!prefetchStarted.current) {
+        prefetchStarted.current = true
+        useGLTF.preload(resolvedUrl)
+      }
+      setReady(true)
+    }
+  })
+
+  return ready
 }
 
 function PointHotspot({ position, interaction }: { position: readonly [number, number, number]; interaction: Interaction }) {
@@ -175,6 +225,55 @@ function attachNodeInteractions(scene: Object3D, room: RoomDefinition, quality: 
   }
 }
 
+function batchStaticAuthoredMeshes(scene: Object3D) {
+  scene.updateMatrixWorld(true)
+  const rootInverse = new Matrix4().copy(scene.matrixWorld).invert()
+  const groups = new Map<string, Mesh[]>()
+
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh) || object instanceof InstancedMesh) return
+    if (object.children.length || object.userData.interaction || object.name.startsWith('hotspot_')) return
+    if (Array.isArray(object.material) || object.material.transparent) return
+
+    const key = [
+      object.geometry.uuid,
+      object.material.uuid,
+      object.castShadow ? 'cast' : 'no-cast',
+      object.receiveShadow ? 'receive' : 'no-receive'
+    ].join('|')
+
+    const group = groups.get(key)
+    if (group) group.push(object)
+    else groups.set(key, [object])
+  })
+
+  for (const meshes of groups.values()) {
+    if (meshes.length < 3) continue
+    const first = meshes[0]
+    if (Array.isArray(first.material)) continue
+
+    const instanced = new InstancedMesh(first.geometry, first.material, meshes.length)
+    instanced.name = `batch:${first.geometry.type}:${first.material.name || 'material'}`
+    instanced.castShadow = first.castShadow
+    instanced.receiveShadow = first.receiveShadow
+    instanced.instanceMatrix.setUsage(StaticDrawUsage)
+
+    meshes.forEach((mesh, index) => {
+      mesh.updateMatrixWorld(true)
+      const relative = new Matrix4().multiplyMatrices(rootInverse, mesh.matrixWorld)
+      instanced.setMatrixAt(index, relative)
+    })
+
+    instanced.instanceMatrix.needsUpdate = true
+    instanced.userData.batchCount = meshes.length
+    scene.add(instanced)
+
+    for (const mesh of meshes) mesh.parent?.remove(mesh)
+  }
+
+  scene.updateMatrixWorld(true)
+}
+
 function applyAuthoredTextureSets(scene: Object3D, sets: Map<string, PbrTextureSet>) {
   scene.traverse((object) => {
     if (!(object instanceof Mesh)) return
@@ -218,6 +317,9 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
   const scene = useMemo(() => {
     const clone = gltf.scene.clone(true)
     attachNodeInteractions(clone, room, quality, vendor)
+    if (room.asset.kind === 'gltf' && room.asset.source === 'authored') {
+      batchStaticAuthoredMeshes(clone)
+    }
     return clone
   }, [gltf.scene, quality, room, vendor])
 
@@ -226,37 +328,42 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
     if (!authored) return
 
     let active = true
+    const leases: PbrTextureLease[] = []
     const sets = new Map<string, PbrTextureSet>()
     const anisotropy = quality === 'cinematic'
       ? Math.min(8, gl.capabilities.getMaxAnisotropy())
       : Math.min(4, gl.capabilities.getMaxAnisotropy())
 
-    void Promise.all(
-      Object.entries(authoredTextureBindings).map(async ([materialName, binding]) => {
-        if (!binding) return
-        const set = await loadPbrTextureSet(binding.surface, {
-          repeat: binding.repeat,
-          anisotropy,
-          full: quality === 'cinematic'
-        })
-        if (set) sets.set(materialName, set)
+    const tasks = Object.entries(authoredTextureBindings).map(async ([materialName, binding]) => {
+      if (!binding) return
+      const lease = await acquirePbrTextureSet(binding.surface, {
+        repeat: binding.repeat,
+        anisotropy,
+        full: quality === 'cinematic',
+        priority: 'normal'
       })
-    )
+      if (!lease) return
+
+      if (!active) {
+        releasePbrTextureSet(lease)
+        return
+      }
+
+      leases.push(lease)
+      sets.set(materialName, lease.set)
+    })
+
+    void Promise.all(tasks)
       .then(() => {
-        if (!active) {
-          sets.forEach(disposePbrTextureSet)
-          return
-        }
-        applyAuthoredTextureSets(scene, sets)
+        if (active) applyAuthoredTextureSets(scene, sets)
       })
       .catch(() => {
-        sets.forEach(disposePbrTextureSet)
-        sets.clear()
+        // Procedural/glTF material colors remain as a safe fallback.
       })
 
     return () => {
       active = false
-      sets.forEach(disposePbrTextureSet)
+      for (const lease of leases.splice(0)) releasePbrTextureSet(lease)
       sets.clear()
     }
   }, [gl, quality, room.asset, scene])
@@ -335,17 +442,33 @@ function UnsupportedRoom({ room }: { room: RoomDefinition }) {
   )
 }
 
-function RoomRendererInner({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
+function RoomRendererInner({
+  room,
+  vendor,
+  fileReady
+}: {
+  room: RoomDefinition
+  vendor?: Vendor
+  fileReady: boolean
+}) {
   if (room.asset.kind === 'procedural') return <Booth room={room} vendor={vendor} />
-  if (room.asset.kind === 'gltf') return <GltfRoom room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
-  if (room.asset.kind === 'scan' && room.asset.format === 'gltf') {
+
+  if (room.asset.kind === 'gltf') {
+    if (!fileReady) return <Booth room={room} vendor={vendor} />
     return <GltfRoom room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
   }
+
+  if (room.asset.kind === 'scan' && room.asset.format === 'gltf') {
+    if (!fileReady) return <Booth room={room} vendor={vendor} />
+    return <GltfRoom room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
+  }
+
   return <UnsupportedRoom room={room} />
 }
 
 export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   const clearAssetError = useAppStore((state) => state.clearAssetError)
+  const fileReady = useProgressiveFileAsset(room)
 
   useEffect(() => {
     clearAssetError(room.id)
@@ -353,7 +476,9 @@ export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; v
 
   return (
     <RoomAssetBoundary key={`${room.id}:${room.asset.version}`} room={room}>
-      <RoomRendererInner room={room} vendor={vendor} />
+      <Suspense fallback={<Booth room={room} vendor={vendor} />}>
+        <RoomRendererInner room={room} vendor={vendor} fileReady={fileReady} />
+      </Suspense>
     </RoomAssetBoundary>
   )
 }

@@ -7,24 +7,39 @@ import { useAppStore } from '../store'
 export default function MaterialEnvironment() {
   const gl = useThree((state) => state.gl)
   const scene = useThree((state) => state.scene)
+  const invalidate = useThree((state) => state.invalidate)
   const quality = useAppStore((state) => state.quality)
+  const started = useAppStore((state) => state.started)
 
   useEffect(() => {
-    const pmrem = new PMREMGenerator(gl)
-    pmrem.compileCubemapShader()
-    const room = new RoomEnvironment()
-    const target = pmrem.fromScene(room, 0.04)
-    const texture = target.texture
+    if (!started) return
 
-    scene.environment = texture
-    scene.environmentIntensity = quality === 'cinematic' ? 0.82 : 0.58
+    let disposed = false
+    let target: ReturnType<PMREMGenerator['fromScene']> | null = null
+    let pmrem: PMREMGenerator | null = null
+    const timer = window.setTimeout(() => {
+      if (disposed) return
+
+      pmrem = new PMREMGenerator(gl)
+      pmrem.compileCubemapShader()
+      const room = new RoomEnvironment()
+      target = pmrem.fromScene(room, 0.04)
+      const texture = target.texture
+
+      scene.environment = texture
+      scene.environmentIntensity = quality === 'cinematic' ? 0.82 : 0.58
+      invalidate()
+    }, 120)
 
     return () => {
-      if (scene.environment === texture) scene.environment = null
-      target.dispose()
-      pmrem.dispose()
+      disposed = true
+      window.clearTimeout(timer)
+      if (target && scene.environment === target.texture) scene.environment = null
+      target?.dispose()
+      pmrem?.dispose()
+      invalidate()
     }
-  }, [gl, quality, scene])
+  }, [gl, invalidate, quality, scene, started])
 
   return null
 }

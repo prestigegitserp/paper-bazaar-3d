@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.12.0 — Progressive loading without visual downgrade
+
+### Startup
+- keeps the v0.11 visual/detail stack intact
+- Canvas runs demand-mode with reduced intro DPR until the visitor enters
+- defers shadow maps, PMREM environment, floor-imperfection canvas and SoftShadows until start
+- Catalog Reader is a true interaction-time dynamic import
+
+### File-backed assets
+- GLB/scan files prefetch by player distance instead of at page startup
+- 24m prefetch / 18m reveal thresholds provide loading headroom
+- local Suspense fallback keeps the rest of the world rendered during file decoding
+- loaded file assets stay resident to avoid reparse thrash
+
+### GPU / draw calls
+- repeated non-interactive authored meshes are consolidated into InstancedMesh groups
+- semantic hotspot nodes and transparent glass remain individual and interactive
+- no geometry/detail reduction is used
+
+### Textures
+- identical PBR variants use ref-counted shared residency
+- PBR texture-set builds are capped at two concurrent jobs
+- critical passage albedo can load early; noncritical materials are staggered
+- Cinematic normal/roughness upgrades are scheduled after interaction/idle time
+- procedural fallback variants are shared by surface/repeat/anisotropy key
+
+# Changelog
+
 ## 0.11.0 — Geometry + surface realism
 
 ### Authored GLB v3
