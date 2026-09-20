@@ -333,10 +333,12 @@ function serializeGeometries(geometries) {
     const uv = geometry.getAttribute('uv')
     if (!position || !normal || !uv) throw new Error(`Geometry ${shape} must provide position, normal and UV attributes`)
 
+    const uvAccessor = pushAttribute(uv, 'TEXCOORD_0')
     refs.set(shape, {
       POSITION: pushAttribute(position, 'POSITION'),
       NORMAL: pushAttribute(normal, 'NORMAL'),
-      TEXCOORD_0: pushAttribute(uv, 'TEXCOORD_0'),
+      TEXCOORD_0: uvAccessor,
+      TEXCOORD_1: uvAccessor,
       index: geometry.index ? pushIndex(geometry.index) : null
     })
   }
@@ -369,7 +371,8 @@ export function buildAuthoredShopGlb() {
         attributes: {
           POSITION: geometry.POSITION,
           NORMAL: geometry.NORMAL,
-          TEXCOORD_0: geometry.TEXCOORD_0
+          TEXCOORD_0: geometry.TEXCOORD_0,
+          TEXCOORD_1: geometry.TEXCOORD_1
         },
         material: materialIndex.get(materialName)
       }

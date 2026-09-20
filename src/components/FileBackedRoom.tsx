@@ -21,7 +21,11 @@ import {
   type PbrTextureLease,
   type PbrTextureSet
 } from '../scene/materials/pbrTextureCache'
-import { getMicroBumpScale, getMicroBumpVariant } from '../scene/materials/microDetailTextures'
+import {
+  PBR_PLAN_NEAR_CINEMATIC,
+  PBR_PLAN_STANDARD
+} from '../scene/materials/pbrSurfaceRegistry'
+import { getSurfacePhysicalProfile } from '../scene/materials/surfacePhysicalProfiles'
 import { useAppStore, type RenderQuality } from '../store'
 import type { SurfacePresetId } from '../world/boothProfiles'
 import { resolveHotspotInteraction } from '../world/hotspots'
@@ -253,11 +257,14 @@ function applyAuthoredTextureSets(scene: Object3D, sets: Map<string, PbrTextureS
       const set = sets.get(material.name)
       if (!binding || !set) continue
 
+      const physical = getSurfacePhysicalProfile(binding.surface)
       material.map = set.map
       material.normalMap = set.normalMap ?? null
       material.roughnessMap = set.roughnessMap ?? null
-      material.bumpMap = getMicroBumpVariant(binding.surface, binding.repeat, set.map.anisotropy)
-      material.bumpScale = getMicroBumpScale(binding.surface)
+      material.aoMap = set.aoMap ?? null
+      material.aoMapIntensity = physical.aoMapIntensity
+      material.bumpMap = null
+      material.bumpScale = 0
       if (set.normalMap) material.normalScale.set(binding.normalScale, binding.normalScale)
       material.needsUpdate = true
     }
@@ -322,7 +329,9 @@ export default function FileBackedRoom({
         anisotropy,
         full: quality === 'cinematic',
         priority: 'normal',
-        resolution: quality === 'cinematic' ? '2k' : '1k'
+        plan: quality === 'cinematic'
+          ? PBR_PLAN_NEAR_CINEMATIC
+          : PBR_PLAN_STANDARD
       })
       if (!lease) return
 

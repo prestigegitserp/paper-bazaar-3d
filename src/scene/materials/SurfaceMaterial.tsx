@@ -19,7 +19,6 @@ import {
   getSurfaceTextureVariant
 } from './proceduralSurfaces'
 import { getSurfacePhysicalProfile } from './surfacePhysicalProfiles'
-import { getMicroBumpScale, getMicroBumpVariant } from './microDetailTextures'
 
 type LoadPriority = 'critical' | 'deferred'
 type PbrPhase = 'fallback' | 'albedo' | 'full'
@@ -143,10 +142,6 @@ export default function SurfaceMaterial({
     () => getSurfaceTextureVariant(surface, repeat, textureAnisotropy),
     [repeat[0], repeat[1], surface, textureAnisotropy]
   )
-  const microBump = useMemo(
-    () => getMicroBumpVariant(surface, repeat, textureAnisotropy),
-    [repeat[0], repeat[1], surface, textureAnisotropy]
-  )
 
   useEffect(() => {
     if (!pbrAsset || phase === 'fallback') {
@@ -207,11 +202,13 @@ export default function SurfaceMaterial({
     <meshPhysicalMaterial
       color={color ? new Color(color) : undefined}
       map={map}
-      bumpMap={loadedPbr ? microBump : fallback.bump}
-      bumpScale={loadedPbr ? getMicroBumpScale(surface) : preset.bumpScale}
+      bumpMap={loadedPbr ? undefined : fallback.bump}
+      bumpScale={loadedPbr ? 0 : preset.bumpScale}
       normalMap={loadedPbr?.normalMap}
       normalScale={normalScale}
       roughnessMap={loadedPbr?.roughnessMap}
+      aoMap={loadedPbr?.aoMap}
+      aoMapIntensity={physical.aoMapIntensity}
       roughness={preset.roughness}
       metalness={preset.metalness}
       clearcoat={quality === 'cinematic' ? physical.clearcoat : physical.clearcoat * 0.45}
