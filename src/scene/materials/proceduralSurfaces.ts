@@ -42,6 +42,7 @@ const presets: Record<SurfacePresetId, SurfacePreset> = {
 }
 
 const cache = new Map<SurfacePresetId, { map: CanvasTexture; bump: CanvasTexture }>()
+const variantCache = new Map<string, { map: Texture; bump: Texture }>()
 
 function seeded(seed: number) {
   let state = seed >>> 0
@@ -204,4 +205,40 @@ export function getSurfaceTextures(id: SurfacePresetId): { map: Texture; bump: T
     cache.set(id, cached)
   }
   return cached
+}
+
+
+export function getSurfaceTextureVariant(
+  id: SurfacePresetId,
+  repeat: [number, number],
+  anisotropy: number
+): { map: Texture; bump: Texture } {
+  const key = `${id}|${repeat[0].toFixed(3)}|${repeat[1].toFixed(3)}|${anisotropy.toFixed(2)}`
+  let variant = variantCache.get(key)
+
+  if (!variant) {
+    const source = getSurfaceTextures(id)
+    const map = source.map.clone()
+    const bump = source.bump.clone()
+
+    for (const texture of [map, bump]) {
+      texture.wrapS = RepeatWrapping
+      texture.wrapT = RepeatWrapping
+      texture.repeat.set(repeat[0], repeat[1])
+      texture.anisotropy = anisotropy
+      texture.needsUpdate = true
+    }
+
+    variant = { map, bump }
+    variantCache.set(key, variant)
+  }
+
+  return variant
+}
+
+export function getProceduralResidencyStats() {
+  return {
+    sourceSurfaces: cache.size,
+    variants: variantCache.size
+  }
 }

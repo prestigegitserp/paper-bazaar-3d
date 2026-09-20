@@ -9,10 +9,59 @@ import { getPbrSurfaceAsset } from './pbrSurfaceRegistry'
 
 const loader = new TextureLoader()
 loader.setCrossOrigin('anonymous')
-const texturePromises = new Map<string, Promise<Texture>>()
+
+const sourceTexturePromises = new Map<string, Promise<Texture>>()
+
+type PbrLoadPriority = 'critical' | 'normal' | 'background'
+
+const priorityWeight: Record<PbrLoadPriority, number> = {
+  critical: 0,
+  normal: 1,
+  background: 2
+}
+
+type QueueItem<T> = {
+  priority: number
+  run: () => Promise<T>
+  resolve: (value: T) => void
+  reject: (reason?: unknown) => void
+}
+
+const queue: QueueItem<unknown>[] = []
+let activeBuilds = 0
+const MAX_CONCURRENT_BUILDS = 2
+
+function pumpQueue() {
+  while (activeBuilds < MAX_CONCURRENT_BUILDS && queue.length) {
+    queue.sort((a, b) => a.priority - b.priority)
+    const item = queue.shift()
+    if (!item) return
+
+    activeBuilds += 1
+    void item.run()
+      .then(item.resolve)
+      .catch(item.reject)
+      .finally(() => {
+        activeBuilds -= 1
+        pumpQueue()
+      })
+  }
+}
+
+function schedule<T>(task: () => Promise<T>, priority: PbrLoadPriority) {
+  return new Promise<T>((resolve, reject) => {
+    queue.push({
+      priority: priorityWeight[priority],
+      run: task,
+      resolve: resolve as (value: unknown) => void,
+      reject
+    })
+    pumpQueue()
+  })
+}
 
 function loadSharedTexture(url: string, srgb = false) {
-  let promise = texturePromises.get(url)
+  let promise = sourceTexturePromises.get(url)
   if (!promise) {
     promise = new Promise<Texture>((resolve, reject) => {
       loader.load(
@@ -27,7 +76,10 @@ function loadSharedTexture(url: string, srgb = false) {
         reject
       )
     })
-    texturePromises.set(url, promise)
+    sourceTexturePromises.set(url, promise)
+    void promise.catch(() => {
+      if (sourceTexturePromises.get(url) === promise) sourceTexturePromises.delete(url)
+    })
   }
   return promise
 }
@@ -49,20 +101,48 @@ export type PbrTextureSet = {
   roughnessMap?: Texture
 }
 
-export async function loadPbrTextureSet(
+export type PbrTextureLease = {
+  key: string
+  set: PbrTextureSet
+}
+
+type VariantEntry = {
+  refs: number
+  set?: PbrTextureSet
+  promise: Promise<PbrTextureSet>
+}
+
+const variantCache = new Map<string, VariantEntry>()
+
+function variantKey(
   surface: SurfacePresetId,
-  {
-    repeat,
-    anisotropy,
-    full
-  }: {
-    repeat: [number, number]
-    anisotropy: number
-    full: boolean
-  }
-): Promise<PbrTextureSet | null> {
+  repeat: [number, number],
+  anisotropy: number,
+  full: boolean
+) {
+  return [
+    surface,
+    repeat[0].toFixed(3),
+    repeat[1].toFixed(3),
+    anisotropy.toFixed(2),
+    full ? 'full' : 'albedo'
+  ].join('|')
+}
+
+function disposeSet(set: PbrTextureSet) {
+  set.map.dispose()
+  set.normalMap?.dispose()
+  set.roughnessMap?.dispose()
+}
+
+async function createPbrTextureSet(
+  surface: SurfacePresetId,
+  repeat: [number, number],
+  anisotropy: number,
+  full: boolean
+) {
   const asset = getPbrSurfaceAsset(surface)
-  if (!asset) return null
+  if (!asset) throw new Error(`No PBR asset registered for ${surface}`)
 
   const [sourceMap, sourceNormal, sourceRoughness] = await Promise.all([
     loadSharedTexture(asset.color, true),
@@ -77,8 +157,81 @@ export async function loadPbrTextureSet(
   }
 }
 
-export function disposePbrTextureSet(set: PbrTextureSet | null | undefined) {
-  set?.map.dispose()
-  set?.normalMap?.dispose()
-  set?.roughnessMap?.dispose()
+export async function acquirePbrTextureSet(
+  surface: SurfacePresetId,
+  {
+    repeat,
+    anisotropy,
+    full,
+    priority = 'normal'
+  }: {
+    repeat: [number, number]
+    anisotropy: number
+    full: boolean
+    priority?: PbrLoadPriority
+  }
+): Promise<PbrTextureLease | null> {
+  const asset = getPbrSurfaceAsset(surface)
+  if (!asset) return null
+
+  const key = variantKey(surface, repeat, anisotropy, full)
+  let entry = variantCache.get(key)
+
+  if (!entry) {
+    const next: VariantEntry = {
+      refs: 0,
+      promise: Promise.resolve(null as unknown as PbrTextureSet)
+    }
+
+    next.promise = schedule(
+      () => createPbrTextureSet(surface, repeat, anisotropy, full),
+      priority
+    )
+      .then((set) => {
+        next.set = set
+        if (next.refs === 0) {
+          disposeSet(set)
+          if (variantCache.get(key) === next) variantCache.delete(key)
+        }
+        return set
+      })
+      .catch((error) => {
+        if (variantCache.get(key) === next) variantCache.delete(key)
+        throw error
+      })
+
+    entry = next
+    variantCache.set(key, entry)
+  }
+
+  entry.refs += 1
+
+  try {
+    const set = await entry.promise
+    return { key, set }
+  } catch (error) {
+    entry.refs = Math.max(0, entry.refs - 1)
+    throw error
+  }
+}
+
+export function releasePbrTextureSet(lease: PbrTextureLease | null | undefined) {
+  if (!lease) return
+  const entry = variantCache.get(lease.key)
+  if (!entry) return
+
+  entry.refs = Math.max(0, entry.refs - 1)
+  if (entry.refs === 0 && entry.set) {
+    disposeSet(entry.set)
+    variantCache.delete(lease.key)
+  }
+}
+
+export function getPbrResidencyStats() {
+  return {
+    sourceTextures: sourceTexturePromises.size,
+    variants: variantCache.size,
+    queuedBuilds: queue.length,
+    activeBuilds
+  }
 }
