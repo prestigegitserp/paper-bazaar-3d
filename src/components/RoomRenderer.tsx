@@ -21,6 +21,7 @@ import type { SurfacePresetId } from '../world/boothProfiles'
 import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
+import AuthoredSurfaceDetails from './AuthoredSurfaceDetails'
 import Booth from './Booth'
 import RoomAssetBoundary from './RoomAssetBoundary'
 import WorldTextPanel from './WorldTextPanel'
@@ -285,6 +286,10 @@ function GltfRoom({ room, vendor, url, scale = 1 }: { room: RoomDefinition; vend
           if (!document.pointerLockElement) setNearby(null)
         }}
       />
+
+      {room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
+        <AuthoredSurfaceDetails room={room} />
+      )}
 
       {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
         <WorldTextPanel
