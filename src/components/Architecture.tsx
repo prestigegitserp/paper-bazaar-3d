@@ -11,7 +11,7 @@ function TiledFloor() {
     <>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
         <planeGeometry args={[16.55, MARKET_LENGTH, 12, 30]} />
-        <SurfaceMaterial surface="mall-porcelain" repeat={[4.15, 10]} />
+        <SurfaceMaterial surface="mall-porcelain" loadPriority="critical" repeat={[4.15, 10]} />
       </mesh>
 
 
@@ -38,7 +38,7 @@ function CeilingSystem() {
     <>
       <mesh position={[0, 5.0, 0]} receiveShadow>
         <boxGeometry args={[16.4, 0.16, 39.2]} />
-        <SurfaceMaterial surface="mall-plaster" repeat={[8, 16]} />
+        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[8, 16]} />
       </mesh>
 
       {panels.map((z, index) => (
@@ -70,7 +70,7 @@ function MallColumn({ x, z }: { x: number; z: number }) {
     <group position={[x, 0, z]}>
       <mesh position={[0, 2.45, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.34, 4.9, 0.42]} />
-        <SurfaceMaterial surface="mall-plaster" repeat={[1, 3]} />
+        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[1, 3]} />
       </mesh>
       <mesh position={[0, 0.13, 0]}>
         <boxGeometry args={[0.39, 0.26, 0.47]} />
@@ -129,7 +129,7 @@ function EntrancePortal() {
       {[-3.0, 3.0].map((x) => (
         <mesh key={x} position={[x, 2.45, 0]} castShadow>
           <boxGeometry args={[0.42, 4.9, 0.68]} />
-          <SurfaceMaterial surface="mall-plaster" repeat={[1, 3]} />
+          <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[1, 3]} />
         </mesh>
       ))}
       <mesh position={[0, 4.52, 0]} castShadow>
@@ -211,15 +211,15 @@ export default function Architecture() {
 
       <mesh position={[-8.25, 2.6, 0]} receiveShadow>
         <boxGeometry args={[0.3, 5.2, MARKET_LENGTH]} />
-        <SurfaceMaterial surface="mall-plaster" repeat={[2, 12]} />
+        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[2, 12]} />
       </mesh>
       <mesh position={[8.25, 2.6, 0]} receiveShadow>
         <boxGeometry args={[0.3, 5.2, MARKET_LENGTH]} />
-        <SurfaceMaterial surface="mall-plaster" repeat={[2, 12]} />
+        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[2, 12]} />
       </mesh>
       <mesh position={[0, 2.6, -19.55]} receiveShadow>
         <boxGeometry args={[16.55, 5.2, 0.3]} />
-        <SurfaceMaterial surface="mall-plaster" repeat={[8, 3]} />
+        <SurfaceMaterial surface="mall-plaster" loadPriority="critical" repeat={[8, 3]} />
       </mesh>
 
       <CeilingSystem />
