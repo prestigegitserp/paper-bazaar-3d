@@ -13,5 +13,10 @@ export function interactionFromObject(object: Object3D | null): Interaction | nu
 
 export function interactionKey(value: Interaction | null) {
   if (!value) return ''
-  return `${value.kind}:${value.vendorId}:${'productId' in value ? value.productId : ''}`
+  const suffix = 'productId' in value
+    ? value.productId
+    : 'documentId' in value
+      ? value.documentId
+      : ''
+  return `${value.kind}:${value.vendorId}:${suffix}`
 }

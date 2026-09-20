@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0 — Modular retail experience + interactive catalogs
+
+### Retail realism
+- six distinct booth profiles instead of one shared shop layout
+- procedural surface registry for plaster, wood, aged brick, terrazzo, paper, fabric and brushed metal
+- configurable fixture sets: sample walls, roll racks, pallet stacks, book walls, pegboards, acrylic cases, print frames and swatch fans
+- vendor-specific layout coordinates and lighting profiles
+
+### Interaction
+- physical catalog prop on each vendor desk
+- new semantic `document` interaction independent from renderer meshes
+- responsive two-page catalog reader with keyboard navigation and mobile single-page mode
+- generated product pages, paper swatches, store story and source/contact pages
+
+### Architecture
+- Runtime repository contracts for Catalog, World and Documents
+- runtime bundle loader with API-first catalog + seed fallback
+- World and Documents promoted to app state; HUD and scene no longer import demoWorld directly
+- booth instance config now references stable profile IDs so server data can select renderer behavior without embedding React logic
+
+### Digital Twin path
+- scan/GLB renderer boundary remains intact
+- procedural surface IDs can later map to CDN-hosted PBR/KTX2 assets without changing booth templates
+- point hotspots and semantic actions remain suitable for scanned rooms
+
 ## 0.5.0 — Tehran paper alley + mobile controls
 
 ### Environment

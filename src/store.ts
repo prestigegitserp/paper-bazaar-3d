@@ -1,8 +1,12 @@
 import { create } from 'zustand'
 import type { Catalog } from './domain/catalog'
+import type { CatalogDocument } from './domain/document'
 import type { Interaction } from './domain/interaction'
 import { seedCatalog } from './data/catalog/seedCatalog'
-import type { Vec3 } from './world/types'
+import { buildVendorDocuments } from './data/documents/buildVendorDocuments'
+import type { RuntimeBundle } from './infrastructure/repositories/contracts'
+import { demoWorld } from './world/demoWorld'
+import type { Vec3, WorldDefinition } from './world/types'
 
 export type RenderQuality = 'cinematic' | 'balanced'
 
@@ -30,6 +34,8 @@ type AppState = {
   catalog: Catalog
   catalogMode: 'seed' | 'api'
   catalogError: string | null
+  world: WorldDefinition
+  documents: CatalogDocument[]
   selected: Interaction | null
   nearby: Interaction | null
   started: boolean
@@ -40,6 +46,7 @@ type AppState = {
   visitedRoomIds: string[]
   diagnostics: Diagnostics
   assetErrors: Record<string, string>
+  setRuntimeBundle: (bundle: RuntimeBundle) => void
   setCatalog: (catalog: Catalog, mode: 'seed' | 'api') => void
   setCatalogError: (message: string | null) => void
   setSelected: (selected: Interaction | null) => void
@@ -55,10 +62,14 @@ type AppState = {
   clearAssetError: (roomId: string) => void
 }
 
+const initialDocuments = buildVendorDocuments(seedCatalog, demoWorld)
+
 export const useAppStore = create<AppState>((set) => ({
   catalog: seedCatalog,
   catalogMode: 'seed',
   catalogError: null,
+  world: demoWorld,
+  documents: initialDocuments,
   selected: null,
   nearby: null,
   started: false,
@@ -69,7 +80,19 @@ export const useAppStore = create<AppState>((set) => ({
   visitedRoomIds: [],
   diagnostics: { calls: 0, triangles: 0, geometries: 0, textures: 0 },
   assetErrors: {},
-  setCatalog: (catalog, catalogMode) => set({ catalog, catalogMode, catalogError: null }),
+  setRuntimeBundle: (bundle) => set({
+    catalog: bundle.catalog,
+    catalogMode: bundle.catalogMode,
+    catalogError: bundle.catalogError,
+    world: bundle.world,
+    documents: bundle.documents
+  }),
+  setCatalog: (catalog, catalogMode) => set((state) => ({
+    catalog,
+    catalogMode,
+    catalogError: null,
+    documents: buildVendorDocuments(catalog, state.world)
+  })),
   setCatalogError: (catalogError) => set({ catalogError }),
   setSelected: (selected) => set({ selected }),
   setNearby: (nearby) => set({ nearby }),

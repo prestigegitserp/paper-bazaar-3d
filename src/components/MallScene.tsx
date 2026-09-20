@@ -6,10 +6,10 @@ import PlayerController from './PlayerController'
 import RoomRenderer from './RoomRenderer'
 import WorldDecor from './WorldDecor'
 import { useAppStore } from '../store'
-import { demoWorld } from '../world/demoWorld'
 
 export default function MallScene() {
   const vendors = useAppStore((state) => state.catalog.vendors)
+  const world = useAppStore((state) => state.world)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
 
   return (
@@ -34,7 +34,7 @@ export default function MallScene() {
 
       <Architecture />
 
-      {demoWorld.rooms.map((room) => (
+      {world.rooms.map((room) => (
         <RoomRenderer
           key={room.id}
           room={room}
@@ -45,7 +45,7 @@ export default function MallScene() {
       <WorldDecor />
       <ExperienceEffects />
       <DiagnosticsProbe />
-      <PlayerController world={demoWorld} />
+      <PlayerController world={world} />
     </>
   )
 }

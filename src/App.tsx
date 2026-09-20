@@ -1,49 +1,49 @@
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
 import { ACESFilmicToneMapping, SRGBColorSpace } from 'three'
+import CatalogReader from './features/catalog-reader/CatalogReader'
 import MallScene from './components/MallScene'
 import HUD from './components/HUD'
-import { fetchCatalog } from './data/catalog/catalogClient'
-import { seedCatalog } from './data/catalog/seedCatalog'
+import { loadRuntimeBundle } from './infrastructure/repositories/runtimeRepositories'
 import { useAppStore } from './store'
-import { demoWorld } from './world/demoWorld'
 import { validateWorldDefinition } from './world/validation'
 
-const worldIssues = validateWorldDefinition(demoWorld, seedCatalog)
-if (worldIssues.length) console.error('[world-validation]', worldIssues)
-
-function CatalogLoader() {
-  const setCatalog = useAppStore((state) => state.setCatalog)
+function RuntimeLoader() {
+  const setRuntimeBundle = useAppStore((state) => state.setRuntimeBundle)
   const setCatalogError = useAppStore((state) => state.setCatalogError)
 
   useEffect(() => {
-    if (import.meta.env.VITE_STATIC_DEMO === 'true') return
-
     const controller = new AbortController()
-    void fetchCatalog(controller.signal)
-      .then((catalog) => setCatalog(catalog, 'api'))
+
+    void loadRuntimeBundle(controller.signal)
+      .then((bundle) => {
+        const issues = validateWorldDefinition(bundle.world, bundle.catalog)
+        if (issues.length) console.error('[world-validation]', issues)
+        setRuntimeBundle(bundle)
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return
-        const message = error instanceof Error ? error.message : 'Catalog API unavailable'
+        const message = error instanceof Error ? error.message : 'Runtime content unavailable'
         setCatalogError(message)
       })
 
     return () => controller.abort()
-  }, [setCatalog, setCatalogError])
+  }, [setCatalogError, setRuntimeBundle])
 
   return null
 }
 
 export default function App() {
   const quality = useAppStore((state) => state.quality)
+  const world = useAppStore((state) => state.world)
 
   return (
     <main className="app-shell">
-      <CatalogLoader />
+      <RuntimeLoader />
       <Canvas
         shadows={quality === 'cinematic'}
         dpr={quality === 'cinematic' ? [1, 1.55] : [0.72, 1.12]}
-        camera={{ fov: 66, near: 0.08, far: 90, position: [0, 1.68, 18.8] }}
+        camera={{ fov: 66, near: 0.08, far: 90, position: world.spawn as [number, number, number] }}
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.toneMapping = ACESFilmicToneMapping
@@ -56,6 +56,7 @@ export default function App() {
         </Suspense>
       </Canvas>
       <HUD />
+      <CatalogReader />
     </main>
   )
 }
