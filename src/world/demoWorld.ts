@@ -97,7 +97,7 @@ function shop(
       kind: 'procedural',
       renderer: 'retail-booth-v3',
       assetId: `procedural:${id}`,
-      version: '4.0.0',
+      version: '5.0.0',
       metersPerUnit: 1
     },
     experience: {
@@ -137,7 +137,7 @@ function authoredShop(
 export const demoWorld: WorldDefinition = {
   id: 'paper-bazaar-15khordad-inspired',
   name: 'Paper Bazaar 3D — Charsou-inspired modern paper passage',
-  version: 8,
+  version: 9,
   spawn: [0, 1.68, 18.45],
   bounds: { minX: -8.38, maxX: 8.38, minZ: -18.9, maxZ: 20.3 },
   rooms: [

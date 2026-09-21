@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.13.0**
+نسخه فعلی: **v0.14.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 جدید مستقیماً از release/v0.12.0 بازسازی شده و دو هدف دارد: سرعت بالاتر در صحنه‌ی تقریباً ثابت و تکسچر/جنس واقعی‌تر در نمای نزدیک، بدون حذف دستاوردهای World/Catalog/Documents/Scan و authored GLB v3.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.14 روی baseline پایدار v0.13 ساخته شده و تمرکزش «بازار زنده» است: غرفه‌های دور hibernate می‌شوند، متریال‌های چوبی واقعی‌تر شده‌اند، wear/clutter روزمره اضافه شده و حلقه‌ی تعامل/ماموریت داخل خود فضای سه‌بعدی شکل گرفته است؛ بدون حذف قراردادهای World/Catalog/Documents/Scan یا authored GLB v3.
 
 ## اجرا
 
@@ -29,6 +29,30 @@ npm run dev
 | Mobile look | drag در نیمه راست |
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
+
+## v0.14 — Living Market / Root Treatment
+
+این نسخه مستقیماً روی snapshot پایدار `release/v0.13.0` ساخته شده است و هیچ release branch قبلی بازنویسی نمی‌شود.
+
+### Performance
+- غرفه‌های procedural دور با storefront proxy سبک نمایش داده می‌شوند و جزئیات داخلی فقط در شعاع تعامل mount می‌شوند.
+- wake/sleep با hysteresis انجام می‌شود تا هنگام حرکت بین غرفه‌ها mount/unmount مداوم رخ ندهد.
+- decalهای wear یک cache کوچک مشترک دارند و canvas آن‌ها از 512×256 به 256×128 کاهش یافته است.
+- تمام بهینه‌سازی‌های v0.13 شامل Adaptive DPR، static shadows، idle shader warm-up، GLB streaming و staged PBR حفظ شده‌اند.
+
+### Texture / material realism
+- `wood-walnut` به Poly Haven Walnut Veneer و `wood-oak` به Oak Wood Planks متصل شده‌اند.
+- fallbackهای procedural چوب، plaster و metal دیگر فقط noise یکنواخت نیستند؛ knot، broad blotch و scratch اضافه شده است.
+- micro roughness روی تمام fallback surfaceها فعال است.
+- هر غرفه‌ی نزدیک floor scuff، wall smudge، fingerprint و clutter کم‌هزینه‌ی روزمره می‌گیرد: فنجان، رسید، کارتن چسب‌خورده و حلقه‌ی چسب.
+
+### Interaction / gamification
+- یک sample rail تا سه محصول هر فروشگاه را مستقیماً در فضای سه‌بعدی قابل تعامل می‌کند.
+- لیست محصولات به‌جای پرتاب فوری به وب، ابتدا محصول را داخل تجربه باز می‌کند.
+- کاربر می‌تواند نمونه بردارد، محصول را برای مقایسه ذخیره کند و برای کشف غرفه/کالا امتیاز بگیرد.
+- پنل «ماموریت بازارگرد» پیشرفت بازدید غرفه‌ها، بررسی محصولات و جمع‌آوری نمونه‌ها را نشان می‌دهد.
+
+جزئیات فنی: [docs/DEBUG_REPORT_V014_LIVING_MARKET.md](docs/DEBUG_REPORT_V014_LIVING_MARKET.md)
 
 ## v0.13 — Photoreal Performance Rebuild
 
@@ -80,7 +104,8 @@ npm run dev
 
 ```text
 release/v0.3.0 … release/v0.12.0
-release/v0.13.0 → snapshot پایدار v0.13 پس از CI نهایی
+release/v0.13.0 → snapshot پایدار v0.13
+release/v0.14.0 → snapshot پایدار v0.14 پس از CI نهایی
 main            → latest stable
 ```
 

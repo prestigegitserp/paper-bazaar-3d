@@ -66,6 +66,20 @@ export const pbrSurfaceRegistry: Partial<Record<SurfacePresetId, PbrSurfaceAsset
     'https://polyhaven.com/a/painted_metal_shutter',
     0.5
   ),
+  'wood-walnut': asset(
+    'wood-walnut',
+    'walnut_veneer',
+    'Poly Haven · Walnut Veneer · CC0',
+    'https://polyhaven.com/a/walnut_veneer',
+    0.28
+  ),
+  'wood-oak': asset(
+    'wood-oak',
+    'oak_wood_planks',
+    'Poly Haven · Oak Wood Planks · CC0',
+    'https://polyhaven.com/a/oak_wood_planks',
+    0.3
+  ),
   'bazaar-plywood': asset(
     'bazaar-plywood',
     'plywood',

@@ -20,6 +20,7 @@
 - `release/v0.10.0`
 - `release/v0.11.0`
 - `release/v0.12.0`
+- `release/v0.13.0`
 
 `v0.1` و `v0.2` قبل از release-snapshot policy فعلی ساخته شدند و branch مستقل `release/v0.1.0` یا `release/v0.2.0` در GitHub ندارند. بنابراین نباید ادعا شود که تمام نسخه‌ها از v0.1 به بعد به‌صورت release branch ذخیره شده‌اند.
 
@@ -42,3 +43,13 @@ v0.13 جدید باید از `release/v0.12.0` مشتق شود. branchها/PRه�
 - `main` به tree تأییدشده‌ی v0.13 جدید منتقل می‌شود.
 - `release/v0.13.0` به commit نهایی جدید اشاره می‌کند.
 - هیچ ref مربوط به `release/v0.3.0` تا `release/v0.12.0` force-update نمی‌شود.
+
+
+## v0.14 rule
+
+v0.14 از snapshot پایدار `release/v0.13.0` منشعب می‌شود. هیچ ref تاریخی تا v0.13 نباید برای ساخت v0.14 force-update شود.
+
+پس از CI و deploy موفق:
+- `main` به commit تاییدشده‌ی v0.14 منتقل می‌شود.
+- `release/v0.14.0` از همان commit ساخته می‌شود.
+- `release/v0.13.0` و تمام releaseهای قبل بدون تغییر باقی می‌مانند.

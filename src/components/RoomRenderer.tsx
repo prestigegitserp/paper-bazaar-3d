@@ -4,6 +4,7 @@ import type { Vendor } from '../domain/catalog'
 import { useAppStore } from '../store'
 import type { RoomDefinition } from '../world/types'
 import Booth from './Booth'
+import ProceduralRoomProxy from './ProceduralRoomProxy'
 import RoomAssetBoundary from './RoomAssetBoundary'
 import WorldTextPanel from './WorldTextPanel'
 
@@ -11,6 +12,11 @@ const FILE_PREFETCH_RADIUS = 24
 const FILE_REVEAL_RADIUS = 18
 const FILE_PREFETCH_RADIUS_SQ = FILE_PREFETCH_RADIUS * FILE_PREFETCH_RADIUS
 const FILE_REVEAL_RADIUS_SQ = FILE_REVEAL_RADIUS * FILE_REVEAL_RADIUS
+
+const PROCEDURAL_WAKE_RADIUS = 11.5
+const PROCEDURAL_SLEEP_RADIUS = 15.5
+const PROCEDURAL_WAKE_RADIUS_SQ = PROCEDURAL_WAKE_RADIUS * PROCEDURAL_WAKE_RADIUS
+const PROCEDURAL_SLEEP_RADIUS_SQ = PROCEDURAL_SLEEP_RADIUS * PROCEDURAL_SLEEP_RADIUS
 
 let fileRoomModulePromise: Promise<typeof import('./FileRoomRenderer')> | null = null
 
@@ -25,6 +31,50 @@ function fileAssetUrl(room: RoomDefinition) {
   if (room.asset.kind === 'gltf') return room.asset.url
   if (room.asset.kind === 'scan' && room.asset.format === 'gltf') return room.asset.url
   return null
+}
+
+function useProceduralDetail(room: RoomDefinition) {
+  const started = useAppStore((state) => state.started)
+  const [detailed, setDetailed] = useState(false)
+  const frame = useRef(0)
+
+  useEffect(() => {
+    setDetailed(false)
+    frame.current = 0
+  }, [room.asset.assetId, room.asset.version])
+
+  useFrame(() => {
+    if (room.asset.kind !== 'procedural') return
+
+    if (!started) {
+      if (detailed) setDetailed(false)
+      return
+    }
+
+    frame.current = (frame.current + 1) % 12
+    if (frame.current !== 0) return
+
+    const state = useAppStore.getState()
+    if (state.activeRoomId === room.id) {
+      if (!detailed) setDetailed(true)
+      return
+    }
+
+    const dx = state.player.x - room.position[0]
+    const dz = state.player.z - room.position[2]
+    const distanceSq = dx * dx + dz * dz
+
+    if (!detailed && distanceSq <= PROCEDURAL_WAKE_RADIUS_SQ) {
+      setDetailed(true)
+      return
+    }
+
+    if (detailed && distanceSq >= PROCEDURAL_SLEEP_RADIUS_SQ) {
+      setDetailed(false)
+    }
+  })
+
+  return detailed
 }
 
 function useProgressiveFileAsset(room: RoomDefinition) {
@@ -89,21 +139,27 @@ function UnsupportedRoom({ room }: { room: RoomDefinition }) {
 function RoomRendererInner({
   room,
   vendor,
-  fileReady
+  fileReady,
+  proceduralDetailed
 }: {
   room: RoomDefinition
   vendor?: Vendor
   fileReady: boolean
+  proceduralDetailed: boolean
 }) {
-  if (room.asset.kind === 'procedural') return <Booth room={room} vendor={vendor} />
+  if (room.asset.kind === 'procedural') {
+    return proceduralDetailed
+      ? <Booth room={room} vendor={vendor} />
+      : <ProceduralRoomProxy room={room} vendor={vendor} />
+  }
 
   if (room.asset.kind === 'gltf') {
-    if (!fileReady) return <Booth room={room} vendor={vendor} />
+    if (!fileReady) return <ProceduralRoomProxy room={room} vendor={vendor} />
     return <FileRoomRenderer room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
   }
 
   if (room.asset.kind === 'scan' && room.asset.format === 'gltf') {
-    if (!fileReady) return <Booth room={room} vendor={vendor} />
+    if (!fileReady) return <ProceduralRoomProxy room={room} vendor={vendor} />
     return <FileRoomRenderer room={room} vendor={vendor} url={room.asset.url} scale={room.asset.scale} />
   }
 
@@ -113,6 +169,7 @@ function RoomRendererInner({
 export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
   const clearAssetError = useAppStore((state) => state.clearAssetError)
   const fileReady = useProgressiveFileAsset(room)
+  const proceduralDetailed = useProceduralDetail(room)
 
   useEffect(() => {
     clearAssetError(room.id)
@@ -120,8 +177,13 @@ export default function RoomRenderer({ room, vendor }: { room: RoomDefinition; v
 
   return (
     <RoomAssetBoundary key={`${room.id}:${room.asset.version}`} room={room}>
-      <Suspense fallback={<Booth room={room} vendor={vendor} />}>
-        <RoomRendererInner room={room} vendor={vendor} fileReady={fileReady} />
+      <Suspense fallback={<ProceduralRoomProxy room={room} vendor={vendor} />}>
+        <RoomRendererInner
+          room={room}
+          vendor={vendor}
+          fileReady={fileReady}
+          proceduralDetailed={proceduralDetailed}
+        />
       </Suspense>
     </RoomAssetBoundary>
   )

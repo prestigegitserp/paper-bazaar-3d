@@ -244,12 +244,7 @@ export default function SurfaceMaterial({
         baseNormalScale * physical.normalScaleMultiplier
       )
     : undefined
-  const useMicroRoughness = Boolean(loadedPbr)
-    || preset.kind === 'paper'
-    || preset.kind === 'wood'
-    || preset.kind === 'plaster'
-    || preset.kind === 'terrazzo'
-  const roughnessMap = loadedPbr?.roughnessMap ?? (useMicroRoughness ? microRoughness : undefined)
+  const roughnessMap = loadedPbr?.roughnessMap ?? microRoughness
 
   return (
     <meshPhysicalMaterial

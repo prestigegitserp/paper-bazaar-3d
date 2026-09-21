@@ -30,6 +30,28 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
   const world = useAppStore((state) => state.world)
   const room = world.rooms.find((candidate) => candidate.vendorId === vendor.id)
   const accent = room?.theme.accent ?? '#c99a55'
+  const setSelected = useAppStore((state) => state.setSelected)
+  const collectSample = useAppStore((state) => state.collectSample)
+  const toggleFavoriteProduct = useAppStore((state) => state.toggleFavoriteProduct)
+  const sampledProductIds = useAppStore((state) => state.sampledProductIds)
+  const favoriteProductIds = useAppStore((state) => state.favoriteProductIds)
+
+  const inspectProducts = () => setSelected({
+    kind: 'products',
+    vendorId: vendor.id,
+    label: 'کالاها و قیمت‌های فروشگاه'
+  })
+
+  const openCatalog = () => {
+    const documentId = room?.experience?.catalogDocumentId
+    if (!documentId) return
+    setSelected({
+      kind: 'document',
+      vendorId: vendor.id,
+      documentId,
+      label: 'کاتالوگ دیجیتال فروشگاه'
+    })
+  }
 
   return (
     <div className="detail-body">
@@ -46,7 +68,13 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
             <strong dir="ltr">{vendor.sourceLabel}</strong>
             <p>میز فروش می‌تواند بعداً به CRM، چت فروش، تقویم جلسه یا پنل اختصاصی فروشنده متصل شود.</p>
           </div>
-          <a className="primary-action" href={vendor.website} target="_blank" rel="noreferrer">باز کردن سایت فروشنده ↗</a>
+          <div className="detail-actions">
+            <button type="button" className="primary-action" onClick={inspectProducts}>دیدن کالاهای داخل بازار</button>
+            {room?.experience?.catalogDocumentId && (
+              <button type="button" className="secondary-action" onClick={openCatalog}>ورق‌زدن کاتالوگ</button>
+            )}
+            <a className="secondary-action" href={vendor.website} target="_blank" rel="noreferrer">سایت فروشنده ↗</a>
+          </div>
         </>
       )}
 
@@ -55,18 +83,29 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
           {vendor.products.map((item) => {
             const status = crawlStatusLabel(item.crawlStatus)
             return (
-              <a key={item.id} className="product-row" href={item.sourceUrl} target="_blank" rel="noreferrer">
+              <button
+                key={item.id}
+                type="button"
+                className="product-row product-row--inspect"
+                onClick={() => setSelected({
+                  kind: 'product',
+                  vendorId: vendor.id,
+                  productId: item.id,
+                  label: item.name
+                })}
+              >
                 <div>
                   <strong>{item.name}</strong>
                   <small>{item.unit}</small>
                   {status && <small className={`crawl-status ${item.crawlStatus ?? ''}`}>{status}</small>}
                 </div>
                 <span>{item.priceText}</span>
-              </a>
+                <em>بررسی کالا ←</em>
+              </button>
             )
           })}
         </div>
-      )}
+      ))}
 
       {product && (
         <>
@@ -81,7 +120,23 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
             )}
             {product.note && <small>{product.note}</small>}
           </div>
-          <a className="primary-action" href={product.sourceUrl} target="_blank" rel="noreferrer">مشاهده منبع ↗</a>
+          <div className="detail-actions detail-actions--product">
+            <button
+              type="button"
+              className={`sample-action ${sampledProductIds.includes(product.id) ? 'done' : ''}`}
+              onClick={() => collectSample(product.id)}
+            >
+              {sampledProductIds.includes(product.id) ? '✓ نمونه در کیف شماست' : 'برداشت نمونه کاغذ · +25'}
+            </button>
+            <button
+              type="button"
+              className={`favorite-action ${favoriteProductIds.includes(product.id) ? 'active' : ''}`}
+              onClick={() => toggleFavoriteProduct(product.id)}
+            >
+              {favoriteProductIds.includes(product.id) ? '★ ذخیره‌شده' : '☆ ذخیره برای مقایسه'}
+            </button>
+            <a className="secondary-action" href={product.sourceUrl} target="_blank" rel="noreferrer">مشاهده منبع ↗</a>
+          </div>
         </>
       )}
 
@@ -173,6 +228,38 @@ function DebugPanel() {
   )
 }
 
+function MarketMission() {
+  const score = useAppStore((state) => state.marketScore)
+  const visited = useAppStore((state) => state.visitedRoomIds.length)
+  const products = useAppStore((state) => state.discoveredProductIds.length)
+  const samples = useAppStore((state) => state.sampledProductIds.length)
+
+  const visitGoal = 4
+  const productGoal = 5
+  const sampleGoal = 3
+  const completed = Math.min(visitGoal, visited) + Math.min(productGoal, products) + Math.min(sampleGoal, samples)
+  const total = visitGoal + productGoal + sampleGoal
+  const percent = Math.round((completed / total) * 100)
+
+  return (
+    <div className="market-mission">
+      <div className="market-mission__head">
+        <div>
+          <span>ماموریت بازارگرد</span>
+          <strong>{score} امتیاز</strong>
+        </div>
+        <b>{percent}%</b>
+      </div>
+      <i><span style={{ width: `${percent}%` }} /></i>
+      <div className="market-mission__tasks">
+        <span className={visited >= visitGoal ? 'done' : ''}>غرفه‌ها {Math.min(visited, visitGoal)}/{visitGoal}</span>
+        <span className={products >= productGoal ? 'done' : ''}>کالاها {Math.min(products, productGoal)}/{productGoal}</span>
+        <span className={samples >= sampleGoal ? 'done' : ''}>نمونه‌ها {Math.min(samples, sampleGoal)}/{sampleGoal}</span>
+      </div>
+    </div>
+  )
+}
+
 export default function HUD() {
   const catalog = useAppStore((state) => state.catalog)
   const catalogMode = useAppStore((state) => state.catalogMode)
@@ -246,7 +333,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Photoreal performance · v0.13</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Living market · v0.14</span></div>
         </div>
 
         <div className="top-actions">
@@ -271,6 +358,8 @@ export default function HUD() {
         onNavigate={navigateToRoom}
         activeRoomId={activeRoomId}
       />
+
+      {started && <MarketMission />}
 
       {loadingAssets && progress < 100 && (
         <div className="asset-loader">
@@ -327,15 +416,15 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">PHOTOREAL PERFORMANCE · v0.13.0</div>
+            <div className="intro-eyebrow">LIVING MARKET · v0.14.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.13 جدید مستقیماً از v0.12 بازسازی شده: shadowهای ثابت دیگر هر فریم دوباره ساخته نمی‌شوند، معماری تکراری instance شده، decode/upload تکسچر مرحله‌ای است و PBR نزدیک روی سیستم‌های مناسب تا 2K ارتقا می‌گیرد؛ بدون حذف UV، bevel، decals، interaction یا مسیر Scan.</p>
+            <p>v0.14 روی سرعت v0.13 یک بازار زنده‌تر ساخته: غرفه‌های دور hibernate می‌شوند، چوب‌های اصلی PBR واقعی می‌گیرند، لکه/سایش/بسته‌بندی و جزئیات روزمره اضافه شده و محصولات بیشتری داخل خود فضای سه‌بعدی قابل بررسی‌اند. با دیدن غرفه‌ها، بررسی کالا و جمع‌کردن نمونه امتیاز می‌گیری.</p>
             <div className="intro-features">
-              <span>Adaptive 1K → 2K PBR</span>
-              <span>Paper / wood micro-detail</span>
-              <span>Static shadow cache</span>
-              <span>Instanced architecture</span>
-              <span>v0.12 scan/server contracts</span>
+              <span>Procedural room hibernation</span>
+              <span>Real walnut / oak PBR</span>
+              <span>Lived-in wear + packing detail</span>
+              <span>Product sample interactions</span>
+              <span>Market missions + score</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
             <small>دسکتاپ: WASD + Mouse + Wheel · موبایل: Joystick + Look pad + Pinch/±.</small>

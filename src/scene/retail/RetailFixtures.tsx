@@ -1,6 +1,6 @@
 export { SalesCounter, CatalogProp } from './fixtures/ShopCounter'
 export { default as StockWall } from './fixtures/StockWall'
-export { PriceBoard, ProductPaperStack, resolveProductInteractions } from './fixtures/ProductDisplays'
+export { PriceBoard, ProductPaperStack, ProductSampleRail, resolveProductInteractions } from './fixtures/ProductDisplays'
 export {
   BookWall,
   CardboardStacks,

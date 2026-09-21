@@ -31,3 +31,13 @@ It is **not** represented as a photogrammetric reconstruction or an exact replic
 Both assets are published under Poly Haven's CC0 license. v0.10 uses the 1K JPG variants at runtime, with procedural fallbacks if the remote assets are unavailable.
 
 The same registry is consumed by procedural React rooms and by the authored GLB material-upgrade layer, so material identity is not duplicated between renderers.
+
+
+## v0.14 wood material additions
+
+| Surface ID | Asset | Source | Runtime maps |
+|---|---|---|---|
+| `wood-walnut` | Walnut Veneer | https://polyhaven.com/a/walnut_veneer | diffuse, normal GL, roughness |
+| `wood-oak` | Oak Wood Planks | https://polyhaven.com/a/oak_wood_planks | diffuse, normal GL, roughness |
+
+Both source pages identify the assets as CC0. The runtime keeps the same progressive 1K/2K loading and 1K fallback path used by the rest of the PBR registry.

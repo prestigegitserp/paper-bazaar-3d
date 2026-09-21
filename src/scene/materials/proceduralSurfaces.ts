@@ -62,7 +62,7 @@ function blend(a: readonly number[], b: readonly number[], t: number) {
 }
 
 function createCanvasTexture(preset: SurfacePreset, bumpOnly: boolean) {
-  const size = 256
+  const size = preset.kind === 'wood' ? 384 : preset.kind === 'paper' ? 320 : 256
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -78,6 +78,20 @@ function createCanvasTexture(preset: SurfacePreset, bumpOnly: boolean) {
   ctx.fillRect(0, 0, size, size)
 
   if (preset.kind === 'plaster') {
+    for (let i = 0; i < 18; i += 1) {
+      const x = random() * size
+      const y = random() * size
+      const radius = size * (0.06 + random() * 0.16)
+      const shade = bumpOnly
+        ? 118 + Math.round(random() * 24)
+        : blend(base, detail, 0.035 + random() * 0.07)
+      ctx.fillStyle = bumpOnly ? `rgb(${shade} ${shade} ${shade})` : fill(shade as readonly number[])
+      ctx.globalAlpha = 0.035 + random() * 0.04
+      ctx.beginPath()
+      ctx.ellipse(x, y, radius * 1.5, radius, random() * Math.PI, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
     for (let i = 0; i < 850; i += 1) {
       const t = random() * 0.28
       const shade = bumpOnly ? Math.round(108 + random() * 45) : blend(base, detail, t)
@@ -100,6 +114,20 @@ function createCanvasTexture(preset: SurfacePreset, bumpOnly: boolean) {
       ctx.beginPath()
       ctx.moveTo(0, y + Math.sin(y) * 1.5)
       ctx.bezierCurveTo(64, y + random() * 6, 180, y - random() * 5, size, y + Math.sin(y * 0.1) * 2)
+      ctx.stroke()
+    }
+
+    for (let i = 0; i < 7; i += 1) {
+      const x = random() * size
+      const y = random() * size
+      const radiusX = 10 + random() * 30
+      const radiusY = 3 + random() * 10
+      const shade = bumpOnly ? 98 + Math.round(random() * 28) : blend(base, detail, 0.22 + random() * 0.16)
+      ctx.strokeStyle = bumpOnly ? `rgb(${shade} ${shade} ${shade})` : fill(shade as readonly number[])
+      ctx.globalAlpha = 0.18 + random() * 0.16
+      ctx.lineWidth = 1 + random() * 2
+      ctx.beginPath()
+      ctx.ellipse(x, y, radiusX, radiusY, random() * Math.PI, 0, Math.PI * 2)
       ctx.stroke()
     }
   }
@@ -161,6 +189,19 @@ function createCanvasTexture(preset: SurfacePreset, bumpOnly: boolean) {
       ctx.beginPath()
       ctx.moveTo(0, y)
       ctx.lineTo(size, y)
+      ctx.stroke()
+    }
+
+    ctx.globalAlpha = 0.16
+    for (let i = 0; i < 28; i += 1) {
+      const y = random() * size
+      const x = random() * size
+      const length = 8 + random() * 64
+      ctx.strokeStyle = bumpOnly ? '#a0a0a0' : 'rgba(220,225,226,.38)'
+      ctx.lineWidth = 0.35 + random() * 0.8
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(Math.min(size, x + length), y + (random() - 0.5) * 2)
       ctx.stroke()
     }
   }

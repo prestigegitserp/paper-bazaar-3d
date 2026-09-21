@@ -2,6 +2,7 @@ import type { Vendor } from '../../domain/catalog'
 import { getBoothProfile } from '../../world/boothProfiles'
 import type { RoomDefinition } from '../../world/types'
 import RetailShell from './RetailShell'
+import LivedInDetails from './LivedInDetails'
 import {
   BookWall,
   CardboardStacks,
@@ -12,6 +13,7 @@ import {
   PriceBoard,
   PrintFrames,
   ProductPaperStack,
+  ProductSampleRail,
   RollRack,
   SalesCounter,
   SampleWall,
@@ -36,6 +38,8 @@ export default function RetailBooth({ room, vendor }: { room: RoomDefinition; ve
       <SalesCounter room={room} vendor={vendor} profile={profile} />
       <PriceBoard room={room} vendor={vendor} profile={profile} />
       <CatalogProp room={room} vendor={vendor} profile={profile} />
+      <ProductSampleRail room={room} vendor={vendor} />
+      <LivedInDetails room={room} profile={profile} />
 
       {profile.features.sampleWall && <SampleWall room={room} />}
       {profile.features.swatchFan && <SwatchFan room={room} profile={profile} />}

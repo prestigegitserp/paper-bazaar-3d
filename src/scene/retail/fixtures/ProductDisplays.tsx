@@ -108,6 +108,51 @@ export function ProductPaperStack({
   )
 }
 
+export function ProductSampleRail({ room, vendor }: { room: RoomDefinition; vendor?: Vendor }) {
+  if (!vendor?.products.length) return null
+  const products = vendor.products.slice(0, 3)
+
+  return (
+    <group position={[1.9, 1.22, -2.5]}>
+      {products.map((product, index) => {
+        const z = -0.72 + index * 0.72
+        const interaction: Interaction = {
+          kind: 'product',
+          vendorId: vendor.id,
+          productId: product.id,
+          label: product.name
+        }
+
+        return (
+          <InteractiveNode
+            key={product.id}
+            position={[0, 0, z]}
+            interaction={interaction}
+            accent={room.theme.accent}
+            haloPosition={[0, 0.12, 0]}
+            haloRadius={0.32}
+          >
+            <BeveledBox args={[0.16, 0.58, 0.5]} radius={0.018} castShadow>
+              <SurfaceMaterial surface={index % 2 ? 'paper-cream' : 'paper-white'} repeat={[1, 1]} />
+            </BeveledBox>
+            <mesh position={[0.09, 0.08, 0]}>
+              <boxGeometry args={[0.012, 0.17, 0.38]} />
+              <meshStandardMaterial
+                color={index === 0 ? room.theme.accent : index === 1 ? room.theme.primary : '#b87655'}
+                roughness={0.72}
+              />
+            </mesh>
+            <mesh position={[0.09, -0.17, 0]}>
+              <boxGeometry args={[0.012, 0.045, 0.38]} />
+              <meshStandardMaterial color="#8f7a5c" roughness={0.82} />
+            </mesh>
+          </InteractiveNode>
+        )
+      })}
+    </group>
+  )
+}
+
 export function resolveProductInteractions(room: RoomDefinition, vendor?: Vendor) {
   if (!vendor) return { first: null, second: null }
 

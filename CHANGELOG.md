@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.14.0 — Living market root treatment
+
+### Lineage
+- built directly on stable `release/v0.13.0`
+- preserves all release snapshots through v0.13
+
+### Performance
+- procedural booth interiors hibernate outside an 11.5m wake radius and fall back to lightweight storefront proxies
+- 15.5m sleep hysteresis prevents mount/unmount thrash
+- shared 256×128 wear-decal cache replaces repeated high-resolution per-instance decal canvases
+- preserves v0.13 adaptive DPR, shader warm-up, static shadows, file streaming and staged texture upload
+
+### Materials / environment
+- adds verified CC0 PBR routes for walnut veneer and oak planks
+- enriches procedural wood with knots and grain drift
+- enriches plaster with broad low-frequency blotching
+- enriches metal with sparse scratches
+- applies generated micro roughness across fallback surfaces
+- adds scuffs, grime, fingerprints, loose receipts, used cups, taped cartons and packing-tape props to near-range shops
+
+### Interaction / gameplay
+- adds direct in-world sample interactions for up to three catalog products per vendor
+- product lists now inspect products in-app before linking externally
+- adds collect-sample and favorite-for-comparison actions
+- adds exploration/product/sample scoring
+- adds compact market mission progress HUD
+
 ## 0.13.0 — Photoreal performance rebuild from v0.12
 
 ### Lineage
