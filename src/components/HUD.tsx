@@ -105,7 +105,7 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
             )
           })}
         </div>
-      ))}
+      )}
 
       {product && (
         <>
