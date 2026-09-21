@@ -6,12 +6,13 @@ async function source(relative) {
   return readFile(new URL(relative, import.meta.url), 'utf8')
 }
 
-test('authored generator uses real UV-capable rounded and cylindrical geometries', async () => {
+test('authored generator uses real UV-capable rounded, cylindrical and torus geometries', async () => {
   const generator = await source('./generate-authored-shop.mjs')
   assert.match(generator, /RoundedBoxGeometry/)
-  assert.match(generator, /CylinderGeometry/)\n  assert.match(generator, /TorusGeometry/)
+  assert.match(generator, /CylinderGeometry/)
+  assert.match(generator, /TorusGeometry/)
   assert.match(generator, /TEXCOORD_0/)
-  assert.match(generator, /iran-paper-authored-v4\\.glb/)
+  assert.match(generator, /iran-paper-authored-v4\.glb/)
 })
 
 test('asset-specific realism details stay in a presentation registry', async () => {

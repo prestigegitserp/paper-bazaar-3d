@@ -65,8 +65,8 @@ test('v0.12 keeps the v0.11 authored asset and realism pipeline intact', async (
   const generator = await source('./generate-authored-shop.mjs')
   const material = await source('../src/scene/materials/SurfaceMaterial.tsx')
 
-  assert.match(world, /iran-paper-authored-v3\.glb/)
-  assert.match(world, /authored:iran-paper-net:store:v3/)
+  assert.match(world, /iran-paper-authored-v4\.glb/)
+  assert.match(world, /authored:iran-paper-net:store:v4/)
   assert.match(generator, /TEXCOORD_0/)
   assert.match(generator, /RoundedBoxGeometry/)
   assert.match(material, /meshPhysicalMaterial/)

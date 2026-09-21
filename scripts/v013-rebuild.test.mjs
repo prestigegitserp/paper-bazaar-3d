@@ -16,7 +16,7 @@ test('v0.13 is a fidelity-preserving rebuild on v0.12 contracts', async () => {
   assert.match(renderer, /FILE_REVEAL_RADIUS = 18/)
   assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
   assert.match(fileRenderer, /InstancedMesh/)
-  assert.match(world, /iran-paper-authored-v4\\.glb/)
+  assert.match(world, /iran-paper-authored-v4\.glb/)
   assert.match(world, /authored:iran-paper-net:store:v4/)
   assert.match(generator, /TEXCOORD_0/)
   assert.match(generator, /RoundedBoxGeometry/)
