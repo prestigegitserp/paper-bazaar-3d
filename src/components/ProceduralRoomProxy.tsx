@@ -63,6 +63,7 @@ export default function ProceduralRoomProxy({ room, vendor }: { room: RoomDefini
           height={0.54}
           background={profile.shopfront.signColor}
           borderColor="rgba(255,255,255,.1)"
+          resolutionScale={0.45}
           lines={[
             { text: vendor?.name ?? room.label, size: 68, color: profile.shopfront.signText, weight: 900 },
             { text: vendor?.shortName ?? 'DIGITAL TWIN / SCAN SPACE', size: 28, color: room.theme.accent, weight: 800, direction: 'ltr' }

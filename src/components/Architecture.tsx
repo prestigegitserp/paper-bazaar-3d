@@ -137,19 +137,15 @@ function GlassBay({ x, z, rotationY, label, accent }: {
 }) {
   return (
     <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
-      <mesh position={[2.72, 1.72, 0]} castShadow>
+      <mesh position={[2.72, 1.72, 0]}>
         <boxGeometry args={[0.05, 3.4, 2.7]} />
-        <meshPhysicalMaterial
-          color="#dcebed"
+        <meshStandardMaterial
+          color="#cbd9da"
           transparent
-          opacity={0.96}
-          transmission={0.88}
-          roughness={0.065}
-          thickness={0.065}
-          ior={1.46}
-          envMapIntensity={1.35}
-          clearcoat={0.18}
-          clearcoatRoughness={0.12}
+          opacity={0.18}
+          roughness={0.16}
+          metalness={0.04}
+          envMapIntensity={0.82}
           depthWrite={false}
         />
       </mesh>

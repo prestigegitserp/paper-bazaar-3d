@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.15.0 — Human market runtime
+
+### Lineage
+- built directly on stable `release/v0.14.0`
+- preserves every release snapshot through v0.14
+- leaves the older experimental v0.15 branch untouched and does not use it as ancestry
+
+### Performance
+- re-hibernates file-backed GLB/scan renderers at 22m while retaining prefetched cache
+- adds broad view-aware procedural-room budgeting while preserving v0.14 distance hysteresis
+- removes transmission from six decorative passage glass bays
+- makes passive interaction raycasts pose/time based instead of refresh-rate based
+- removes frame callbacks and point lights from inactive interaction halos
+- narrows InteractiveNode Zustand subscriptions to local active booleans
+- reduces dormant storefront text texture resolution
+- expands F3 diagnostics with FPS, frame time, raycasts/s and room-budget counts
+
+### Human interaction
+- E inspect, F quick sample, C quick quote, G nearest-unvisited guide
+- multi-vendor quote basket and side-by-side observed-price/unit comparison
+- copyable quote draft
+- non-blocking action feedback for sample/favorite/quote
+
+### Hero authored shop
+- generated authored shop v4
+- adds torus geometry plus order/packing/sample context props
+- adds a local no-shadow hero spotlight only while the file renderer is mounted
+
 ## 0.14.0 — Living market root treatment
 
 ### Lineage

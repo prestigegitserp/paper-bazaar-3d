@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.14.0**
+نسخه فعلی: **v0.15.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.14 روی baseline پایدار v0.13 ساخته شده و تمرکزش «بازار زنده» است: غرفه‌های دور hibernate می‌شوند، متریال‌های چوبی واقعی‌تر شده‌اند، wear/clutter روزمره اضافه شده و حلقه‌ی تعامل/ماموریت داخل خود فضای سه‌بعدی شکل گرفته است؛ بدون حذف قراردادهای World/Catalog/Documents/Scan یا authored GLB v3.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.15 مستقیماً روی snapshot پایدار v0.14 ساخته شده است: runtime سبک‌تر، hero shop authored v4 و تعامل‌هایی که بدون شکستن flow حرکت اجازه‌ی نمونه‌برداری، استعلام چندفروشنده و مقایسه می‌دهند. قراردادهای World/Catalog/Documents/Scan و تمام releaseهای قبلی حفظ شده‌اند.
 
 ## اجرا
 
@@ -29,6 +29,33 @@ npm run dev
 | Mobile look | drag در نیمه راست |
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
+
+## v0.15 — Human Market Runtime
+
+این نسخه مستقیماً از `release/v0.14.0` ساخته شده و releaseهای قبلی immutable مانده‌اند.
+
+### Performance
+- GLBهای file-backed بعد از دورشدن دوباره به proxy برمی‌گردند، ولی asset prefetched در cache می‌ماند.
+- procedural detail علاوه بر فاصله، بودجه‌ی جهت نگاه و forced-near radius دارد.
+- شیشه‌های تزئینی راهرو transmission ندارند؛ transmission واقعی فقط در hero/authored shop نزدیک باقی می‌ماند.
+- passive raycast از frame-count به pose/time scheduler منتقل شده تا روی نمایشگر 120/144Hz هزینه چندبرابر نشود.
+- halo خاموش callback فریم ندارد و point light تعاملی حذف شده است.
+- storefront proxy از text texture کم‌رزولوشن‌تر استفاده می‌کند.
+- F3 حالا FPS، frame time، raycasts/s و تعداد proxy/detail/file room را نشان می‌دهد.
+
+### Human interaction
+- `E`: بررسی کامل interaction
+- `F`: برداشت سریع نمونه بدون خروج از حرکت
+- `C`: اضافه/حذف سریع کالا از سبد استعلام
+- `G`: راهنمای نزدیک‌ترین غرفه‌ی کشف‌نشده
+- سبد استعلام چندفروشنده با مقایسه قیمت/واحد، حذف، پاک‌کردن و کپی پیش‌نویس
+- feedback کوتاه برای sample/favorite/quote به‌جای mutation خاموش
+
+### Hero shop v4
+- GLB authored جدید با clipboard سفارش، مهر، ink pad، ترازو، tape roll با torus واقعی، hand-truck و sample-bookهای بیشتر
+- نور hero محلی فقط وقتی FileRoomRenderer نزدیک mount است
+
+جزئیات فنی: [docs/DEBUG_REPORT_V015_HUMAN_RUNTIME.md](docs/DEBUG_REPORT_V015_HUMAN_RUNTIME.md)
 
 ## v0.14 — Living Market / Root Treatment
 
@@ -105,7 +132,8 @@ npm run dev
 ```text
 release/v0.3.0 … release/v0.12.0
 release/v0.13.0 → snapshot پایدار v0.13
-release/v0.14.0 → snapshot پایدار v0.14 پس از CI نهایی
+release/v0.14.0 → snapshot پایدار v0.14
+release/v0.15.0 → snapshot پایدار v0.15 پس از CI نهایی
 main            → latest stable
 ```
 

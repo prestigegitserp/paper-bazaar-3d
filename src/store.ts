@@ -9,6 +9,7 @@ import { demoWorld } from './world/demoWorld'
 import type { Vec3, WorldDefinition } from './world/types'
 
 export type RenderQuality = 'cinematic' | 'balanced'
+export type InteractionQuickAction = 'primary' | 'sample' | 'quote'
 
 export type NavigationRequest = {
   target: Vec3
@@ -16,11 +17,28 @@ export type NavigationRequest = {
   label: string
 }
 
+export type QuoteItem = {
+  vendorId: string
+  productId: string
+}
+
+export type ActionFeedback = {
+  id: number
+  text: string
+  tone: 'info' | 'success'
+}
+
 export type Diagnostics = {
   calls: number
   triangles: number
   geometries: number
   textures: number
+  fps: number
+  frameMs: number
+  raycastsPerSecond: number
+  proxyRooms: number
+  detailedRooms: number
+  fileRooms: number
 }
 
 function preferredQuality(): RenderQuality {
@@ -40,6 +58,13 @@ function interactionScore(interaction: Interaction) {
   if (interaction.kind === 'product') return 15
   if (interaction.kind === 'document') return 20
   return 8
+}
+
+let feedbackSequence = 0
+
+function feedback(text: string, tone: ActionFeedback['tone'] = 'success'): ActionFeedback {
+  feedbackSequence += 1
+  return { id: feedbackSequence, text, tone }
 }
 
 type AppState = {
@@ -64,6 +89,8 @@ type AppState = {
   discoveredProductIds: string[]
   sampledProductIds: string[]
   favoriteProductIds: string[]
+  quoteItems: QuoteItem[]
+  actionFeedback: ActionFeedback | null
   setRuntimeBundle: (bundle: RuntimeBundle) => void
   setCatalog: (catalog: Catalog, mode: 'seed' | 'api') => void
   setCatalogError: (message: string | null) => void
@@ -79,8 +106,29 @@ type AppState = {
   setDiagnosticsEnabled: (enabled: boolean) => void
   collectSample: (productId: string) => void
   toggleFavoriteProduct: (productId: string) => void
+  toggleQuoteProduct: (vendorId: string, productId: string) => void
+  clearQuote: () => void
+  performQuickAction: (interaction: Interaction, action: InteractionQuickAction) => void
+  clearActionFeedback: (id: number) => void
   reportAssetError: (roomId: string, message: string) => void
   clearAssetError: (roomId: string) => void
+}
+
+function selectionPatch(state: AppState, selected: Interaction): Partial<AppState> {
+  const key = progressKey(selected)
+  const newlyExplored = !state.exploredInteractionKeys.includes(key)
+  const discoveredProductIds = selected.kind === 'product' && !state.discoveredProductIds.includes(selected.productId)
+    ? [...state.discoveredProductIds, selected.productId]
+    : state.discoveredProductIds
+
+  return {
+    selected,
+    exploredInteractionKeys: newlyExplored
+      ? [...state.exploredInteractionKeys, key]
+      : state.exploredInteractionKeys,
+    discoveredProductIds,
+    marketScore: state.marketScore + (newlyExplored ? interactionScore(selected) : 0)
+  }
 }
 
 const initialDocuments = buildVendorDocuments(seedCatalog, demoWorld)
@@ -99,7 +147,18 @@ export const useAppStore = create<AppState>((set) => ({
   navigationRequest: null,
   activeRoomId: null,
   visitedRoomIds: [],
-  diagnostics: { calls: 0, triangles: 0, geometries: 0, textures: 0 },
+  diagnostics: {
+    calls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0,
+    fps: 0,
+    frameMs: 0,
+    raycastsPerSecond: 0,
+    proxyRooms: 0,
+    detailedRooms: 0,
+    fileRooms: 0
+  },
   diagnosticsEnabled: false,
   assetErrors: {},
   marketScore: 0,
@@ -107,6 +166,8 @@ export const useAppStore = create<AppState>((set) => ({
   discoveredProductIds: [],
   sampledProductIds: [],
   favoriteProductIds: [],
+  quoteItems: [],
+  actionFeedback: null,
   setRuntimeBundle: (bundle) => set({
     catalog: bundle.catalog,
     catalogMode: bundle.catalogMode,
@@ -121,24 +182,7 @@ export const useAppStore = create<AppState>((set) => ({
     documents: buildVendorDocuments(catalog, state.world)
   })),
   setCatalogError: (catalogError) => set({ catalogError }),
-  setSelected: (selected) => set((state) => {
-    if (!selected) return { selected: null }
-
-    const key = progressKey(selected)
-    const newlyExplored = !state.exploredInteractionKeys.includes(key)
-    const discoveredProductIds = selected.kind === 'product' && !state.discoveredProductIds.includes(selected.productId)
-      ? [...state.discoveredProductIds, selected.productId]
-      : state.discoveredProductIds
-
-    return {
-      selected,
-      exploredInteractionKeys: newlyExplored
-        ? [...state.exploredInteractionKeys, key]
-        : state.exploredInteractionKeys,
-      discoveredProductIds,
-      marketScore: state.marketScore + (newlyExplored ? interactionScore(selected) : 0)
-    }
-  }),
+  setSelected: (selected) => set((state) => selected ? selectionPatch(state, selected) : { selected: null }),
   setNearby: (nearby) => set({ nearby }),
   setStarted: (started) => set({ started }),
   setPlayer: (x, z) => set({ player: { x, z } }),
@@ -158,17 +202,65 @@ export const useAppStore = create<AppState>((set) => ({
   setDiagnostics: (diagnostics) => set({ diagnostics }),
   setDiagnosticsEnabled: (diagnosticsEnabled) => set({ diagnosticsEnabled }),
   collectSample: (productId) => set((state) => {
-    if (state.sampledProductIds.includes(productId)) return {}
+    if (state.sampledProductIds.includes(productId)) {
+      return { actionFeedback: feedback('این نمونه قبلاً داخل کیف نمونه است.', 'info') }
+    }
     return {
       sampledProductIds: [...state.sampledProductIds, productId],
-      marketScore: state.marketScore + 25
+      marketScore: state.marketScore + 25,
+      actionFeedback: feedback('نمونه کاغذ به کیف نمونه اضافه شد.')
     }
   }),
-  toggleFavoriteProduct: (productId) => set((state) => ({
-    favoriteProductIds: state.favoriteProductIds.includes(productId)
-      ? state.favoriteProductIds.filter((id) => id !== productId)
-      : [...state.favoriteProductIds, productId]
-  })),
+  toggleFavoriteProduct: (productId) => set((state) => {
+    const exists = state.favoriteProductIds.includes(productId)
+    return {
+      favoriteProductIds: exists
+        ? state.favoriteProductIds.filter((id) => id !== productId)
+        : [...state.favoriteProductIds, productId],
+      actionFeedback: feedback(exists ? 'از فهرست مقایسه سریع حذف شد.' : 'برای مقایسه سریع ذخیره شد.', exists ? 'info' : 'success')
+    }
+  }),
+  toggleQuoteProduct: (vendorId, productId) => set((state) => {
+    const exists = state.quoteItems.some((item) => item.vendorId === vendorId && item.productId === productId)
+    return {
+      quoteItems: exists
+        ? state.quoteItems.filter((item) => item.vendorId !== vendorId || item.productId !== productId)
+        : [...state.quoteItems, { vendorId, productId }],
+      marketScore: state.marketScore + (exists ? 0 : 5),
+      actionFeedback: feedback(exists ? 'از سبد استعلام حذف شد.' : 'به سبد استعلام قیمت اضافه شد.', exists ? 'info' : 'success')
+    }
+  }),
+  clearQuote: () => set((state) => state.quoteItems.length
+    ? { quoteItems: [], actionFeedback: feedback('سبد استعلام پاک شد.', 'info') }
+    : {}),
+  performQuickAction: (interaction, action) => set((state) => {
+    if (action === 'primary' || interaction.kind !== 'product') return selectionPatch(state, interaction)
+
+    if (action === 'sample') {
+      if (state.sampledProductIds.includes(interaction.productId)) {
+        return { actionFeedback: feedback('این نمونه قبلاً داخل کیف نمونه است.', 'info') }
+      }
+      return {
+        sampledProductIds: [...state.sampledProductIds, interaction.productId],
+        marketScore: state.marketScore + 25,
+        actionFeedback: feedback(`نمونه «${interaction.label}» برداشته شد.`)
+      }
+    }
+
+    const exists = state.quoteItems.some((item) => (
+      item.vendorId === interaction.vendorId && item.productId === interaction.productId
+    ))
+    return {
+      quoteItems: exists
+        ? state.quoteItems.filter((item) => (
+            item.vendorId !== interaction.vendorId || item.productId !== interaction.productId
+          ))
+        : [...state.quoteItems, { vendorId: interaction.vendorId, productId: interaction.productId }],
+      marketScore: state.marketScore + (exists ? 0 : 5),
+      actionFeedback: feedback(exists ? 'از سبد استعلام حذف شد.' : `«${interaction.label}» به استعلام اضافه شد.`, exists ? 'info' : 'success')
+    }
+  }),
+  clearActionFeedback: (id) => set((state) => state.actionFeedback?.id === id ? { actionFeedback: null } : {}),
   reportAssetError: (roomId, message) => set((state) => ({ assetErrors: { ...state.assetErrors, [roomId]: message } })),
   clearAssetError: (roomId) => set((state) => {
     const next = { ...state.assetErrors }

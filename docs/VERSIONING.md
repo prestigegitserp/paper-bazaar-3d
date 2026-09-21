@@ -53,3 +53,13 @@ v0.14 از snapshot پایدار `release/v0.13.0` منشعب می‌شود. ه�
 - `main` به commit تاییدشده‌ی v0.14 منتقل می‌شود.
 - `release/v0.14.0` از همان commit ساخته می‌شود.
 - `release/v0.13.0` و تمام releaseهای قبل بدون تغییر باقی می‌مانند.
+
+
+## v0.15 rule
+
+v0.15 جدید باید مستقیماً از `release/v0.14.0` مشتق شود. branch آزمایشی قدیمی `feat/v0.15-static-render-texture-refinement` حفظ می‌شود اما چون از v0.14 عقب‌تر است ancestry این release نیست.
+
+پس از CI و deploy موفق:
+- `main` به commit تأییدشده‌ی v0.15 منتقل می‌شود.
+- `release/v0.15.0` از همان commit ساخته می‌شود.
+- `release/v0.14.0` و تمام releaseهای قبل بدون تغییر باقی می‌مانند.

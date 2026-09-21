@@ -16,7 +16,8 @@ export default function WorldTextPanel({
   height,
   lines,
   background = '#202326',
-  borderColor = 'rgba(255,255,255,.16)'
+  borderColor = 'rgba(255,255,255,.16)',
+  resolutionScale = 1
 }: {
   position?: [number, number, number]
   rotation?: [number, number, number]
@@ -25,14 +26,21 @@ export default function WorldTextPanel({
   lines: WorldTextLine[]
   background?: string
   borderColor?: string
+  resolutionScale?: number
 }) {
   const signature = JSON.stringify(lines)
 
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    const canvasWidth = width < 0.9 ? 512 : width < 2.2 ? 768 : 1024
+    const baseCanvasWidth = width < 0.9 ? 512 : width < 2.2 ? 768 : 1024
+    const safeScale = Math.max(0.35, Math.min(1, resolutionScale))
+    const canvasWidth = Math.max(256, Math.round(baseCanvasWidth * safeScale))
+    const fontScale = canvasWidth / baseCanvasWidth
     canvas.width = canvasWidth
-    canvas.height = Math.max(192, Math.min(640, Math.round(canvasWidth * (height / width))))
+    canvas.height = Math.max(
+      Math.max(128, Math.round(192 * safeScale)),
+      Math.min(Math.max(256, Math.round(640 * safeScale)), Math.round(canvasWidth * (height / width)))
+    )
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas 2D context unavailable')
 
@@ -44,13 +52,13 @@ export default function WorldTextPanel({
     ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth)
 
     const parsed = JSON.parse(signature) as WorldTextLine[]
-    const total = parsed.reduce((sum, line) => sum + (line.size ?? 42), 0)
+    const total = parsed.reduce((sum, line) => sum + (line.size ?? 42) * fontScale, 0)
     const spacing = canvas.height * 0.055
     const contentHeight = total + spacing * Math.max(0, parsed.length - 1)
     let y = (canvas.height - contentHeight) / 2
 
     for (const line of parsed) {
-      const size = line.size ?? 42
+      const size = (line.size ?? 42) * fontScale
       y += size
       ctx.direction = line.direction ?? 'rtl'
       ctx.textAlign = 'center'
@@ -67,7 +75,7 @@ export default function WorldTextPanel({
     map.magFilter = LinearFilter
     map.needsUpdate = true
     return map
-  }, [background, borderColor, height, signature, width])
+  }, [background, borderColor, height, resolutionScale, signature, width])
 
   useEffect(() => () => texture.dispose(), [texture])
 

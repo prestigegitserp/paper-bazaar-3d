@@ -457,6 +457,20 @@ export default function FileRoomRenderer({ room, vendor, url, scale = 1 }: { roo
           <AuthoredSurfaceDetails room={room} />
         )}
 
+        {room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
+          <spotLight
+            position={[0.55, 3.72, -0.65]}
+            target-position={[0.82, 0.95, -0.8]}
+            color="#ffe6bf"
+            intensity={7.5}
+            distance={6}
+            angle={0.72}
+            penumbra={0.9}
+            decay={2}
+            castShadow={false}
+          />
+        )}
+
         {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
           <ProductSampleRail room={room} vendor={vendor} />
         )}

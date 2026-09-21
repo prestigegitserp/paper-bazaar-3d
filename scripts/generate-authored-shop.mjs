@@ -6,7 +6,8 @@ import {
   CylinderGeometry,
   Euler,
   PlaneGeometry,
-  Quaternion
+  Quaternion,
+  TorusGeometry
 } from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 
@@ -31,7 +32,8 @@ const SHAPES = {
   box: new BoxGeometry(1, 1, 1),
   rounded: new RoundedBoxGeometry(1, 1, 1, 3, 0.055),
   cylinder: new CylinderGeometry(0.5, 0.5, 1, 24, 1, false),
-  plane: new PlaneGeometry(1, 1)
+  plane: new PlaneGeometry(1, 1),
+  torus: new TorusGeometry(0.5, 0.12, 12, 24)
 }
 
 function pad4(value) {
@@ -59,6 +61,9 @@ const hard = (name, material, scale, translation, options = {}) =>
 
 const cylinder = (name, material, scale, translation, options = {}) =>
   part(name, material, scale, translation, { ...options, shape: 'cylinder' })
+
+const torus = (name, material, scale, translation, options = {}) =>
+  part(name, material, scale, translation, { ...options, shape: 'torus' })
 
 function authoredShopNodes() {
   const nodes = [
@@ -242,6 +247,33 @@ function authoredShopNodes() {
     part('junction_box', 'metal', [0.10, 0.24, 0.18], [-2.49, 2.85, -0.20])
   )
 
+  nodes.push(
+    part('hero_order_clipboard', 'wood', [0.36, 0.035, 0.50], [0.34, 1.16, -0.08], { rotation: quat(0, -0.16, 0.015) }),
+    part('hero_order_sheet', 'paper', [0.31, 0.012, 0.44], [0.34, 1.185, -0.08], { rotation: quat(0, -0.16, 0.015) }),
+    part('hero_stamp_pad', 'black', [0.22, 0.05, 0.16], [0.16, 1.145, 0.24], { rotation: quat(0, 0.10, 0) }),
+    cylinder('hero_stamp_handle', 'wood', [0.07, 0.13, 0.07], [0.18, 1.245, 0.24]),
+    part('hero_scale_base', 'metal', [0.46, 0.10, 0.42], [1.78, 0.11, 2.16]),
+    part('hero_scale_platform', 'silver', [0.52, 0.035, 0.48], [1.78, 0.19, 2.16]),
+    part('hero_scale_display', 'green', [0.05, 0.13, 0.22], [1.52, 0.28, 2.16]),
+    torus('hero_tape_roll', 'yellow', [0.18, 0.18, 0.11], [1.23, 1.17, -0.08], { rotation: quat(Math.PI / 2, 0, 0) }),
+    part('hero_handtruck_left', 'metal', [0.07, 1.45, 0.07], [2.05, 0.84, 2.72], { rotation: quat(0, 0, -0.08) }),
+    part('hero_handtruck_right', 'metal', [0.07, 1.45, 0.07], [2.05, 0.84, 3.08], { rotation: quat(0, 0, -0.08) }),
+    part('hero_handtruck_axle', 'metal', [0.10, 0.08, 0.48], [2.09, 0.24, 2.90]),
+    torus('hero_handtruck_wheel_a', 'black', [0.22, 0.22, 0.12], [2.10, 0.20, 2.66], { rotation: quat(0, Math.PI / 2, 0) }),
+    torus('hero_handtruck_wheel_b', 'black', [0.22, 0.22, 0.12], [2.10, 0.20, 3.14], { rotation: quat(0, Math.PI / 2, 0) })
+  )
+
+  for (let index = 0; index < 5; index += 1) {
+    const z = 0.34 + index * 0.085
+    nodes.push(part(
+      `hero_sample_book_${index}`,
+      index % 2 === 0 ? 'paper' : index === 3 ? 'yellow' : 'green',
+      [0.48 - index * 0.015, 0.035, 0.34],
+      [0.65, 1.15 + index * 0.038, z],
+      { rotation: quat(0, -0.18 + index * 0.025, 0.01) }
+    ))
+  }
+
   return nodes
 }
 
@@ -396,10 +428,10 @@ export function buildAuthoredShopGlb() {
   const gltf = {
     asset: {
       version: '2.0',
-      generator: 'Paper Bazaar authored-shop generator v0.11'
+      generator: 'Paper Bazaar authored-shop generator v0.15'
     },
     scene: 0,
-    scenes: [{ name: 'Iran Paper Authored Store v3', nodes: nodes.map((_, index) => index) }],
+    scenes: [{ name: 'Iran Paper Authored Store v4', nodes: nodes.map((_, index) => index) }],
     nodes,
     meshes,
     materials,
@@ -444,7 +476,7 @@ export function inspectAuthoredShopGlb(buffer) {
 
 async function main() {
   const here = dirname(fileURLToPath(import.meta.url))
-  const target = resolve(here, '../public/models/iran-paper-authored-v3.glb')
+  const target = resolve(here, '../public/models/iran-paper-authored-v4.glb')
   await mkdir(dirname(target), { recursive: true })
   const buffer = buildAuthoredShopGlb()
   await writeFile(target, buffer)

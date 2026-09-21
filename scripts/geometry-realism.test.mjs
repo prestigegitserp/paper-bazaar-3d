@@ -9,16 +9,16 @@ async function source(relative) {
 test('authored generator uses real UV-capable rounded and cylindrical geometries', async () => {
   const generator = await source('./generate-authored-shop.mjs')
   assert.match(generator, /RoundedBoxGeometry/)
-  assert.match(generator, /CylinderGeometry/)
+  assert.match(generator, /CylinderGeometry/)\n  assert.match(generator, /TorusGeometry/)
   assert.match(generator, /TEXCOORD_0/)
-  assert.match(generator, /iran-paper-authored-v3\.glb/)
+  assert.match(generator, /iran-paper-authored-v4\\.glb/)
 })
 
 test('asset-specific realism details stay in a presentation registry', async () => {
   const profiles = await source('../src/assets/detailProfiles.ts')
   const renderer = await source('../src/components/FileRoomRenderer.tsx')
   const details = await source('../src/components/AuthoredSurfaceDetails.tsx')
-  assert.match(profiles, /authored:iran-paper-net:store:v3/)
+  assert.match(profiles, /authored:iran-paper-net:store:v4/)
   assert.match(profiles, /fingerprint/)
   assert.match(profiles, /floor-scuff/)
   assert.match(renderer, /AuthoredSurfaceDetails/)

@@ -29,8 +29,8 @@ export type AssetDetailProfile = {
 }
 
 const profiles: Record<string, AssetDetailProfile> = {
-  'authored:iran-paper-net:store:v3': {
-    id: 'iran-paper-authored-v3-details',
+  'authored:iran-paper-net:store:v4': {
+    id: 'iran-paper-authored-v4-details',
     labels: [
       {
         id: 'bundle-a4',

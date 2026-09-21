@@ -22,8 +22,8 @@ export default function InteractiveNode({
 }) {
   const setSelected = useAppStore((state) => state.setSelected)
   const setNearby = useAppStore((state) => state.setNearby)
-  const nearby = useAppStore((state) => state.nearby)
-  const active = Boolean(interaction && interactionKey(nearby) === interactionKey(interaction))
+  const key = interactionKey(interaction)
+  const active = useAppStore((state) => Boolean(interaction && interactionKey(state.nearby) === key))
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation()

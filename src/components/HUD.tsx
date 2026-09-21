@@ -4,7 +4,7 @@ import { useAppStore } from '../store'
 import type { CrawlStatus, Product, Vendor } from '../domain/catalog'
 import type { Interaction } from '../domain/interaction'
 import { roomEntryPoint, roomEntryYaw } from '../world/spatial'
-import type { RoomDefinition } from '../world/types'
+import type { RoomDefinition, WorldDefinition } from '../world/types'
 import MobileControls from './MobileControls'
 
 function formatDate(value: string) {
@@ -35,6 +35,8 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
   const toggleFavoriteProduct = useAppStore((state) => state.toggleFavoriteProduct)
   const sampledProductIds = useAppStore((state) => state.sampledProductIds)
   const favoriteProductIds = useAppStore((state) => state.favoriteProductIds)
+  const quoteItems = useAppStore((state) => state.quoteItems)
+  const toggleQuoteProduct = useAppStore((state) => state.toggleQuoteProduct)
 
   const inspectProducts = () => setSelected({
     kind: 'products',
@@ -135,6 +137,15 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
             >
               {favoriteProductIds.includes(product.id) ? '★ ذخیره‌شده' : '☆ ذخیره برای مقایسه'}
             </button>
+            <button
+              type="button"
+              className={`quote-action ${quoteItems.some((item) => item.vendorId === vendor.id && item.productId === product.id) ? 'active' : ''}`}
+              onClick={() => toggleQuoteProduct(vendor.id, product.id)}
+            >
+              {quoteItems.some((item) => item.vendorId === vendor.id && item.productId === product.id)
+                ? '✓ داخل سبد استعلام'
+                : '+ افزودن به استعلام قیمت'}
+            </button>
             <a className="secondary-action" href={product.sourceUrl} target="_blank" rel="noreferrer">مشاهده منبع ↗</a>
           </div>
         </>
@@ -142,6 +153,119 @@ function VendorPanel({ vendor, selected }: { vendor: Vendor; selected: Interacti
 
       <div className="source-note">قیمت‌ها برای دمو از صفحات عمومی وب برداشت شده‌اند و قیمت قطعی معامله نیستند.</div>
     </div>
+  )
+}
+
+function nextGuideRoom(
+  world: WorldDefinition,
+  visitedRoomIds: string[],
+  player: { x: number; z: number }
+) {
+  const unvisited = world.rooms.filter((room) => !visitedRoomIds.includes(room.id))
+  if (!unvisited.length) return null
+
+  return [...unvisited].sort((a, b) => {
+    const adx = a.position[0] - player.x
+    const adz = a.position[2] - player.z
+    const bdx = b.position[0] - player.x
+    const bdz = b.position[2] - player.z
+    return adx * adx + adz * adz - (bdx * bdx + bdz * bdz)
+  })[0]
+}
+
+function InteractionPrompt({ interaction }: { interaction: Interaction }) {
+  const performQuickAction = useAppStore((state) => state.performQuickAction)
+  const isProduct = interaction.kind === 'product'
+
+  return (
+    <div className="interaction-prompt interaction-prompt--rich">
+      <span>تعامل نزدیک</span>
+      <strong>{interaction.label}</strong>
+      <div className="interaction-quick-actions">
+        <button type="button" onClick={() => performQuickAction(interaction, 'primary')}>
+          بررسی <kbd>E</kbd>
+        </button>
+        {isProduct && (
+          <>
+            <button type="button" onClick={() => performQuickAction(interaction, 'sample')}>
+              نمونه <kbd>F</kbd>
+            </button>
+            <button type="button" onClick={() => performQuickAction(interaction, 'quote')}>
+              استعلام <kbd>C</kbd>
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function QuoteTray() {
+  const catalog = useAppStore((state) => state.catalog)
+  const quoteItems = useAppStore((state) => state.quoteItems)
+  const toggleQuoteProduct = useAppStore((state) => state.toggleQuoteProduct)
+  const clearQuote = useAppStore((state) => state.clearQuote)
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const resolved = useMemo(() => quoteItems.flatMap((item) => {
+    const vendor = catalog.vendors.find((candidate) => candidate.id === item.vendorId)
+    const product = vendor?.products.find((candidate) => candidate.id === item.productId)
+    return vendor && product ? [{ vendor, product }] : []
+  }), [catalog.vendors, quoteItems])
+
+  const copyQuote = async () => {
+    const text = [
+      'Paper Bazaar 3D — پیش‌نویس استعلام',
+      ...resolved.map(({ vendor, product }) => `${vendor.name} | ${product.name} | ${product.priceText} | ${product.unit}`)
+    ].join('\n')
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="quote-toggle" onClick={() => setOpen((value) => !value)}>
+        استعلام <b>{quoteItems.length}</b>
+      </button>
+      {open && (
+        <div className="quote-tray">
+          <div className="quote-tray__head">
+            <div>
+              <span>سبد استعلام چندفروشنده</span>
+              <strong>{resolved.length} کالا برای مقایسه</strong>
+            </div>
+            <button type="button" onClick={() => setOpen(false)}>×</button>
+          </div>
+
+          <div className="quote-compare-grid">
+            {resolved.length ? resolved.map(({ vendor, product }) => (
+              <article key={`${vendor.id}:${product.id}`}>
+                <small>{vendor.shortName}</small>
+                <strong>{product.name}</strong>
+                <b>{product.priceText}</b>
+                <span>{product.unit}</span>
+                <button type="button" onClick={() => toggleQuoteProduct(vendor.id, product.id)}>حذف</button>
+              </article>
+            )) : (
+              <div className="quote-empty">با <kbd>C</kbd> یا دکمه «استعلام» کالا اضافه کن.</div>
+            )}
+          </div>
+
+          <div className="quote-tray__actions">
+            <button type="button" onClick={copyQuote} disabled={!resolved.length}>{copied ? '✓ کپی شد' : 'کپی پیش‌نویس استعلام'}</button>
+            <button type="button" onClick={clearQuote} disabled={!resolved.length}>پاک کردن</button>
+          </div>
+          <small className="quote-disclaimer">این بخش فقط پیش‌نویس مقایسه است؛ قیمت قطعی معامله نیست.</small>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -222,6 +346,10 @@ function DebugPanel() {
       <div><span>triangles</span><b>{diagnostics.triangles.toLocaleString()}</b></div>
       <div><span>geometries</span><b>{diagnostics.geometries}</b></div>
       <div><span>textures</span><b>{diagnostics.textures}</b></div>
+      <div><span>fps</span><b>{diagnostics.fps.toFixed(1)}</b></div>
+      <div><span>frame ms</span><b>{diagnostics.frameMs.toFixed(1)}</b></div>
+      <div><span>raycasts/s</span><b>{diagnostics.raycastsPerSecond.toFixed(1)}</b></div>
+      <div><span>room budget</span><b>{diagnostics.proxyRooms}P · {diagnostics.detailedRooms}D · {diagnostics.fileRooms}F</b></div>
       <div><span>visited</span><b>{visitedRoomIds.length}/{world.rooms.length}</b></div>
       <div><span>asset errors</span><b>{Object.keys(assetErrors).length}</b></div>
     </div>
@@ -230,9 +358,28 @@ function DebugPanel() {
 
 function MarketMission() {
   const score = useAppStore((state) => state.marketScore)
-  const visited = useAppStore((state) => state.visitedRoomIds.length)
+  const visitedRoomIds = useAppStore((state) => state.visitedRoomIds)
+  const visited = visitedRoomIds.length
   const products = useAppStore((state) => state.discoveredProductIds.length)
   const samples = useAppStore((state) => state.sampledProductIds.length)
+  const world = useAppStore((state) => state.world)
+  const player = useAppStore((state) => state.player)
+  const requestNavigation = useAppStore((state) => state.requestNavigation)
+  const setSelected = useAppStore((state) => state.setSelected)
+  const setStarted = useAppStore((state) => state.setStarted)
+  const nextRoom = nextGuideRoom(world, visitedRoomIds, player)
+
+  const guideNext = () => {
+    if (!nextRoom) return
+    if (document.pointerLockElement) document.exitPointerLock()
+    setSelected(null)
+    setStarted(true)
+    requestNavigation({
+      target: roomEntryPoint(nextRoom),
+      yaw: roomEntryYaw(nextRoom),
+      label: nextRoom.label
+    })
+  }
 
   const visitGoal = 4
   const productGoal = 5
@@ -256,6 +403,9 @@ function MarketMission() {
         <span className={products >= productGoal ? 'done' : ''}>کالاها {Math.min(products, productGoal)}/{productGoal}</span>
         <span className={samples >= sampleGoal ? 'done' : ''}>نمونه‌ها {Math.min(samples, sampleGoal)}/{sampleGoal}</span>
       </div>
+      <button type="button" className="market-guide" onClick={guideNext} disabled={!nextRoom}>
+        {nextRoom ? `راهنما: ${nextRoom.label}` : 'همه غرفه‌ها کشف شدند'} <kbd>G</kbd>
+      </button>
     </div>
   )
 }
@@ -276,6 +426,8 @@ export default function HUD() {
   const requestNavigation = useAppStore((state) => state.requestNavigation)
   const diagnosticsEnabled = useAppStore((state) => state.diagnosticsEnabled)
   const setDiagnosticsEnabled = useAppStore((state) => state.setDiagnosticsEnabled)
+  const actionFeedback = useAppStore((state) => state.actionFeedback)
+  const clearActionFeedback = useAppStore((state) => state.clearActionFeedback)
   const { active: loadingAssets, progress } = useProgress()
   const [mapOpen, setMapOpen] = useState(true)
 
@@ -288,11 +440,31 @@ export default function HUD() {
         setDiagnosticsEnabled(!useAppStore.getState().diagnosticsEnabled)
       }
       if (event.code === 'KeyQ') setQuality(quality === 'cinematic' ? 'balanced' : 'cinematic')
+      if (event.code === 'KeyG') {
+        const state = useAppStore.getState()
+        const room = nextGuideRoom(state.world, state.visitedRoomIds, state.player)
+        if (room) {
+          if (document.pointerLockElement) document.exitPointerLock()
+          state.setSelected(null)
+          state.setStarted(true)
+          state.requestNavigation({
+            target: roomEntryPoint(room),
+            yaw: roomEntryYaw(room),
+            label: room.label
+          })
+        }
+      }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [quality, setDiagnosticsEnabled, setQuality])
+
+  useEffect(() => {
+    if (!actionFeedback) return
+    const timer = window.setTimeout(() => clearActionFeedback(actionFeedback.id), 1800)
+    return () => window.clearTimeout(timer)
+  }, [actionFeedback, clearActionFeedback])
 
   const selectedVendor = useMemo(() => {
     if (!selected) return null
@@ -333,7 +505,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Living market · v0.14</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Human market runtime · v0.15</span></div>
         </div>
 
         <div className="top-actions">
@@ -360,6 +532,10 @@ export default function HUD() {
       />
 
       {started && <MarketMission />}
+      {started && <QuoteTray />}
+      {actionFeedback && (
+        <div className={`action-feedback ${actionFeedback.tone}`}>{actionFeedback.text}</div>
+      )}
 
       {loadingAssets && progress < 100 && (
         <div className="asset-loader">
@@ -378,13 +554,7 @@ export default function HUD() {
 
       {started && !selected && <div className="crosshair" />}
 
-      {nearby && started && !selected && (
-        <div className="interaction-prompt">
-          <span>تعامل نزدیک</span>
-          <strong>{nearby.label}</strong>
-          <kbd>E</kbd><em>یا لمس/کلیک</em>
-        </div>
-      )}
+      {nearby && started && !selected && <InteractionPrompt interaction={nearby} />}
 
       {started && !selected && (
         <div className="controls-hint">
@@ -395,6 +565,9 @@ export default function HUD() {
           <span><kbd>R</kbd> ورودی</span>
           <span><kbd>M</kbd> نقشه</span>
           <span><kbd>Q</kbd> کیفیت</span>
+          <span><kbd>F</kbd> نمونه سریع</span>
+          <span><kbd>C</kbd> استعلام سریع</span>
+          <span><kbd>G</kbd> راهنمای غرفه</span>
           <span><kbd>F3</kbd> دیباگ</span>
         </div>
       )}
@@ -416,15 +589,15 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">LIVING MARKET · v0.14.0</div>
+            <div className="intro-eyebrow">HUMAN MARKET RUNTIME · v0.15.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.14 روی سرعت v0.13 یک بازار زنده‌تر ساخته: غرفه‌های دور hibernate می‌شوند، چوب‌های اصلی PBR واقعی می‌گیرند، لکه/سایش/بسته‌بندی و جزئیات روزمره اضافه شده و محصولات بیشتری داخل خود فضای سه‌بعدی قابل بررسی‌اند. با دیدن غرفه‌ها، بررسی کالا و جمع‌کردن نمونه امتیاز می‌گیری.</p>
+            <p>v0.15 روی تمام تجربه‌های v0.14 ساخته شده: GLB و غرفه‌های پشت سر دوباره hibernate می‌شوند، شیشه‌های تزئینی از مسیر transmission گران خارج شده‌اند، raycast با حرکت واقعی دوربین زمان‌بندی می‌شود و hero shop authored v4 جزئیات کاری بیشتری دارد. تعامل هم از «بازکردن پنل» فراتر رفته: نمونه سریع، سبد استعلام چندفروشنده، مقایسه و راهنمای غرفه بعدی.</p>
             <div className="intro-features">
-              <span>Procedural room hibernation</span>
-              <span>Real walnut / oak PBR</span>
-              <span>Lived-in wear + packing detail</span>
-              <span>Product sample interactions</span>
-              <span>Market missions + score</span>
+              <span>View-aware room hibernation</span>
+              <span>File GLB re-hibernation</span>
+              <span>Authored hero shop v4</span>
+              <span>Quick sample / quote actions</span>
+              <span>Multi-vendor quote comparison</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
             <small>دسکتاپ: WASD + Mouse + Wheel · موبایل: Joystick + Look pad + Pinch/±.</small>

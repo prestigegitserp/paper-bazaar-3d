@@ -1,8 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { Euler, PerspectiveCamera, Raycaster, Vector2, Vector3 } from 'three'
+import { Euler, PerspectiveCamera, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { buildWorldColliders, isPositionBlocked } from '../engine/collision'
 import { interactionFromObject, interactionKey } from '../engine/interactions'
+import { noteInteractionRaycast } from '../engine/runtimeMetrics'
 import {
   consumeMobileLook,
   consumeMobileZoom,
@@ -39,6 +40,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const setNearby = useAppStore((state) => state.setNearby)
   const setPlayer = useAppStore((state) => state.setPlayer)
   const setActiveRoom = useAppStore((state) => state.setActiveRoom)
+  const performQuickAction = useAppStore((state) => state.performQuickAction)
   const keys = useRef(new Set<string>())
   const yaw = useRef(0)
   const pitch = useRef(0)
@@ -48,6 +50,9 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const lastMobileInteract = useRef(getMobileInteractSequence())
   const frameCount = useRef(0)
   const lastNearby = useRef('')
+  const lastInteractionScanAt = useRef(-1000)
+  const lastInteractionScanPosition = useRef(new Vector3())
+  const lastInteractionScanQuaternion = useRef(new Quaternion())
   const lastActiveRoom = useRef<string | null>(null)
   const lastReportedPlayer = useRef(new Vector2(world.spawn[0], world.spawn[2]))
   const lookEuler = useRef(new Euler(0, 0, 0, 'YXZ'))
@@ -67,6 +72,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   }, [setNearby])
 
   const findTarget = useCallback(() => {
+    noteInteractionRaycast()
     RAYCASTER.near = 0
     RAYCASTER.far = INTERACTION_DISTANCE
     RAYCASTER.setFromCamera(CENTER, camera)
@@ -82,6 +88,12 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     clearNearby()
     if (document.pointerLockElement === gl.domElement) document.exitPointerLock()
   }, [clearNearby, findTarget, gl.domElement, setSelected])
+
+  const quickTargetAction = useCallback((action: 'sample' | 'quote') => {
+    const target = findTarget()
+    if (!target) return
+    performQuickAction(target, action)
+  }, [findTarget, performQuickAction])
 
   const moveTo = useCallback((target: readonly [number, number, number], nextYaw: number) => {
     camera.position.set(target[0], target[1], target[2])
@@ -160,6 +172,8 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       keys.current.add(event.code)
 
       if (event.code === 'KeyE' && !event.repeat && document.pointerLockElement === canvas) activateTarget()
+      if (event.code === 'KeyF' && !event.repeat && document.pointerLockElement === canvas) quickTargetAction('sample')
+      if (event.code === 'KeyC' && !event.repeat && document.pointerLockElement === canvas) quickTargetAction('quote')
 
       if (event.code === 'KeyR' && !event.repeat) {
         useAppStore.getState().requestNavigation({ target: world.spawn, yaw: 0, label: 'ورودی بازار' })
@@ -227,7 +241,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
       canvas.removeEventListener('gesturechange', preventGesture)
       resetMobileInput()
     }
-  }, [activateTarget, clearNearby, gl.domElement, started, world.spawn])
+  }, [activateTarget, clearNearby, gl.domElement, quickTargetAction, started, world.spawn])
 
   const blocked = useCallback(
     (x: number, z: number) => isPositionBlocked(world, collisions, x, z, PLAYER_RADIUS),
@@ -331,15 +345,28 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
 
     frameCount.current += 1
     const aiming = pointerLocked || touchMode.current
+    const nowMs = clock.elapsedTime * 1000
 
-    if (aiming && frameCount.current % 5 === 0) {
-      const target = findTarget()
-      const key = interactionKey(target)
-      if (key !== lastNearby.current) {
-        lastNearby.current = key
-        setNearby(target)
+    if (aiming) {
+      const positionChanged = camera.position.distanceToSquared(lastInteractionScanPosition.current) > 0.0005
+      const orientationChanged = 1 - Math.abs(camera.quaternion.dot(lastInteractionScanQuaternion.current)) > 0.000025
+      const poseChanged = positionChanged || orientationChanged || horizontalSpeed > 0.15
+      const scanGap = poseChanged ? 90 : 260
+      const hardRefresh = nowMs - lastInteractionScanAt.current >= 360
+
+      if (hardRefresh || (poseChanged && nowMs - lastInteractionScanAt.current >= scanGap)) {
+        lastInteractionScanAt.current = nowMs
+        lastInteractionScanPosition.current.copy(camera.position)
+        lastInteractionScanQuaternion.current.copy(camera.quaternion)
+
+        const target = findTarget()
+        const key = interactionKey(target)
+        if (key !== lastNearby.current) {
+          lastNearby.current = key
+          setNearby(target)
+        }
       }
-    } else if (!aiming) {
+    } else {
       clearNearby()
     }
 
