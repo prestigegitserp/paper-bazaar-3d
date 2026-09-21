@@ -34,7 +34,7 @@ test('file-backed rooms use distance prefetch and local Suspense fallback', asyn
   assert.match(renderer, /import\('\.\/FileRoomRenderer'\)/)
   assert.match(renderer, /preloadFileRoom/)
   assert.match(fileRenderer, /useGLTF\.preload/)
-  assert.match(renderer, /Suspense fallback=\{<Booth/)
+  assert.match(renderer, /Suspense fallback=\{<ProceduralRoomProxy/)
   assert.match(renderer, /useProgressiveFileAsset/)
 })
 
