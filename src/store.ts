@@ -45,6 +45,7 @@ type AppState = {
   activeRoomId: string | null
   visitedRoomIds: string[]
   diagnostics: Diagnostics
+  diagnosticsEnabled: boolean
   assetErrors: Record<string, string>
   setRuntimeBundle: (bundle: RuntimeBundle) => void
   setCatalog: (catalog: Catalog, mode: 'seed' | 'api') => void
@@ -58,6 +59,7 @@ type AppState = {
   clearNavigationRequest: () => void
   setActiveRoom: (roomId: string | null) => void
   setDiagnostics: (diagnostics: Diagnostics) => void
+  setDiagnosticsEnabled: (enabled: boolean) => void
   reportAssetError: (roomId: string, message: string) => void
   clearAssetError: (roomId: string) => void
 }
@@ -79,6 +81,7 @@ export const useAppStore = create<AppState>((set) => ({
   activeRoomId: null,
   visitedRoomIds: [],
   diagnostics: { calls: 0, triangles: 0, geometries: 0, textures: 0 },
+  diagnosticsEnabled: false,
   assetErrors: {},
   setRuntimeBundle: (bundle) => set({
     catalog: bundle.catalog,
@@ -108,6 +111,7 @@ export const useAppStore = create<AppState>((set) => ({
       : state.visitedRoomIds
   })),
   setDiagnostics: (diagnostics) => set({ diagnostics }),
+  setDiagnosticsEnabled: (diagnosticsEnabled) => set({ diagnosticsEnabled }),
   reportAssetError: (roomId, message) => set((state) => ({ assetErrors: { ...state.assetErrors, [roomId]: message } })),
   clearAssetError: (roomId) => set((state) => {
     const next = { ...state.assetErrors }

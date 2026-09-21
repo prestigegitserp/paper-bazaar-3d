@@ -16,7 +16,7 @@ test('authored generator uses real UV-capable rounded and cylindrical geometries
 
 test('asset-specific realism details stay in a presentation registry', async () => {
   const profiles = await source('../src/assets/detailProfiles.ts')
-  const renderer = await source('../src/components/RoomRenderer.tsx')
+  const renderer = await source('../src/components/FileRoomRenderer.tsx')
   const details = await source('../src/components/AuthoredSurfaceDetails.tsx')
   assert.match(profiles, /authored:iran-paper-net:store:v3/)
   assert.match(profiles, /fingerprint/)

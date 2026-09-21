@@ -1,8 +1,8 @@
 # Paper Bazaar 3D
 
-نسخه فعلی: **v0.12.0**
+نسخه فعلی: **v0.13.0**
 
-یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.12 ظاهر و جزئیات v0.11 را حفظ می‌کند و فقط pipeline بارگذاری/رندر را سبک‌تر می‌کند: progressive GLB streaming، staged PBR، texture residency مشترک، instancing و deferred GPU work؛ بدون تغییر قراردادهای World/Catalog/Documents/Scan.
+یک prototype سه‌بعدی ماژولار برای بازار کاغذ ایران با React، TypeScript، Three.js و React Three Fiber. v0.13 جدید مستقیماً از release/v0.12.0 بازسازی شده و دو هدف دارد: سرعت بالاتر در صحنه‌ی تقریباً ثابت و تکسچر/جنس واقعی‌تر در نمای نزدیک، بدون حذف دستاوردهای World/Catalog/Documents/Scan و authored GLB v3.
 
 ## اجرا
 
@@ -30,21 +30,40 @@ npm run dev
 | Mobile interact | E |
 | Mobile zoom | pinch یا +/- |
 
-## v0.12 — Progressive Loading بدون افت کیفیت
+## v0.13 — Photoreal Performance Rebuild
 
-- فایل‌های GLB دوردست در startup دانلود/decode نمی‌شوند؛ در فاصله 24 متر preload و در 18 متر reveal می‌شوند.
-- هنگام load شدن file-backed room، یک Booth proxy سبک داخل Suspense محلی می‌ماند تا کل World هرگز blank نشود.
-- meshهای تکراری و non-interactive مدل authored به `InstancedMesh` تبدیل می‌شوند؛ hotspotهای semantic دست‌نخورده باقی می‌مانند.
-- PBR variantهای یکسان ref-count/share می‌شوند و ساخت texture setها حداکثر دو مورد هم‌زمان است.
-- در شروع فقط سطح‌های critical پاساژ real albedo می‌گیرند؛ mapهای کامل normal/roughness بعد از ورود و idle time فعال می‌شوند.
-- PMREM reflection، floor imperfection، SoftShadows و shadow-map کامل قبل از ورود ساخته نمی‌شوند.
-- Catalog Reader با dynamic import فقط در اولین interaction کاتالوگ دانلود می‌شود.
-- قبل از ورود Canvas در demand mode و DPR سبک‌تر است؛ پس از ورود همان کیفیت Cinematic/Balanced قبلی برمی‌گردد.
-- GLB v3، UV، bevel، decals، PBR، AgX، interactionها، mobile controls، collision و تمام contractهای scan/server بدون حذف باقی مانده‌اند.
+این نسخه **از release/v0.12.0** ساخته شده و v0.13/v0.14/v0.15 آزمایشی قبلی مبنای آن نیستند.
 
-Baseline قبل از این pass (v0.11 CI): main JS = 1,247.22 kB / 352.51 kB gzip و authored GLB = 97,412 bytes.
+### Performance
+- shadow map سینمایی برای صحنه‌ی ثابت event-driven شده و هر فریم دوباره render نمی‌شود.
+- پنل‌های سقف، چراغ‌های قابل‌دیدن و ستون‌های تکراری با instancing رسم می‌شوند.
+- subdivision بی‌استفاده‌ی کف حذف شده؛ ظاهر و UV material عوض نشده است.
+- هر 13 fixture سقف دیده می‌شود، اما فقط هر سومین fixture یک PointLight واقعی دارد.
+- probe فاصله‌ی GLB هر 10 فریم و با squared-distance انجام می‌شود.
+- transformهای authored ثابت freeze می‌شوند.
+- diagnostics فقط وقتی F3 باز است frame callback دارد.
+- store موقعیت بازیکن هنگام سکون بی‌جهت update نمی‌شود.
+- texture decode مسیر ImageBitmap دارد و GPU uploadها در idle window سریالی warm می‌شوند.
+- هنگام حرکت/چرخش دوربین فقط pixel ratio موقتاً regress می‌شود و بعد از توقف به fidelity کامل برمی‌گردد.
+- shader variantها در idle با compileAsync گرم می‌شوند تا hitch ناشی از compile دیرهنگام کمتر شود.
+- PMREM فقط هنگام start ساخته می‌شود؛ تغییر Quality دیگر environment را از صفر regenerate نمی‌کند.
 
-جزئیات فنی: [docs/DEBUG_REPORT_V012.md](docs/DEBUG_REPORT_V012.md)
+### Texture / material realism
+- PBR پایه همچنان 1K و progressive است.
+- روی سیستم دسکتاپ مناسب در Cinematic، سطوح high-value و authored room اجازه‌ی 2K دارند.
+- هر درخواست 2K در صورت خطا خودکار به 1K برمی‌گردد.
+- micro normal مستقل برای clearcoat سطوح صیقلی اضافه شده است.
+- کاغذ و مقوا micro bump + roughness اختصاصی دارند تا در نمای نزدیک تخت دیده نشوند.
+- fiber albedo محلی و deterministic برای paper/cardboard روی UV واقعی GLB اضافه شده تا رنگ سطح کاملاً تخت نباشد.
+- micro roughness در فاز albedo-only فاصله‌ی بین fallback و full PBR را بدون network asset اضافی پر می‌کند.
+- normal واقعی PBR با bump جعلی overwrite نمی‌شود؛ کانال‌های detail با مسیر فیزیکی سازگار استفاده می‌شوند.
+- AgX، PMREM، decals، fingerprints، UV، bevel و cylinderهای v0.11/v0.12 حفظ شده‌اند.
+
+### Interaction safety
+- بهینه‌سازی raycast فقط برای batchهای تزئینی ریز اعمال می‌شود.
+- دیوار، قفسه و سطوح ساختاری همچنان occluder هستند؛ تعامل از پشت دیوار دوباره ایجاد نمی‌شود.
+
+جزئیات فنی: [docs/DEBUG_REPORT_V013_REBUILD.md](docs/DEBUG_REPORT_V013_REBUILD.md) و [docs/DEBUG_REPORT_V013_DEEP_PERF.md](docs/DEBUG_REPORT_V013_DEEP_PERF.md)
 
 ## اجرا و تست کاتالوگ
 
@@ -60,7 +79,8 @@ Baseline قبل از این pass (v0.11 CI): main JS = 1,247.22 kB / 352.51 kB g
 نسخه‌های milestone روی branchهای release نگه داشته می‌شوند:
 
 ```text
-release/v0.3.0 … release/v0.11.0
+release/v0.3.0 … release/v0.12.0
+release/v0.13.0 → snapshot پایدار v0.13 پس از CI نهایی
 main            → latest stable
 ```
 

@@ -1,11 +1,15 @@
+import { AdaptiveDpr } from '@react-three/drei'
 import { useMemo } from 'react'
 import Architecture from './Architecture'
 import FloorImperfections from './FloorImperfections'
 import MaterialEnvironment from './MaterialEnvironment'
+import MotionPerformanceController from './MotionPerformanceController'
 import DiagnosticsProbe from './DiagnosticsProbe'
 import ExperienceEffects from './ExperienceEffects'
 import PlayerController from './PlayerController'
 import RoomRenderer from './RoomRenderer'
+import StaticShadowController from './StaticShadowController'
+import SceneWarmup from './SceneWarmup'
 import WorldDecor from './WorldDecor'
 import { useAppStore } from '../store'
 
@@ -13,6 +17,7 @@ export default function MallScene() {
   const vendors = useAppStore((state) => state.catalog.vendors)
   const world = useAppStore((state) => state.world)
   const started = useAppStore((state) => state.started)
+  const diagnosticsEnabled = useAppStore((state) => state.diagnosticsEnabled)
   const vendorsById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor])), [vendors])
 
   return (
@@ -39,6 +44,9 @@ export default function MallScene() {
       />
 
       <MaterialEnvironment />
+      <AdaptiveDpr />
+      <MotionPerformanceController />
+      <SceneWarmup />
       <Architecture />
       {started && <FloorImperfections />}
 
@@ -52,7 +60,8 @@ export default function MallScene() {
 
       <WorldDecor />
       <ExperienceEffects />
-      <DiagnosticsProbe />
+      <StaticShadowController />
+      {diagnosticsEnabled && <DiagnosticsProbe />}
       <PlayerController world={world} />
     </>
   )

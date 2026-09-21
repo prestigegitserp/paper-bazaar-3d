@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.13.0 — Photoreal performance rebuild from v0.12
+
+### Lineage
+- rebuilt directly from `release/v0.12.0`
+- preserves all release snapshots through v0.12
+- experimental post-v0.12 work is not treated as ancestry for this release
+
+### Performance
+- static cinematic shadow maps update on scene events rather than every frame
+- repeated passage columns and ceiling fixtures use instancing
+- removes unnecessary floor geometry subdivisions
+- keeps all visible light fixtures while reducing real point-light count
+- throttles file-stream distance probes and removes square-root distance work
+- freezes local matrices for static authored geometry
+- diagnostics frame sampling exists only while F3 is open
+- suppresses stationary player-position store writes
+- uses ImageBitmap decoding when supported
+- serializes GPU texture warm-up during idle time
+- adds motion-triggered adaptive DPR so movement gets more frame budget while still frames return to full configured resolution
+- warms current shader programs with idle compileAsync and treats warm-up failure as non-blocking
+- builds PMREM once per started renderer lifecycle instead of rebuilding it on every quality toggle
+
+### Materials
+- adaptive 1K/2K PBR based on quality/device capability
+- automatic 2K → 1K fallback
+- close-range clearcoat micro-normal detail
+- paper/cardboard micro bump and roughness detail
+- adds deterministic local paper/cardboard fiber albedo on authored UVs with no extra network request
+- uses generated micro roughness during albedo-only PBR phases so close surfaces do not become uniformly glossy/flat while full maps stream
+- keeps real PBR normal maps authoritative rather than combining them incorrectly with bump maps
+
+### Interaction safety
+- structural meshes remain raycastable as occluders
+- only tiny decorative instance batches may opt out of raycast
+- semantic hotspot behavior remains unchanged
+
 ## 0.12.0 — Progressive loading without visual downgrade
 
 ### Startup
@@ -26,7 +62,6 @@
 - Cinematic normal/roughness upgrades are scheduled after interaction/idle time
 - procedural fallback variants are shared by surface/repeat/anisotropy key
 
-# Changelog
 
 ## 0.11.0 — Geometry + surface realism
 

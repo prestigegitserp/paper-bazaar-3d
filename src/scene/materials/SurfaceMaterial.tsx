@@ -19,6 +19,15 @@ import {
   getSurfaceTextureVariant
 } from './proceduralSurfaces'
 import { getSurfacePhysicalProfile } from './surfacePhysicalProfiles'
+import { preferredPbrResolution } from './textureQuality'
+import { warmPbrTextureSet } from './textureUploadScheduler'
+import {
+  getMicroBumpScale,
+  getMicroBumpVariant,
+  getMicroNormalScale,
+  getMicroNormalVariant,
+  getMicroRoughnessVariant
+} from './microDetailTextures'
 
 type LoadPriority = 'critical' | 'deferred'
 type PbrPhase = 'fallback' | 'albedo' | 'full'
@@ -67,9 +76,9 @@ function usePbrPhase(
       }
 
       if (idleWindow.requestIdleCallback) {
-        idleId = idleWindow.requestIdleCallback(upgrade, { timeout: 1400 })
+        idleId = idleWindow.requestIdleCallback(upgrade, { timeout: 1500 })
       } else {
-        fullTimer = window.setTimeout(upgrade, 650)
+        fullTimer = window.setTimeout(upgrade, 700)
       }
     }
 
@@ -107,7 +116,8 @@ export default function SurfaceMaterial({
   side,
   transparent,
   opacity,
-  loadPriority = 'deferred'
+  loadPriority = 'deferred',
+  allowHighResolution = false
 }: {
   surface: SurfacePresetId
   repeat?: [number, number]
@@ -118,6 +128,7 @@ export default function SurfaceMaterial({
   transparent?: boolean
   opacity?: number
   loadPriority?: LoadPriority
+  allowHighResolution?: boolean
 }) {
   const quality = useAppStore((state) => state.quality)
   const started = useAppStore((state) => state.started)
@@ -132,6 +143,9 @@ export default function SurfaceMaterial({
     started,
     loadPriority
   )
+  const resolution = phase === 'full'
+    ? preferredPbrResolution(quality, allowHighResolution)
+    : '1k'
 
   const [loadedPbr, setLoadedPbr] = useState<PbrTextureSet | null>(null)
   const textureAnisotropy = quality === 'cinematic'
@@ -140,6 +154,20 @@ export default function SurfaceMaterial({
 
   const fallback = useMemo(
     () => getSurfaceTextureVariant(surface, repeat, textureAnisotropy),
+    [repeat[0], repeat[1], surface, textureAnisotropy]
+  )
+  const microBump = useMemo(
+    () => getMicroBumpVariant(surface, repeat, textureAnisotropy),
+    [repeat[0], repeat[1], surface, textureAnisotropy]
+  )
+  const clearcoatNormal = useMemo(
+    () => physical.clearcoat >= 0.07
+      ? getMicroNormalVariant(surface, repeat, textureAnisotropy)
+      : undefined,
+    [physical.clearcoat, repeat[0], repeat[1], surface, textureAnisotropy]
+  )
+  const microRoughness = useMemo(
+    () => getMicroRoughnessVariant(surface, repeat, textureAnisotropy),
     [repeat[0], repeat[1], surface, textureAnisotropy]
   )
 
@@ -151,40 +179,59 @@ export default function SurfaceMaterial({
 
     let active = true
     let lease: PbrTextureLease | null = null
+    let readyForRelease = false
     setLoadedPbr(null)
 
-    void acquirePbrTextureSet(surface, {
-      repeat,
-      anisotropy: textureAnisotropy,
-      full: phase === 'full',
-      priority: loadPriority === 'critical'
-        ? 'critical'
-        : phase === 'full'
-          ? 'background'
-          : 'normal'
-    })
-      .then((nextLease) => {
+    void (async () => {
+      try {
+        const nextLease = await acquirePbrTextureSet(surface, {
+          repeat,
+          anisotropy: textureAnisotropy,
+          full: phase === 'full',
+          priority: loadPriority === 'critical'
+            ? 'critical'
+            : phase === 'full'
+              ? 'background'
+              : 'normal',
+          resolution
+        })
         lease = nextLease
+        if (!nextLease) return
+
+        await warmPbrTextureSet(gl, nextLease.set)
+        readyForRelease = true
+
         if (!active) {
           releasePbrTextureSet(nextLease)
+          lease = null
           return
         }
-        setLoadedPbr(nextLease?.set ?? null)
-      })
-      .catch(() => {
+
+        setLoadedPbr(nextLease.set)
+      } catch {
+        if (lease) {
+          releasePbrTextureSet(lease)
+          lease = null
+        }
         if (active) setLoadedPbr(null)
-      })
+      }
+    })()
 
     return () => {
       active = false
-      releasePbrTextureSet(lease)
+      if (lease && readyForRelease) {
+        releasePbrTextureSet(lease)
+        lease = null
+      }
     }
   }, [
+    gl,
     loadPriority,
     pbrAsset,
     phase,
     repeat[0],
     repeat[1],
+    resolution,
     surface,
     textureAnisotropy
   ])
@@ -197,20 +244,28 @@ export default function SurfaceMaterial({
         baseNormalScale * physical.normalScaleMultiplier
       )
     : undefined
+  const useMicroRoughness = Boolean(loadedPbr)
+    || preset.kind === 'paper'
+    || preset.kind === 'wood'
+    || preset.kind === 'plaster'
+    || preset.kind === 'terrazzo'
+  const roughnessMap = loadedPbr?.roughnessMap ?? (useMicroRoughness ? microRoughness : undefined)
 
   return (
     <meshPhysicalMaterial
       color={color ? new Color(color) : undefined}
       map={map}
-      bumpMap={loadedPbr ? undefined : fallback.bump}
-      bumpScale={loadedPbr ? 0 : preset.bumpScale}
+      bumpMap={loadedPbr?.normalMap ? undefined : loadedPbr ? microBump : fallback.bump}
+      bumpScale={loadedPbr?.normalMap ? 0 : loadedPbr ? getMicroBumpScale(surface) : preset.bumpScale}
       normalMap={loadedPbr?.normalMap}
       normalScale={normalScale}
-      roughnessMap={loadedPbr?.roughnessMap}
+      roughnessMap={roughnessMap}
       roughness={preset.roughness}
       metalness={preset.metalness}
       clearcoat={quality === 'cinematic' ? physical.clearcoat : physical.clearcoat * 0.45}
       clearcoatRoughness={physical.clearcoatRoughness}
+      clearcoatNormalMap={quality === 'cinematic' ? clearcoatNormal : undefined}
+      clearcoatNormalScale={clearcoatNormal ? new Vector2(getMicroNormalScale(surface), getMicroNormalScale(surface)) : undefined}
       envMapIntensity={physical.envMapIntensity}
       anisotropy={quality === 'cinematic' ? physical.anisotropy : physical.anisotropy * 0.45}
       emissive={emissive}

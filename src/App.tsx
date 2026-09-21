@@ -51,6 +51,11 @@ export default function App() {
             : [0.72, 1.12]
           : [0.65, 0.9]}
         frameloop={started ? 'always' : 'demand'}
+        performance={{
+          min: started ? (quality === 'cinematic' ? 0.72 : 0.82) : 1,
+          max: 1,
+          debounce: 650
+        }}
         camera={{ fov: 66, near: 0.08, far: 90, position: world.spawn as [number, number, number] }}
         gl={{ antialias: quality === 'cinematic', powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {

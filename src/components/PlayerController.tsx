@@ -49,6 +49,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   const frameCount = useRef(0)
   const lastNearby = useRef('')
   const lastActiveRoom = useRef<string | null>(null)
+  const lastReportedPlayer = useRef(new Vector2(world.spawn[0], world.spawn[2]))
   const lookEuler = useRef(new Euler(0, 0, 0, 'YXZ'))
   const yawEuler = useRef(new Euler(0, 0, 0, 'YXZ'))
   const forward = useRef(new Vector3())
@@ -66,6 +67,8 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
   }, [setNearby])
 
   const findTarget = useCallback(() => {
+    RAYCASTER.near = 0
+    RAYCASTER.far = INTERACTION_DISTANCE
     RAYCASTER.setFromCamera(CENTER, camera)
     const firstHit = RAYCASTER.intersectObjects(scene.children, true)[0]
     if (!firstHit || firstHit.distance > INTERACTION_DISTANCE) return null
@@ -88,6 +91,7 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     desiredVelocity.current.set(0, 0, 0)
     bobPhase.current = 0
     setPlayer(target[0], target[2])
+    lastReportedPlayer.current.set(target[0], target[2])
   }, [camera, setPlayer])
 
   useEffect(() => {
@@ -340,7 +344,12 @@ export default function PlayerController({ world }: { world: WorldDefinition }) 
     }
 
     if (frameCount.current % 8 === 0) {
-      setPlayer(camera.position.x, camera.position.z)
+      const dx = camera.position.x - lastReportedPlayer.current.x
+      const dz = camera.position.z - lastReportedPlayer.current.y
+      if (dx * dx + dz * dz > 0.0025) {
+        lastReportedPlayer.current.set(camera.position.x, camera.position.z)
+        setPlayer(camera.position.x, camera.position.z)
+      }
       const activeRoom = findActiveRoom(world, camera.position.x, camera.position.z)
       const activeId = activeRoom?.id ?? null
       if (activeId !== lastActiveRoom.current) {

@@ -187,9 +187,10 @@ export default function HUD() {
   const setStarted = useAppStore((state) => state.setStarted)
   const setQuality = useAppStore((state) => state.setQuality)
   const requestNavigation = useAppStore((state) => state.requestNavigation)
+  const diagnosticsEnabled = useAppStore((state) => state.diagnosticsEnabled)
+  const setDiagnosticsEnabled = useAppStore((state) => state.setDiagnosticsEnabled)
   const { active: loadingAssets, progress } = useProgress()
   const [mapOpen, setMapOpen] = useState(true)
-  const [debugOpen, setDebugOpen] = useState(false)
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -197,14 +198,14 @@ export default function HUD() {
       if (event.code === 'KeyM') setMapOpen((value) => !value)
       if (event.code === 'F3') {
         event.preventDefault()
-        setDebugOpen((value) => !value)
+        setDiagnosticsEnabled(!useAppStore.getState().diagnosticsEnabled)
       }
       if (event.code === 'KeyQ') setQuality(quality === 'cinematic' ? 'balanced' : 'cinematic')
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [quality, setQuality])
+  }, [quality, setDiagnosticsEnabled, setQuality])
 
   const selectedVendor = useMemo(() => {
     if (!selected) return null
@@ -245,7 +246,7 @@ export default function HUD() {
       <div className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">P3</div>
-          <div><strong>Paper Bazaar 3D</strong><span>Progressive loading · v0.12</span></div>
+          <div><strong>Paper Bazaar 3D</strong><span>Photoreal performance · v0.13</span></div>
         </div>
 
         <div className="top-actions">
@@ -309,7 +310,7 @@ export default function HUD() {
         </div>
       )}
 
-      {debugOpen && <DebugPanel />}
+      {diagnosticsEnabled && <DebugPanel />}
       <MobileControls />
 
       {selected && selected.kind !== 'document' && selectedVendor && (
@@ -326,15 +327,15 @@ export default function HUD() {
       {!started && (
         <div className="intro-overlay">
           <div className="intro-card">
-            <div className="intro-eyebrow">PROGRESSIVE LOADING · v0.12.0</div>
+            <div className="intro-eyebrow">PHOTOREAL PERFORMANCE · v0.13.0</div>
             <h1>راسته‌ی سه‌بعدی<br /><span>کاغذفروشان بازار تهران</span></h1>
-            <p>v0.12 ظاهر v0.11 را حفظ می‌کند اما هزینه‌ی شروع را مرحله‌ای می‌کند: GLB دوردست فقط نزدیک کاربر preload می‌شود، PBRها به‌صورت کنترل‌شده و idle-upgrade می‌آیند، meshهای تکراری authored batch می‌شوند و هزینه‌های GPU سنگین بعد از ورود فعال می‌شوند.</p>
+            <p>v0.13 جدید مستقیماً از v0.12 بازسازی شده: shadowهای ثابت دیگر هر فریم دوباره ساخته نمی‌شوند، معماری تکراری instance شده، decode/upload تکسچر مرحله‌ای است و PBR نزدیک روی سیستم‌های مناسب تا 2K ارتقا می‌گیرد؛ بدون حذف UV، bevel، decals، interaction یا مسیر Scan.</p>
             <div className="intro-features">
-              <span>UV-mapped authored GLB v3</span>
-              <span>Real bevels & cylinders</span>
-              <span>Physical labels & decals</span>
-              <span>AgX highlight rolloff</span>
-              <span>Scan-ready architecture</span>
+              <span>Adaptive 1K → 2K PBR</span>
+              <span>Paper / wood micro-detail</span>
+              <span>Static shadow cache</span>
+              <span>Instanced architecture</span>
+              <span>v0.12 scan/server contracts</span>
             </div>
             <button className="enter-button" onClick={enter}>ورود به بازار <b>↵</b></button>
             <small>دسکتاپ: WASD + Mouse + Wheel · موبایل: Joystick + Look pad + Pinch/±.</small>
