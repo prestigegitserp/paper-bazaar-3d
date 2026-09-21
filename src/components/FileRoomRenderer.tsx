@@ -37,6 +37,7 @@ import { useAppStore, type RenderQuality } from '../store'
 import { resolveHotspotInteraction } from '../world/hotspots'
 import type { RoomDefinition } from '../world/types'
 import AuthoredSurfaceDetails from './AuthoredSurfaceDetails'
+import { ProductSampleRail } from '../scene/retail/RetailFixtures'
 import WorldTextPanel from './WorldTextPanel'
 
 const authoredTextureBindings: Partial<Record<string, {
@@ -454,6 +455,10 @@ export default function FileRoomRenderer({ room, vendor, url, scale = 1 }: { roo
       <group scale={scale}>
         {room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
           <AuthoredSurfaceDetails room={room} />
+        )}
+
+        {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
+          <ProductSampleRail room={room} vendor={vendor} />
         )}
 
         {vendor && room.asset.kind === 'gltf' && room.asset.source === 'authored' && (
